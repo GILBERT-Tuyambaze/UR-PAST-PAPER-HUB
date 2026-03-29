@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Clock3, GraduationCap, ShieldCheck, Sparkles, UploadCloud } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
+import { BookOpen, Clock3, ShieldCheck, Sparkles, UploadCloud } from 'lucide-react';
 
 type AuthSlide = {
   title: string;
@@ -69,7 +70,7 @@ export default function AuthShowcase() {
   }, []);
 
   const activeSlide = SLIDES[activeIndex];
-  const ActiveIcon = ICONS[activeIndex] ?? GraduationCap;
+  const ActiveIcon = ICONS[activeIndex] ?? BookOpen;
 
   return (
     <div className="relative overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/70 p-6 shadow-2xl backdrop-blur dark:border-white/10 dark:bg-[#111827]/75 md:p-8">
@@ -123,7 +124,7 @@ export default function AuthShowcase() {
 
             <div className="space-y-4 rounded-[1.2rem] bg-slate-950 p-5 text-white">
               <div className="flex items-center gap-3">
-                <GraduationCap className="h-5 w-5 text-[#F08A5D]" />
+                <BrandMark imageClassName="h-8 w-8" />
                 <p className="text-sm font-semibold">Built for University of Rwanda students</p>
               </div>
               <p className="text-sm leading-6 text-white/75">

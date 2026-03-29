@@ -276,7 +276,14 @@ export default function Layout({ children }: LayoutProps) {
               <div className="theme-muted flex flex-col gap-2 text-sm">
                 <Link to="/terms" className="transition-colors hover:text-[hsl(var(--brand))]">Terms</Link>
                 <Link to="/privacy" className="transition-colors hover:text-[hsl(var(--brand))]">Privacy Policy</Link>
-                
+                <a
+                  href="https://tuyambaze-gilbert.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors hover:text-[hsl(var(--brand))]"
+                >
+                  Gilbert Tuyambaze
+                </a>
               </div>
             </div>
             <div>

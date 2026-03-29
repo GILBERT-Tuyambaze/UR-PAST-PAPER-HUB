@@ -10,6 +10,9 @@ import Upload from './pages/Upload';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import Story from './pages/Story';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import AuthCallback from './pages/AuthCallback';
 import AuthError from './pages/AuthError';
@@ -33,6 +36,9 @@ const App = () => (
           <Route path="/auth/logout-callback" element={<LogoutCallbackPage />} />
           <Route path="/" element={<Layout><Index /></Layout>} />
           <Route path="/search" element={<Layout><SearchResults /></Layout>} />
+          <Route path="/story" element={<Layout><Story /></Layout>} />
+          <Route path="/terms" element={<Layout><Terms /></Layout>} />
+          <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
           <Route path="/paper/:id" element={<Layout><PaperDetails /></Layout>} />
           <Route path="/upload" element={<Layout><Upload /></Layout>} />
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />

@@ -276,13 +276,20 @@ export default function Layout({ children }: LayoutProps) {
               <div className="theme-muted flex flex-col gap-2 text-sm">
                 <Link to="/terms" className="transition-colors hover:text-[hsl(var(--brand))]">Terms</Link>
                 <Link to="/privacy" className="transition-colors hover:text-[hsl(var(--brand))]">Privacy Policy</Link>
-                
+                <a
+                  href="https://tuyambaze-gilbert.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors hover:text-[hsl(var(--brand))]"
+                >
+                  Gilbert Tuyambaze
+                </a>
               </div>
             </div>
             <div>
               <h3 className="theme-title mb-3 font-semibold">Credits</h3>
               <p className="theme-muted text-sm">
-                Led by Gilbert Tuyambaze with  Karly Ngarambe, inspired by the need for a reliable UR academic archive.
+                Led by Gilbert Tuyambaze with co-operator Karly Ngarambe, inspired by the need for a reliable UR academic archive.
               </p>
               <div className="theme-muted mt-3 flex flex-col gap-2 text-sm">
                 <a
@@ -309,7 +316,7 @@ export default function Layout({ children }: LayoutProps) {
             <a href="https://tuyambaze-gilbert.vercel.app/" target="_blank" rel="noreferrer" className="hover:text-[hsl(var(--brand))]">
               Gilbert Tuyambaze
             </a>{' '}
-            with {' '}
+            with co{' '}
             <a
               href="https://rw.linkedin.com/in/karly-ngarambe-designer"
               target="_blank"

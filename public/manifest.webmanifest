@@ -9,9 +9,10 @@
   "theme_color": "#343A40",
   "icons": [
     {
-      "src": "https://tuyambaze-gilbert.vercel.app/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
