@@ -1,0 +1,53 @@
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class UserResponse(BaseModel):
+    id: str  # Now a string UUID (platform sub)
+    email: str
+    name: Optional[str] = None
+    role: str = "user"  # user/admin
+    last_login: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PlatformTokenExchangeRequest(BaseModel):
+    """Request body for exchanging Platform token for app token."""
+
+    platform_token: str
+
+
+class FirebaseTokenExchangeRequest(BaseModel):
+    """Request body for exchanging Firebase ID token for app token."""
+
+    firebase_token: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str = Field(min_length=8)
+    role: str = "normal"
+    institution_type: str
+    university_name: Optional[str] = None
+    ur_student_code: Optional[str] = None
+    phone_number: Optional[str] = None
+    college_name: Optional[str] = None
+    department_name: Optional[str] = None
+    year_of_study: Optional[str] = None
+    bio: Optional[str] = None
+
+
+class TokenExchangeResponse(BaseModel):
+    """Response body for issued application token."""
+
+    token: str

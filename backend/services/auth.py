@@ -1,0 +1,407 @@
+import logging
+import os
+import time
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional, Tuple
+from uuid import uuid4
+
+from core.auth import create_access_token, hash_password, verify_password
+from core.config import settings
+from core.database import db_manager
+from models.auth import OIDCState, User
+from models.user_profiles import User_profiles
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
+
+INSTITUTION_TYPES = {"ur_student", "other_university"}
+UR_VERIFICATION_STATUSES = {"not_requested", "pending", "verified", "rejected"}
+PROFILE_ROLES = {"normal", "verified_contributor", "cp", "lecturer", "content_manager", "admin"}
+PUBLIC_REGISTRATION_ROLES = {"normal", "cp", "lecturer"}
+
+
+def _admin_matches(platform_sub: str, email: str) -> bool:
+    admin_user_id = getattr(settings, "admin_user_id", "") or ""
+    admin_user_email = (getattr(settings, "admin_user_email", "") or "").strip().lower()
+    return bool((admin_user_id and platform_sub == admin_user_id) or (admin_user_email and email.lower() == admin_user_email))
+
+
+async def _ensure_admin_profile(db: AsyncSession, user: User) -> None:
+    await ensure_user_profile_record(db, user)
+
+
+def _clean_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _normalize_ur_student_code(value: Optional[str]) -> Optional[str]:
+    cleaned = _clean_text(value)
+    if not cleaned:
+        return None
+    return cleaned.replace(" ", "").upper()
+
+
+def _default_display_name(user: User) -> str:
+    return _clean_text(user.name) or user.email.split("@", 1)[0]
+
+
+async def ensure_user_profile_record(
+    db: AsyncSession,
+    user: User,
+    updates: Optional[Dict[str, Any]] = None,
+) -> User_profiles:
+    payload = updates or {}
+    result = await db.execute(select(User_profiles).where(User_profiles.user_id == user.id))
+    profile = result.scalar_one_or_none()
+    verified_ur_locked = bool(
+        profile
+        and profile.ur_verification_status == "verified"
+        and profile.ur_student_code
+    )
+
+    def pick_text(field: str, current: Optional[str]) -> Optional[str]:
+        if field not in payload:
+            return current
+        return _clean_text(payload.get(field))
+
+    display_name = pick_text("display_name", profile.display_name if profile else None) or _default_display_name(user)
+    institution_type = pick_text("institution_type", profile.institution_type if profile else None)
+    university_name = pick_text("university_name", profile.university_name if profile else None)
+    ur_student_code = (
+        _normalize_ur_student_code(payload.get("ur_student_code"))
+        if "ur_student_code" in payload
+        else profile.ur_student_code if profile else None
+    )
+    ur_verification_status = pick_text(
+        "ur_verification_status",
+        profile.ur_verification_status if profile else None,
+    )
+    profile_picture_key = pick_text("profile_picture_key", profile.profile_picture_key if profile else None)
+    phone_number = pick_text("phone_number", profile.phone_number if profile else None)
+    college_name = pick_text("college_name", profile.college_name if profile else None)
+    department_name = pick_text("department_name", profile.department_name if profile else None)
+    year_of_study = pick_text("year_of_study", profile.year_of_study if profile else None)
+    bio = pick_text("bio", profile.bio if profile else None)
+    requested_role = pick_text("role", profile.role if profile else None)
+
+    if verified_ur_locked:
+        if "ur_student_code" in payload:
+            requested_code = _normalize_ur_student_code(payload.get("ur_student_code"))
+            if requested_code != profile.ur_student_code:
+                raise ValueError("Verified UR student code cannot be changed")
+
+        if "institution_type" in payload and _clean_text(payload.get("institution_type")) != profile.institution_type:
+            raise ValueError("Institution type cannot be changed after UR verification")
+
+        if "university_name" in payload:
+            requested_university = _clean_text(payload.get("university_name")) or "University of Rwanda"
+            current_university = profile.university_name or "University of Rwanda"
+            if requested_university != current_university:
+                raise ValueError("University name cannot be changed after UR verification")
+
+    if institution_type and institution_type not in INSTITUTION_TYPES:
+        raise ValueError("Institution type must be either 'ur_student' or 'other_university'")
+
+    if institution_type is None:
+        if ur_student_code or university_name == "University of Rwanda":
+            institution_type = "ur_student"
+        elif university_name:
+            institution_type = "other_university"
+
+    if institution_type == "ur_student":
+        university_name = "University of Rwanda"
+        if not ur_student_code:
+            raise ValueError("UR student code is required for University of Rwanda verification")
+        if "ur_verification_status" not in payload:
+            was_verified = (
+                profile is not None
+                and profile.ur_verification_status == "verified"
+                and profile.ur_student_code == ur_student_code
+            )
+            ur_verification_status = "verified" if was_verified else "pending"
+    elif institution_type == "other_university":
+        ur_student_code = None
+        if not university_name:
+            raise ValueError("University name is required when selecting another university")
+        ur_verification_status = "not_requested"
+    elif not ur_verification_status:
+        ur_verification_status = "not_requested"
+
+    if ur_verification_status and ur_verification_status not in UR_VERIFICATION_STATUSES:
+        raise ValueError("Invalid UR verification status")
+
+    role = requested_role or (profile.role if profile and profile.role else "normal")
+    if role not in PROFILE_ROLES:
+        raise ValueError("Invalid account role")
+    if user.role == "admin":
+        role = "admin"
+
+    trust_score = profile.trust_score if profile and profile.trust_score is not None else 0
+    if role == "admin":
+        trust_score = max(trust_score, 100)
+
+    upload_count = profile.upload_count if profile and profile.upload_count is not None else 0
+    download_count = profile.download_count if profile and profile.download_count is not None else 0
+    account_status = profile.account_status if profile and profile.account_status else "active"
+    suspension_reason = profile.suspension_reason if profile else None
+    suspended_until = profile.suspended_until if profile else None
+
+    if profile:
+        profile.display_name = display_name
+        profile.role = role
+        profile.trust_score = trust_score
+        profile.upload_count = upload_count
+        profile.download_count = download_count
+        profile.institution_type = institution_type
+        profile.university_name = university_name
+        profile.ur_student_code = ur_student_code
+        profile.ur_verification_status = ur_verification_status or "not_requested"
+        profile.profile_picture_key = profile_picture_key
+        profile.phone_number = phone_number
+        profile.college_name = college_name
+        profile.department_name = department_name
+        profile.year_of_study = year_of_study
+        profile.bio = bio
+        profile.account_status = account_status
+        profile.suspension_reason = suspension_reason
+        profile.suspended_until = suspended_until
+    else:
+        profile = User_profiles(
+            user_id=user.id,
+            display_name=display_name,
+            role=role,
+            trust_score=trust_score,
+            upload_count=upload_count,
+            download_count=download_count,
+            institution_type=institution_type,
+            university_name=university_name,
+            ur_student_code=ur_student_code,
+            ur_verification_status=ur_verification_status or "not_requested",
+            profile_picture_key=profile_picture_key,
+            phone_number=phone_number,
+            college_name=college_name,
+            department_name=department_name,
+            year_of_study=year_of_study,
+            bio=bio,
+            account_status=account_status,
+            suspension_reason=suspension_reason,
+            suspended_until=suspended_until,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(profile)
+
+    user.name = display_name
+    return profile
+
+
+def _normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
+class AuthService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def find_user_by_email(self, email: str) -> Optional[User]:
+        email = _normalize_email(email)
+        result = await self.db.execute(select(User).where(User.email == email))
+        return result.scalar_one_or_none()
+
+    async def create_user_with_password(
+        self,
+        email: str,
+        name: str,
+        password: str,
+        profile_data: Optional[Dict[str, Any]] = None,
+    ) -> User:
+        normalized_email = _normalize_email(email)
+        requested_role = _clean_text((profile_data or {}).get("role"))
+        if not password or len(password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+        if requested_role and requested_role not in PUBLIC_REGISTRATION_ROLES:
+            raise ValueError("Only normal, class representative, or lecturer roles can be chosen during registration")
+
+        existing_user = await self.find_user_by_email(normalized_email)
+        if existing_user:
+            raise ValueError("An account with this email already exists")
+
+        password_hash = hash_password(password)
+        user = User(
+            id=str(uuid4()),
+            email=normalized_email,
+            name=name,
+            password_hash=password_hash,
+            last_login=datetime.now(timezone.utc),
+        )
+        self.db.add(user)
+
+        if _admin_matches(user.id, normalized_email):
+            user.role = "admin"
+
+        await ensure_user_profile_record(self.db, user, profile_data)
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user
+
+    async def verify_user_credentials(self, email: str, password: str) -> Optional[User]:
+        normalized_email = _normalize_email(email)
+        result = await self.db.execute(select(User).where(User.email == normalized_email))
+        user = result.scalar_one_or_none()
+        if not user or not user.password_hash:
+            return None
+        if not verify_password(password, user.password_hash):
+            return None
+
+        user.last_login = datetime.now(timezone.utc)
+
+        if _admin_matches(user.id, normalized_email):
+            user.role = "admin"
+
+        await ensure_user_profile_record(self.db, user)
+        await self.db.commit()
+        await self.db.refresh(user)
+
+        return user
+
+    async def get_or_create_user(self, platform_sub: str, email: str, name: Optional[str] = None) -> User:
+        """Get existing user or create new one."""
+        start_time = time.time()
+        logger.debug(f"[DB_OP] Starting get_or_create_user - platform_sub: {platform_sub}")
+        # Try to find existing user
+        result = await self.db.execute(select(User).where(User.id == platform_sub))
+        user = result.scalar_one_or_none()
+        logger.debug(f"[DB_OP] User lookup completed in {time.time() - start_time:.4f}s - found: {user is not None}")
+
+        if user:
+            # Update user info if needed
+            user.email = email
+            user.name = name
+            user.last_login = datetime.now(timezone.utc)
+        else:
+            # Create new user
+            user = User(id=platform_sub, email=email, name=name, last_login=datetime.now(timezone.utc))
+            self.db.add(user)
+
+        if _admin_matches(platform_sub, email):
+            user.role = "admin"
+
+        await ensure_user_profile_record(self.db, user)
+
+        start_time_commit = time.time()
+        logger.debug("[DB_OP] Starting user commit/refresh")
+        await self.db.commit()
+        await self.db.refresh(user)
+        logger.debug(f"[DB_OP] User commit/refresh completed in {time.time() - start_time_commit:.4f}s")
+        return user
+
+    async def issue_app_token(
+        self,
+        user: User,
+    ) -> Tuple[str, datetime, Dict[str, Any]]:
+        """Generate application JWT token for the authenticated user."""
+        try:
+            expires_minutes = int(getattr(settings, "jwt_expire_minutes", 60))
+        except (TypeError, ValueError):
+            logger.warning("Invalid JWT_EXPIRE_MINUTES value; fallback to 60 minutes")
+            expires_minutes = 60
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+
+        claims: Dict[str, Any] = {
+            "sub": user.id,
+            "email": user.email,
+            "role": user.role,
+        }
+
+        if user.name:
+            claims["name"] = user.name
+        if user.last_login:
+            claims["last_login"] = user.last_login.isoformat()
+        token = create_access_token(claims, expires_minutes=expires_minutes)
+
+        return token, expires_at, claims
+
+    async def store_oidc_state(self, state: str, nonce: str, code_verifier: str):
+        """Store OIDC state in database."""
+        # Clean up expired states first
+        await self.db.execute(delete(OIDCState).where(OIDCState.expires_at < datetime.now(timezone.utc)))
+
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)  # 10 minute expiry
+
+        oidc_state = OIDCState(state=state, nonce=nonce, code_verifier=code_verifier, expires_at=expires_at)
+
+        self.db.add(oidc_state)
+        await self.db.commit()
+
+    async def get_and_delete_oidc_state(self, state: str) -> Optional[dict]:
+        """Get and delete OIDC state from database."""
+        # Clean up expired states first
+        await self.db.execute(delete(OIDCState).where(OIDCState.expires_at < datetime.now(timezone.utc)))
+
+        # Find and validate state
+        result = await self.db.execute(select(OIDCState).where(OIDCState.state == state))
+        oidc_state = result.scalar_one_or_none()
+
+        if not oidc_state:
+            return None
+
+        # Extract data before deleting
+        state_data = {"nonce": oidc_state.nonce, "code_verifier": oidc_state.code_verifier}
+
+        # Delete the used state (one-time use)
+        await self.db.delete(oidc_state)
+        await self.db.commit()
+
+        return state_data
+
+
+async def initialize_admin_user():
+    """Initialize admin user if not exists"""
+    if "URHUD_IGNORE_INIT_ADMIN" in os.environ:
+        logger.info("Ignore initialize admin")
+        return
+
+    from services.database import initialize_database
+
+    # Ensure database is initialized first
+    await initialize_database()
+
+    admin_user_id = getattr(settings, "admin_user_id", "")
+    admin_user_email = getattr(settings, "admin_user_email", "")
+
+    if not admin_user_id and not admin_user_email:
+        logger.warning("Admin user ID or email not configured, skipping admin initialization")
+        return
+
+    async with db_manager.async_session_maker() as db:
+        user = None
+        if admin_user_id:
+            result = await db.execute(select(User).where(User.id == admin_user_id))
+            user = result.scalar_one_or_none()
+
+        if user is None and admin_user_email:
+            result = await db.execute(select(User).where(User.email == admin_user_email))
+            user = result.scalar_one_or_none()
+
+        if user:
+            user.role = "admin"
+            if admin_user_email:
+                user.email = admin_user_email
+            await _ensure_admin_profile(db, user)
+            await db.commit()
+            logger.debug("Ensured admin privileges for user %s", user.id)
+            return
+
+        if admin_user_id and admin_user_email:
+            admin_user = User(id=admin_user_id, email=admin_user_email, role="admin")
+            db.add(admin_user)
+            await _ensure_admin_profile(db, admin_user)
+            await db.commit()
+            logger.debug("Created admin user: %s with email: %s", admin_user_id, admin_user_email)
+            return
+
+        logger.info("Admin bootstrap email is configured, but no matching user exists yet. First sign-in with that email will be promoted to admin.")

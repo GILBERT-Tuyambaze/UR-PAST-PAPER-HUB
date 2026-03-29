@@ -1,0 +1,60 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node and frontend build artifacts
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.tsbuildinfo
+vite.config.ts.timestamp-*.mjs
+
+# Logs and runtime output
+logs/
+backend/logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+install_backend_deps.log
+
+# Local databases and sidecars
+backend/app.db
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+*.sqlite
+*.sqlite3
+
+# Recovery and temp folders
+recovery/
+.cache/
+tmp/
+temp/
+
+# Local tool/editor metadata
+frontend/.gbs/
+.vscode/
+.idea/
+.python-version
+
+# OS files
+.DS_Store
+Thumbs.db

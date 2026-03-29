@@ -1,0 +1,17 @@
+{
+  "name": "UR Academic Resource Hub",
+  "short_name": "UR Hub",
+  "description": "Access past papers, solutions, and academic discussions for University of Rwanda students.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#343A40",
+  "icons": [
+    {
+      "src": "https://tuyambaze-gilbert.vercel.app/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

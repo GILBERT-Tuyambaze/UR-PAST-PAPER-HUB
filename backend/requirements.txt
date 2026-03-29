@@ -1,0 +1,13 @@
+aiosqlite
+asyncpg
+cryptography
+fastapi
+httpx
+mangum
+passlib[bcrypt]
+pydantic
+pydantic-settings
+python-dotenv
+python-jose[cryptography]
+sqlalchemy
+uvicorn[standard]

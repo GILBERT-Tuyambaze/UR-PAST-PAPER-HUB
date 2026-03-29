@@ -1,0 +1,768 @@
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  deleteAdminUser,
+  fetchAdminOverview,
+  fetchAdminUsers,
+  fetchAllPapers,
+  moderatePaper,
+  updateAdminReport,
+  updateAdminUser,
+  type AdminOverview,
+  type Paper,
+  type UserProfile,
+} from '../lib/client';
+import { authApi } from '../lib/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  AlertTriangle,
+  Ban,
+  CheckCircle,
+  Clock,
+  Download,
+  Eye,
+  EyeOff,
+  FileText,
+  Flag,
+  Mail,
+  RefreshCcw,
+  Search,
+  Shield,
+  Trash2,
+  UserCog,
+  Users,
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+const ROLE_OPTIONS = [
+  { value: 'normal', label: 'Community Student' },
+  { value: 'verified_contributor', label: 'Verified Contributor' },
+  { value: 'cp', label: 'Class Representative (CP)' },
+  { value: 'lecturer', label: 'Lecturer' },
+  { value: 'content_manager', label: 'Content Manager' },
+  { value: 'admin', label: 'Admin' },
+];
+
+const STATUS_OPTIONS = ['active', 'suspended', 'banned'];
+const UR_OPTIONS = ['not_requested', 'pending', 'verified', 'rejected'];
+const INSTITUTION_OPTIONS = ['ur_student', 'other_university'];
+
+type UserDraft = {
+  email: string;
+  display_name: string;
+  role: string;
+  trust_score: string;
+  account_status: string;
+  ur_verification_status: string;
+  institution_type: string;
+  university_name: string;
+  ur_student_code: string;
+  phone_number: string;
+  college_name: string;
+  department_name: string;
+  year_of_study: string;
+  bio: string;
+  suspension_reason: string;
+};
+
+function formatDate(value?: string | null) {
+  if (!value) return 'Not available';
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? 'Not available' : parsed.toLocaleString();
+}
+
+function createDraft(profile: UserProfile): UserDraft {
+  return {
+    email: profile.email || '',
+    display_name: profile.display_name || '',
+    role: profile.role || 'normal',
+    trust_score: String(profile.trust_score ?? 0),
+    account_status: profile.account_status || 'active',
+    ur_verification_status: profile.ur_verification_status || 'not_requested',
+    institution_type: profile.institution_type || 'ur_student',
+    university_name: profile.university_name || '',
+    ur_student_code: profile.ur_student_code || '',
+    phone_number: profile.phone_number || '',
+    college_name: profile.college_name || '',
+    department_name: profile.department_name || '',
+    year_of_study: profile.year_of_study || '',
+    bio: profile.bio || '',
+    suspension_reason: profile.suspension_reason || '',
+  };
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const styles =
+    role === 'admin'
+      ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
+      : role === 'content_manager'
+      ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-200'
+      : role === 'lecturer'
+      ? 'bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-200'
+      : role === 'cp'
+      ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-200'
+      : role === 'verified_contributor'
+      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200'
+      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+
+  return <Badge className={styles}>{role.split('_').join(' ')}</Badge>;
+}
+
+function StatusBadge({ status }: { status?: string | null }) {
+  const value = status || 'active';
+  const styles =
+    value === 'banned'
+      ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200'
+      : value === 'suspended'
+      ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200'
+      : 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-200';
+
+  return <Badge className={styles}>{value}</Badge>;
+}
+
+function PaperVerificationBadge({ status }: { status: string }) {
+  if (status === 'verified') {
+    return <Badge className="bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-200">verified</Badge>;
+  }
+  if (status === 'community') {
+    return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200">community</Badge>;
+  }
+  return <Badge variant="secondary">unverified</Badge>;
+}
+
+export default function AdminPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [paperSearch, setPaperSearch] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [draft, setDraft] = useState<UserDraft | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const isContentManagerView = location.pathname === '/content-manager' || user?.role === 'content_manager';
+  const canAssignAdmin = user?.role === 'admin';
+  const roleOptions = canAssignAdmin ? ROLE_OPTIONS : ROLE_OPTIONS.filter((option) => option.value !== 'admin');
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [paperData, overviewData, userData] = await Promise.all([
+        fetchAllPapers({ sort: '-created_at', limit: 200 }),
+        fetchAdminOverview(),
+        fetchAdminUsers(),
+      ]);
+      setPapers(paperData.items);
+      setOverview(overviewData);
+      setUsers(userData);
+    } catch (error) {
+      console.error('Failed to load management data:', error);
+      toast.error('Failed to load management dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      void loadData();
+    }
+  }, [user]);
+
+  const openUserDialog = (profile: UserProfile) => {
+    setSelectedUser(profile);
+    setDraft(createDraft(profile));
+    setDialogOpen(true);
+  };
+
+  const updateDraft = <K extends keyof UserDraft>(field: K, value: UserDraft[K]) => {
+    setDraft((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const filteredUsers = users.filter((profile) => {
+    if (!userSearch) return true;
+    const q = userSearch.toLowerCase();
+    return (
+      profile.display_name.toLowerCase().includes(q) ||
+      (profile.email || '').toLowerCase().includes(q) ||
+      profile.role.toLowerCase().includes(q) ||
+      (profile.university_name || '').toLowerCase().includes(q) ||
+      (profile.ur_student_code || '').toLowerCase().includes(q)
+    );
+  });
+
+  const filteredPapers = papers.filter((paper) => {
+    if (!paperSearch) return true;
+    const q = paperSearch.toLowerCase();
+    return (
+      paper.title.toLowerCase().includes(q) ||
+      paper.course_code.toLowerCase().includes(q) ||
+      paper.course_name.toLowerCase().includes(q) ||
+      (paper.lecturer || '').toLowerCase().includes(q)
+    );
+  });
+
+  const pendingPapers = filteredPapers.filter((paper) => paper.verification_status === 'unverified');
+  const reportedPapers = filteredPapers.filter((paper) => (paper.report_count || 0) > 0);
+  const hiddenPapers = filteredPapers.filter((paper) => paper.is_hidden);
+  const totalDownloads = papers.reduce((sum, paper) => sum + (paper.download_count || 0), 0);
+  const selectedUserIsAdmin = selectedUser?.role === 'admin';
+  const adminProtected = selectedUserIsAdmin && !canAssignAdmin;
+
+  const handleSaveUser = async () => {
+    if (!selectedUser || !draft) return;
+
+    try {
+      setSaving(true);
+      const updated = await updateAdminUser(selectedUser.id, {
+        email: draft.email,
+        display_name: draft.display_name,
+        role: draft.role,
+        trust_score: Number(draft.trust_score || '0'),
+        account_status: draft.account_status,
+        ur_verification_status: draft.ur_verification_status,
+        institution_type: draft.institution_type as 'ur_student' | 'other_university',
+        university_name: draft.university_name || null,
+        ur_student_code: draft.ur_student_code || null,
+        phone_number: draft.phone_number || null,
+        college_name: draft.college_name || null,
+        department_name: draft.department_name || null,
+        year_of_study: draft.year_of_study || null,
+        bio: draft.bio || null,
+        suspension_reason: draft.suspension_reason || '',
+      });
+      setUsers((current) => current.map((profile) => (profile.id === updated.id ? updated : profile)));
+      setSelectedUser(updated);
+      setDraft(createDraft(updated));
+      toast.success('User updated successfully');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'Failed to update user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    if (!window.confirm(`Delete ${selectedUser.display_name}'s account and related content?`)) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      await deleteAdminUser(selectedUser.id);
+      setUsers((current) => current.filter((profile) => profile.id !== selectedUser.id));
+      setDialogOpen(false);
+      setSelectedUser(null);
+      setDraft(null);
+      toast.success('User deleted');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleVerifyPaper = async (paperId: number) => {
+    try {
+      const updated = await moderatePaper(paperId, { verification_status: 'verified' });
+      setPapers((current) => current.map((paper) => (paper.id === updated.id ? updated : paper)));
+      toast.success('Paper verified');
+    } catch {
+      toast.error('Failed to verify paper');
+    }
+  };
+
+  const handleTogglePaperVisibility = async (paperId: number, isHidden: boolean) => {
+    try {
+      const updated = await moderatePaper(paperId, { is_hidden: !isHidden });
+      setPapers((current) => current.map((paper) => (paper.id === updated.id ? updated : paper)));
+      toast.success(isHidden ? 'Paper is visible again' : 'Paper hidden successfully');
+    } catch {
+      toast.error('Failed to update paper');
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="theme-accent h-8 w-8 animate-spin rounded-full border-b-2 border-current" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-16 text-center">
+        <Shield className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+        <h2 className="mb-4 text-2xl font-bold text-[#343A40] dark:text-white">Management Access Required</h2>
+        <p className="mb-6 text-gray-500 dark:text-gray-400">Sign in to access the management dashboard.</p>
+        <Button onClick={() => authApi.login('/admin')} className="bg-[#F08A5D] text-white hover:bg-[#e07a4d]">
+          Sign In
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <Shield className="h-8 w-8 text-[#F08A5D]" />
+            <h1 className="text-3xl font-bold text-[#343A40] dark:text-white">
+              {isContentManagerView ? 'Content Manager Dashboard' : 'Admin Dashboard'}
+            </h1>
+          </div>
+          <p className="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+            Manage roles, review contributors, moderate reports, and keep the paper library clean and trusted.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => void loadData()}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Refresh data
+          </Button>
+          <Button onClick={() => navigate('/dashboard')} className="bg-[#F08A5D] text-white hover:bg-[#e07a4d]">
+            Open dashboard
+          </Button>
+        </div>
+      </div>
+
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Card className="theme-panel">
+          <CardContent className="p-4 text-center">
+            <Users className="mx-auto mb-2 h-6 w-6 text-[#F08A5D]" />
+            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.total_users || users.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Users</p>
+          </CardContent>
+        </Card>
+        <Card className="theme-panel">
+          <CardContent className="p-4 text-center">
+            <FileText className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.total_papers || papers.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Papers</p>
+          </CardContent>
+        </Card>
+        <Card className="theme-panel">
+          <CardContent className="p-4 text-center">
+            <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-amber-500" />
+            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.pending_reports || 0}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Pending Reports</p>
+          </CardContent>
+        </Card>
+        <Card className="theme-panel">
+          <CardContent className="p-4 text-center">
+            <Download className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
+            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{totalDownloads.toLocaleString()}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="users" className="space-y-5">
+        <TabsList className="bg-secondary">
+          <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
+          <TabsTrigger value="reports">Reports ({overview?.recent_reports?.length || 0})</TabsTrigger>
+          <TabsTrigger value="papers">Papers ({filteredPapers.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="users">
+          <Card className="theme-panel">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
+                <UserCog className="h-5 w-5 text-[#F08A5D]" />
+                User Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  value={userSearch}
+                  onChange={(event) => setUserSearch(event.target.value)}
+                  placeholder="Search by name, email, role, or UR code..."
+                  className="pl-10"
+                />
+              </div>
+
+              {loading ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {[1, 2, 3, 4].map((item) => (
+                    <div key={item} className="h-40 animate-pulse rounded-2xl bg-muted" />
+                  ))}
+                </div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground">
+                  No users match the current search.
+                </div>
+              ) : (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {filteredUsers.map((profile) => (
+                    <Card key={profile.id} className="border-border/80 bg-card/85">
+                      <CardContent className="space-y-4 p-5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-semibold text-foreground">{profile.display_name}</h3>
+                              <RoleBadge role={profile.role} />
+                              <StatusBadge status={profile.account_status} />
+                            </div>
+                            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              {profile.email || 'No email saved'}
+                            </p>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              {profile.institution_type === 'ur_student'
+                                ? `University of Rwanda • ${profile.ur_student_code || 'UR code missing'}`
+                                : profile.university_name || 'University not specified'}
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => openUserDialog(profile)}>
+                            View details
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                          <p>Trust score: <span className="font-medium text-foreground">{profile.trust_score || 0}</span></p>
+                          <p>Uploads: <span className="font-medium text-foreground">{profile.upload_count || 0}</span></p>
+                          <p>Downloads: <span className="font-medium text-foreground">{profile.download_count || 0}</span></p>
+                          <p>Last login: <span className="font-medium text-foreground">{formatDate(profile.last_login)}</span></p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Card className="theme-panel">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
+                <Flag className="h-5 w-5 text-[#F08A5D]" />
+                Recent Reports
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {overview?.recent_reports?.length ? (
+                overview.recent_reports.slice(0, 10).map((report) => (
+                  <div key={report.id} className="rounded-2xl border border-border bg-card/80 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Paper #{report.paper_id}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{report.reason}</p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Status: {report.status || 'pending'} • {formatDate(report.created_at)}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => updateAdminReport(report.id, { status: 'resolved', hide_paper: false }).then(() => loadData())}
+                          className="bg-green-600 text-white hover:bg-green-700"
+                        >
+                          Resolve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateAdminReport(report.id, { status: 'actioned', hide_paper: true }).then(() => loadData())}
+                        >
+                          Hide paper
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground">
+                  No recent reports to review.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="papers" className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              value={paperSearch}
+              onChange={(event) => setPaperSearch(event.target.value)}
+              placeholder="Search papers by title, course, code, or lecturer..."
+              className="pl-10"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Card className="theme-panel">
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">{pendingPapers.length}</p>
+                <p className="text-xs text-muted-foreground">Pending</p>
+              </CardContent>
+            </Card>
+            <Card className="theme-panel">
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">{reportedPapers.length}</p>
+                <p className="text-xs text-muted-foreground">Reported</p>
+              </CardContent>
+            </Card>
+            <Card className="theme-panel">
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">{hiddenPapers.length}</p>
+                <p className="text-xs text-muted-foreground">Hidden</p>
+              </CardContent>
+            </Card>
+            <Card className="theme-panel">
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-semibold text-foreground">{filteredPapers.length}</p>
+                <p className="text-xs text-muted-foreground">Shown</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-3">
+            {filteredPapers.map((paper) => (
+              <Card key={paper.id} className="theme-panel">
+                <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <h4 className="truncate font-medium text-[#343A40] dark:text-white">{paper.title}</h4>
+                      <PaperVerificationBadge status={paper.verification_status} />
+                      {paper.is_hidden && <Badge className="bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200">hidden</Badge>}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{paper.course_code}</span>
+                      <span>{paper.paper_type}</span>
+                      <span>{paper.year}</span>
+                      <span className="flex items-center gap-1">
+                        <Download className="h-3 w-3" />
+                        {paper.download_count || 0}
+                      </span>
+                      {(paper.report_count || 0) > 0 && (
+                        <span className="flex items-center gap-1 text-red-500">
+                          <Flag className="h-3 w-3" />
+                          {paper.report_count} reports
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {paper.created_at ? new Date(paper.created_at).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {paper.verification_status !== 'verified' && (
+                      <Button size="sm" onClick={() => handleVerifyPaper(paper.id)} className="bg-green-600 text-white hover:bg-green-700">
+                        <CheckCircle className="mr-1 h-4 w-4" />
+                        Verify
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleTogglePaperVisibility(paper.id, !!paper.is_hidden)}>
+                      {paper.is_hidden ? (
+                        <>
+                          <Eye className="mr-1 h-4 w-4" />
+                          Show
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="mr-1 h-4 w-4" />
+                          Hide
+                        </>
+                      )}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => navigate(`/paper/${paper.id}`)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedUser?.display_name || 'User details'}</DialogTitle>
+            <DialogDescription>
+              Review the complete user profile, update role and verification, or remove the account when needed.
+            </DialogDescription>
+          </DialogHeader>
+
+          {draft && selectedUser && (
+            <div className="space-y-6">
+              <div className="grid gap-3 rounded-2xl bg-muted/40 p-4 text-sm md:grid-cols-3">
+                <div>
+                  <p className="text-muted-foreground">User ID</p>
+                  <p className="mt-1 break-all font-medium text-foreground">{selectedUser.user_id}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Joined</p>
+                  <p className="mt-1 font-medium text-foreground">{formatDate(selectedUser.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Last login</p>
+                  <p className="mt-1 font-medium text-foreground">{formatDate(selectedUser.last_login)}</p>
+                </div>
+              </div>
+
+              {adminProtected && (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                  Only administrators can edit or delete administrator accounts.
+                </div>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="user-display-name">Display name</Label>
+                  <Input id="user-display-name" value={draft.display_name} onChange={(event) => updateDraft('display_name', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-email">Email</Label>
+                  <Input id="user-email" value={draft.email} onChange={(event) => updateDraft('email', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label>Role</Label>
+                  <Select value={draft.role} onValueChange={(value) => updateDraft('role', value)} disabled={adminProtected}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choose a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Account status</Label>
+                  <Select value={draft.account_status} onValueChange={(value) => updateDraft('account_status', value)} disabled={adminProtected}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choose a status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="user-trust-score">Trust score</Label>
+                  <Input id="user-trust-score" type="number" value={draft.trust_score} onChange={(event) => updateDraft('trust_score', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label>UR verification</Label>
+                  <Select value={draft.ur_verification_status} onValueChange={(value) => updateDraft('ur_verification_status', value)} disabled={adminProtected}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choose verification status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UR_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Institution type</Label>
+                  <Select value={draft.institution_type} onValueChange={(value) => updateDraft('institution_type', value)} disabled={adminProtected}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choose institution type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {INSTITUTION_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="user-university">University</Label>
+                  <Input id="user-university" value={draft.university_name} onChange={(event) => updateDraft('university_name', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-ur-code">UR student code</Label>
+                  <Input id="user-ur-code" value={draft.ur_student_code} onChange={(event) => updateDraft('ur_student_code', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-phone">Phone number</Label>
+                  <Input id="user-phone" value={draft.phone_number} onChange={(event) => updateDraft('phone_number', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-college">College</Label>
+                  <Input id="user-college" value={draft.college_name} onChange={(event) => updateDraft('college_name', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-department">Department</Label>
+                  <Input id="user-department" value={draft.department_name} onChange={(event) => updateDraft('department_name', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div>
+                  <Label htmlFor="user-year">Year of study</Label>
+                  <Input id="user-year" value={draft.year_of_study} onChange={(event) => updateDraft('year_of_study', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="user-suspension-reason">Suspension reason</Label>
+                  <Input id="user-suspension-reason" value={draft.suspension_reason} onChange={(event) => updateDraft('suspension_reason', event.target.value)} disabled={adminProtected} />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="user-bio">Bio</Label>
+                  <Textarea id="user-bio" value={draft.bio} onChange={(event) => updateDraft('bio', event.target.value)} disabled={adminProtected} className="min-h-[120px]" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-3">
+            <Button
+              variant="destructive"
+              onClick={() => void handleDeleteUser()}
+              disabled={adminProtected || deleting || selectedUser?.user_id === user.id}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleting ? 'Deleting...' : 'Delete user'}
+            </Button>
+            <Button onClick={() => void handleSaveUser()} disabled={adminProtected || saving}>
+              {saving ? 'Saving...' : 'Save changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
