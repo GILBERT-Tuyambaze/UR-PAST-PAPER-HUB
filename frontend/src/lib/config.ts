@@ -7,8 +7,20 @@ const defaultConfig = {
 
 export async function loadRuntimeConfig(): Promise<void> {
   try {
-    const apiBaseUrl = getAPIBaseURL();
-    const configUrl = apiBaseUrl ? `${apiBaseUrl}/api/config` : '/api/config';
+    const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    let configUrl: string | null = null;
+
+    if (envApiBaseUrl) {
+      configUrl = `${envApiBaseUrl}/api/config`;
+    } else if (typeof window !== 'undefined' && isLocalFrontendDevOrigin(window.location.origin)) {
+      configUrl = '/api/config';
+    }
+
+    if (!configUrl) {
+      runtimeConfig = defaultConfig;
+      return;
+    }
+
     const response = await fetch(configUrl);
     const contentType = response.headers.get('content-type') || '';
 
