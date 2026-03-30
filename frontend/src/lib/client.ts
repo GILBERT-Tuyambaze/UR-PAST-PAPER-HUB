@@ -43,6 +43,8 @@ export interface Paper {
   report_count: number | null;
   is_hidden: boolean | null;
   created_at: string | null;
+  uploader_display_name?: string | null;
+  uploader_profile_picture_key?: string | null;
 }
 
 export interface PaperListResponse {

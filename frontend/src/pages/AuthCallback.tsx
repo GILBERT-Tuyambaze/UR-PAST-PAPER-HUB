@@ -6,11 +6,9 @@ export default function AuthCallback() {
     void (async () => {
       try {
         const returnTo = await authApi.completeLoginCallback();
-        const currentUser = await authApi.getCurrentUser();
-        console.log('[auth] callback user after token exchange:', currentUser);
+        await authApi.getCurrentUser();
         window.location.replace(returnTo || '/');
-      } catch (error) {
-        console.log('[auth] callback failed:', error);
+      } catch (_error) {
         window.location.replace('/auth/error?msg=Authentication%20callback%20failed');
       }
     })();

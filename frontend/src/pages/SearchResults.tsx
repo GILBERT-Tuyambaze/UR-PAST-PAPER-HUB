@@ -133,6 +133,14 @@ export default function SearchResults() {
     );
   }, [papers, college, department]);
 
+  const uploaderDisplayMap = useMemo(() => {
+    const map = new Map<string, string>();
+    papers.forEach((paper) => {
+      map.set(paper.user_id, paper.uploader_display_name || `Uploader ${paper.user_id}`);
+    });
+    return map;
+  }, [papers]);
+
   const uploaders = useMemo(() => Array.from(new Set(papers.map((paper) => paper.user_id))).sort(), [papers]);
 
   const filteredPapers = useMemo(() => {
@@ -147,7 +155,8 @@ export default function SearchResults() {
           paper.course_name.toLowerCase().includes(q) ||
           (paper.lecturer && paper.lecturer.toLowerCase().includes(q)) ||
           (paper.description && paper.description.toLowerCase().includes(q)) ||
-          paper.user_id.toLowerCase().includes(q)
+          paper.user_id.toLowerCase().includes(q) ||
+          (paper.uploader_display_name && paper.uploader_display_name.toLowerCase().includes(q))
       );
     }
 
@@ -183,7 +192,14 @@ export default function SearchResults() {
     setSearchParams({});
   };
 
-  const activeChips = [college, department, course, year, paperType, uploader].filter(Boolean);
+  const activeChips = [
+    college,
+    department,
+    course,
+    year,
+    paperType,
+    uploader ? uploaderDisplayMap.get(uploader) || uploader : '',
+  ].filter(Boolean);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -312,7 +328,9 @@ export default function SearchResults() {
                   <SelectContent>
                     <SelectItem value="all">All Uploaders</SelectItem>
                     {uploaders.map((item) => (
-                      <SelectItem key={item} value={item}>{item}</SelectItem>
+                      <SelectItem key={item} value={item}>
+                        {uploaderDisplayMap.get(item) || item}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -405,7 +423,9 @@ export default function SearchResults() {
                     {paper.year} - {paper.department}
                   </p>
                   {paper.lecturer && <p className="theme-muted text-xs">By {paper.lecturer}</p>}
-                  <p className="theme-muted text-xs">Uploader {paper.user_id}</p>
+                  <p className="theme-muted text-xs">
+                    Uploader {paper.uploader_display_name || paper.user_id}
+                  </p>
                 </div>
                 <div className="mt-4 flex items-center justify-between border-t pt-3">
                   <span className="theme-muted flex items-center gap-1 text-xs">

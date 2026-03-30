@@ -92,26 +92,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  useEffect(() => {
-    if (loading) {
-      console.log('[auth] checking session...');
-      return;
-    }
-
-    if (user) {
-      console.log('[auth] signed in user:', user);
-      return;
-    }
-
-    console.log('[auth] no signed in user');
-  }, [user, loading]);
-
-  useEffect(() => {
-    if (error) {
-      console.log('[auth] auth error:', error);
-    }
-  }, [error]);
-
   const value: AuthContextType = {
     user,
     loading,

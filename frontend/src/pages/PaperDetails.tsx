@@ -411,6 +411,10 @@ export default function PaperDetails() {
                 </p>
               )}
               <p className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#F08A5D]" />
+                Uploaded by {paper.uploader_display_name || `Student ${paper.user_id}`}
+              </p>
+              <p className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-[#F08A5D]" />
                 {paper.created_at ? new Date(paper.created_at).toLocaleDateString() : 'N/A'}
               </p>

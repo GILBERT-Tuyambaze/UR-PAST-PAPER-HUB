@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db
+from models.user_profiles import User_profiles
 from services.papers import PapersService
 from dependencies.auth import get_current_user
 from schemas.auth import UserResponse
@@ -82,6 +83,8 @@ class PapersResponse(BaseModel):
     report_count: Optional[int] = None
     is_hidden: Optional[bool] = None
     created_at: Optional[datetime] = None
+    uploader_display_name: Optional[str] = None
+    uploader_profile_picture_key: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -114,6 +117,28 @@ class PapersBatchUpdateRequest(BaseModel):
 class PapersBatchDeleteRequest(BaseModel):
     """Batch delete request"""
     ids: List[int]
+
+
+async def _attach_uploader_info(db: AsyncSession, papers):
+    if not papers:
+        return []
+
+    user_ids = {paper.user_id for paper in papers if getattr(paper, 'user_id', None)}
+    if not user_ids:
+        return [dict({k: v for k, v in paper.__dict__.items() if not k.startswith('_')}, uploader_display_name=None, uploader_profile_picture_key=None) for paper in papers]
+
+    result = await db.execute(select(User_profiles).where(User_profiles.user_id.in_(user_ids)))
+    profiles = result.scalars().all()
+    profile_map = {profile.user_id: profile for profile in profiles}
+
+    serialized = []
+    for paper in papers:
+        paper_data = {k: v for k, v in paper.__dict__.items() if not k.startswith('_')}
+        profile = profile_map.get(paper.user_id)
+        paper_data['uploader_display_name'] = profile.display_name if profile else None
+        paper_data['uploader_profile_picture_key'] = profile.profile_picture_key if profile else None
+        serialized.append(paper_data)
+    return serialized
 
 
 def _load_mock_papers(query_dict=None, sort=None, skip=0, limit=20):
@@ -173,6 +198,7 @@ async def query_paperss(
             sort=sort,
             user_id=str(current_user.id),
         )
+        result['items'] = await _attach_uploader_info(db, result['items'])
         logger.debug(f"Found {result['total']} paperss")
         return result
     except HTTPException:
@@ -214,6 +240,7 @@ async def query_paperss_all(
             query_dict=query_dict,
             sort=sort
         )
+        result['items'] = await _attach_uploader_info(db, result['items'])
         logger.debug(f"Found {result['total']} paperss")
         return result
     except HTTPException:

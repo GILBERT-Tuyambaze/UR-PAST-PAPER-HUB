@@ -7,7 +7,9 @@ const defaultConfig = {
 
 export async function loadRuntimeConfig(): Promise<void> {
   try {
-    const response = await fetch('/api/config');
+    const apiBaseUrl = getAPIBaseURL();
+    const configUrl = apiBaseUrl ? `${apiBaseUrl}/api/config` : '/api/config';
+    const response = await fetch(configUrl);
     const contentType = response.headers.get('content-type') || '';
 
     if (response.ok && contentType.includes('application/json')) {
