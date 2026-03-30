@@ -4,6 +4,7 @@ import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import SeoMeta from '@/components/SeoMeta';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AuthShowcase from '../components/AuthShowcase';
@@ -130,6 +131,12 @@ export default function RegisterPage() {
 
   return (
     <div className="theme-auth-page min-h-screen overflow-hidden px-4 py-8 md:px-8 md:py-10">
+      <SeoMeta
+        title="Create account"
+        description="Private account registration page for UR Academic Resource Hub contributors and students."
+        canonicalPath="/register"
+        robots="noindex,nofollow"
+      />
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <AuthShowcase />
 

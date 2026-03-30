@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { fetchAllPapers, Paper } from '../lib/client';
 import OfflineDataBanner from '../components/OfflineDataBanner';
+import ExpandableContentSection from '../components/ExpandableContentSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -208,6 +209,9 @@ export default function SearchResults() {
       )}
       <div className="theme-overlay-card sticky top-20 z-20 mb-8 rounded-2xl border p-4 backdrop-blur">
         <h1 className="theme-title mb-4 text-3xl font-bold">Browse Papers</h1>
+        <p className="theme-muted mb-4 max-w-4xl text-sm leading-7">
+          Search <strong>University of Rwanda past papers</strong>, browse <strong>UR exam papers</strong> by course and year, and compare the most relevant <strong>study materials Rwanda</strong> students use when revising for tests, CATs, assignments, and final exams.
+        </p>
         <form
           onSubmit={(event) => event.preventDefault()}
           className="flex flex-col gap-2 md:flex-row"
@@ -396,54 +400,70 @@ export default function SearchResults() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPapers.map((paper) => (
-            <Card
-              key={paper.id}
-              className="theme-panel group cursor-pointer border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              onClick={() => navigate(`/paper/${paper.id}`)}
-            >
-              <CardContent className="p-5">
-                <div className="mb-3 flex items-start justify-between">
-                  <Badge variant="outline" className="border-[hsl(var(--brand))] text-xs font-medium text-[hsl(var(--brand))]">
-                    {paper.paper_type}
-                  </Badge>
-                  <VerificationBadge status={paper.verification_status} />
-                </div>
-                <h3 className="theme-title mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-[hsl(var(--brand))]">
-                  {paper.title}
-                </h3>
-                <div className="theme-muted space-y-1 text-sm">
-                  <p className="flex items-center gap-1">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    {paper.course_code} - {paper.course_name}
-                  </p>
-                  <p className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {paper.year} - {paper.department}
-                  </p>
-                  {paper.lecturer && <p className="theme-muted text-xs">By {paper.lecturer}</p>}
-                  <p className="theme-muted text-xs">
-                    Uploader {paper.uploader_display_name || paper.user_id}
-                  </p>
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t pt-3">
-                  <span className="theme-muted flex items-center gap-1 text-xs">
-                    <Download className="h-3.5 w-3.5" />
-                    {paper.download_count || 0}
-                  </span>
-                  {paper.solution_key && (
-                    <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
-                      <Star className="mr-1 h-3 w-3" />
-                      Solution
-                    </Badge>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredPapers.map((paper) => (
+              <Link key={paper.id} to={`/paper/${paper.id}`} className="block">
+                <Card className="theme-panel group border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <CardContent className="p-5">
+                    <div className="mb-3 flex items-start justify-between">
+                      <Badge variant="outline" className="border-[hsl(var(--brand))] text-xs font-medium text-[hsl(var(--brand))]">
+                        {paper.paper_type}
+                      </Badge>
+                      <VerificationBadge status={paper.verification_status} />
+                    </div>
+                    <h3 className="theme-title mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-[hsl(var(--brand))]">
+                      {paper.title}
+                    </h3>
+                    <div className="theme-muted space-y-1 text-sm">
+                      <p className="flex items-center gap-1">
+                        <BookOpen className="h-3.5 w-3.5" />
+                        {paper.course_code} - {paper.course_name}
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" />
+                        {paper.year} - {paper.department}
+                      </p>
+                      {paper.lecturer && <p className="theme-muted text-xs">By {paper.lecturer}</p>}
+                      <p className="theme-muted text-xs">
+                        Uploader {paper.uploader_display_name || paper.user_id}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t pt-3">
+                      <span className="theme-muted flex items-center gap-1 text-xs">
+                        <Download className="h-3.5 w-3.5" />
+                        {paper.download_count || 0}
+                      </span>
+                      {paper.solution_key && (
+                        <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
+                          <Star className="mr-1 h-3 w-3" />
+                          Solution
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
       )}
+
+      <ExpandableContentSection
+        className="mt-10"
+        title="How to find the right University of Rwanda past papers faster"
+        summary="Open this guide for search tips, revision advice, and extra context about how this page helps students find the most relevant UR exam papers."
+        expandLabel="Open guide"
+        collapseLabel="Hide guide"
+      >
+        <p className="theme-muted text-base leading-8">
+          This page is built for students who already know that good revision starts with the right examples. Instead of scrolling through unorganized files, you can search by course code, filter by department, or narrow results to a specific paper type such as an exam, CAT, assignment, or group work. That helps you get from a broad query like computer science revision to a focused set of <strong>UR exam papers</strong> you can actually use.
+        </p>
+        <p className="theme-muted text-base leading-8">
+          Strong search pages also matter for visibility in Google. When a page clearly explains the value of its content, search engines understand that it is not just a tool, but a useful library of <strong>University of Rwanda past papers</strong> and revision support. That is why this section explains the page purpose in plain language. Students visit to compare paper types, spot recurring assessment patterns, and identify the most relevant <strong>study materials Rwanda</strong> learners are already downloading and discussing.
+        </p>
+        <p className="theme-muted text-base leading-8">
+          If you are exploring for the first time, begin with the college and course filters, then sort by most downloaded to see what has already helped other learners. If you already know the exact course code, use the keyword search first and then refine the list by year or uploader. The result is a cleaner, more indexable resource page that serves both search engines and real students preparing for University of Rwanda assessments.
+        </p>
+      </ExpandableContentSection>
     </div>
   );
 }

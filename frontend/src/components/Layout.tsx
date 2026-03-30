@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import BrandMark from '@/components/BrandMark';
+import SeoMeta from '@/components/SeoMeta';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchNotifications } from '@/lib/client';
 import {
@@ -82,13 +83,111 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: '/', label: 'Home', icon: BookOpen },
-    { path: '/search', label: 'Browse Papers', icon: Search },
+    { path: '/past-papers', label: 'Browse Papers', icon: Search },
     { path: '/upload', label: 'Upload', icon: Upload, auth: true },
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, auth: true },
   ];
   const canAccessManagement = user?.role === 'admin' || user?.role === 'content_manager';
   const managementPath = user?.role === 'content_manager' ? '/content-manager' : '/admin';
   const managementLabel = user?.role === 'content_manager' ? 'Content Manager' : 'Admin';
+  const seoConfig = (() => {
+    if (location.pathname === '/' || location.pathname === '/study-resources') {
+      return {
+        title: 'University of Rwanda past papers and study materials Rwanda',
+        description:
+          'Find University of Rwanda past papers, UR exam papers, and study materials Rwanda students can search, compare, and use for focused revision.',
+        canonicalPath: location.pathname === '/study-resources' ? '/study-resources' : '/',
+      };
+    }
+
+    if (location.pathname === '/past-papers' || location.pathname === '/search') {
+      return {
+        title: 'UR exam papers and University of Rwanda past papers',
+        description:
+          'Browse UR exam papers, University of Rwanda past papers, and study materials Rwanda learners can filter by course, department, year, and paper type.',
+        canonicalPath: location.pathname === '/past-papers' ? '/past-papers' : '/search',
+      };
+    }
+
+    if (location.pathname === '/student-stories' || location.pathname === '/story') {
+      return {
+        title: 'Student stories and study tips for University of Rwanda learners',
+        description:
+          'Read student stories, revision tips, and study strategies based on how University of Rwanda learners use past papers and study materials Rwanda students trust.',
+        canonicalPath: location.pathname === '/student-stories' ? '/student-stories' : '/story',
+      };
+    }
+
+    if (location.pathname === '/terms') {
+      return {
+        title: 'Terms of use for UR Academic Resource Hub',
+        description:
+          'Read the terms for using University of Rwanda past papers, UR exam papers, and study materials Rwanda students share through the platform.',
+        canonicalPath: '/terms',
+      };
+    }
+
+    if (location.pathname === '/privacy') {
+      return {
+        title: 'Privacy policy for UR Academic Resource Hub',
+        description:
+          'Learn how UR Academic Resource Hub handles profile data, uploads, and study materials Rwanda platform activity for University of Rwanda learners.',
+        canonicalPath: '/privacy',
+      };
+    }
+
+    if (location.pathname.startsWith('/paper/')) {
+      return {
+        title: 'UR exam paper details and study discussion',
+        description:
+          'View a University of Rwanda past paper, read comments, study discussion, and related study materials Rwanda learners use for revision.',
+        canonicalPath: location.pathname,
+      };
+    }
+
+    if (location.pathname === '/upload') {
+      return {
+        title: 'Upload University of Rwanda past papers',
+        description: 'Private page for uploading UR exam papers and study materials Rwanda contributors want to share.',
+        canonicalPath: '/upload',
+        robots: 'noindex,nofollow',
+      };
+    }
+
+    if (location.pathname === '/dashboard') {
+      return {
+        title: 'Dashboard',
+        description: 'Private dashboard for uploads, notifications, and contribution tracking.',
+        canonicalPath: '/dashboard',
+        robots: 'noindex,nofollow',
+      };
+    }
+
+    if (location.pathname === '/profile') {
+      return {
+        title: 'Profile',
+        description: 'Private profile management for UR Academic Resource Hub.',
+        canonicalPath: '/profile',
+        robots: 'noindex,nofollow',
+      };
+    }
+
+    if (location.pathname === '/admin' || location.pathname === '/content-manager') {
+      return {
+        title: 'Management Dashboard',
+        description: 'Private management dashboard for moderation and platform administration.',
+        canonicalPath: location.pathname,
+        robots: 'noindex,nofollow',
+      };
+    }
+
+    return {
+      title: 'UR Academic Resource Hub',
+      description:
+        'Find University of Rwanda past papers, UR exam papers, and study materials Rwanda students can browse, search, and discuss.',
+      canonicalPath: location.pathname,
+    };
+  })();
 
   const isActive = (path: string) => location.pathname === path;
   const navLinkClass = (active: boolean) =>
@@ -98,6 +197,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="theme-shell">
+      <SeoMeta {...seoConfig} />
       <header className="theme-nav-surface sticky top-0 z-50 shadow-lg">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -308,9 +408,9 @@ export default function Layout({ children }: LayoutProps) {
               <h3 className="theme-title mb-3 font-semibold">Quick Links</h3>
               <div className="theme-muted flex flex-col gap-2 text-sm">
                 <Link to="/" className="transition-colors hover:text-[hsl(var(--brand))]">Home</Link>
-                <Link to="/search" className="transition-colors hover:text-[hsl(var(--brand))]">Browse Papers</Link>
+                <Link to="/past-papers" className="transition-colors hover:text-[hsl(var(--brand))]">Browse Papers</Link>
                 <Link to="/upload" className="transition-colors hover:text-[hsl(var(--brand))]">Upload Paper</Link>
-                <Link to="/story" className="transition-colors hover:text-[hsl(var(--brand))]">Story Behind This Website</Link>
+                <Link to="/student-stories" className="transition-colors hover:text-[hsl(var(--brand))]">Story Behind This Website</Link>
               </div>
             </div>
             <div>

@@ -209,6 +209,21 @@ select:disabled {
   box-shadow: var(--shadow-medium);
 }
 
+.theme-overlay-card {
+  border-color: hsla(var(--border), 0.92);
+  background:
+    linear-gradient(180deg, hsla(var(--card), 0.94), hsla(var(--secondary), 0.9)),
+    hsl(var(--card));
+  box-shadow: var(--shadow-medium);
+}
+
+.dark .theme-overlay-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, hsla(var(--card), 0.96), hsla(var(--surface-strong), 0.92)),
+    hsl(var(--card));
+}
+
 .theme-soft-panel {
   border: 1px solid hsl(var(--border));
   background: hsla(var(--secondary), 0.78);

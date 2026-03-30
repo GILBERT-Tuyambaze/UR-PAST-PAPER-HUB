@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import SeoMeta from '@/components/SeoMeta';
 
 const LogoutCallbackPage: React.FC = () => {
   useEffect(() => {
@@ -11,6 +12,12 @@ const LogoutCallbackPage: React.FC = () => {
 
   return (
     <div className="theme-auth-page flex min-h-screen items-center justify-center">
+      <SeoMeta
+        title="Logout successful"
+        description="Logout callback page for UR Academic Resource Hub."
+        canonicalPath="/auth/logout-callback"
+        robots="noindex,nofollow"
+      />
       <div className="text-center">
         <div className="theme-soft-panel mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-green-600 dark:text-green-300">
           <svg

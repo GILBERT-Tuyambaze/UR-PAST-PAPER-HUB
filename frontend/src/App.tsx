@@ -36,7 +36,10 @@ const App = () => (
           <Route path="/auth/logout-callback" element={<LogoutCallbackPage />} />
           <Route path="/" element={<Layout><Index /></Layout>} />
           <Route path="/search" element={<Layout><SearchResults /></Layout>} />
+          <Route path="/past-papers" element={<Layout><SearchResults /></Layout>} />
+          <Route path="/study-resources" element={<Layout><Index /></Layout>} />
           <Route path="/story" element={<Layout><Story /></Layout>} />
+          <Route path="/student-stories" element={<Layout><Story /></Layout>} />
           <Route path="/terms" element={<Layout><Terms /></Layout>} />
           <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
           <Route path="/paper/:id" element={<Layout><PaperDetails /></Layout>} />

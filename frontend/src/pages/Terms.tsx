@@ -21,6 +21,16 @@ const sections = [
     content:
       'Although the platform uses verification and moderation, not every uploaded resource is official or fully accurate. Students should still confirm critical academic information with lecturers or official course guidance.',
   },
+  {
+    title: 'Responsible academic use',
+    content:
+      'The website is designed to help students study smarter, not to encourage misconduct. Materials should be used for revision, practice, and understanding assessment patterns, not for cheating or misrepresentation in coursework or exams.',
+  },
+  {
+    title: 'Platform changes',
+    content:
+      'Features, moderation workflows, and access rules may change as the platform grows. Continued use of the website means you accept reasonable updates that improve safety, organization, and the long-term quality of shared study resources.',
+  },
 ];
 
 export default function TermsPage() {
@@ -31,6 +41,15 @@ export default function TermsPage() {
           <CardTitle className="text-3xl text-foreground">Terms of Use</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
+          <section className="rounded-2xl bg-muted/40 p-5">
+            <h2 className="text-lg font-semibold text-foreground">How these terms support University of Rwanda past papers access</h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              These terms explain how UR Academic Resource Hub should be used by students, contributors, and moderators. The website exists to make <strong>University of Rwanda past papers</strong>, revision resources, and community study support easier to find and use responsibly. Because the platform includes uploads, comments, and account roles, the rules need to be clear enough to protect trust while still keeping access simple for genuine learners.
+            </p>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">
+              Our goal is not to create legal noise. It is to describe the practical expectations behind a clean academic archive. When students search for <strong>UR exam papers</strong> or other <strong>study materials Rwanda</strong> learners rely on, they should find a platform that values organization, integrity, and respectful contribution. These terms set that expectation for everyone using the website.
+            </p>
+          </section>
           {sections.map((section) => (
             <section key={section.title} className="rounded-2xl bg-muted/40 p-5">
               <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>

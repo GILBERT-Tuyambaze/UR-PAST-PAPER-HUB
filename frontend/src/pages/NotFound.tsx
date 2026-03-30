@@ -1,12 +1,17 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import SeoMeta from '@/components/SeoMeta';
 import { Compass, Home, Search } from 'lucide-react';
 
 export default function NotFoundPage() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-[70vh] px-4 py-16">
+      <SeoMeta
+        title="Page not found"
+        description="The requested UR Academic Resource Hub page could not be found."
+        canonicalPath="/404"
+        robots="noindex,nofollow"
+      />
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
         <div className="theme-empty-icon mb-6 flex h-20 w-20 items-center justify-center rounded-full">
           <Compass className="theme-section-icon h-10 w-10" />
@@ -18,13 +23,17 @@ export default function NotFoundPage() {
           or continue browsing papers.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button onClick={() => navigate('/')} className="theme-accent-bg">
-            <Home className="mr-2 h-4 w-4" />
-            Go Home
+          <Button asChild className="theme-accent-bg">
+            <Link to="/">
+              <Home className="mr-2 h-4 w-4" />
+              Go Home
+            </Link>
           </Button>
-          <Button variant="outline" onClick={() => navigate('/search')}>
-            <Search className="mr-2 h-4 w-4" />
-            Browse Papers
+          <Button asChild variant="outline">
+            <Link to="/past-papers">
+              <Search className="mr-2 h-4 w-4" />
+              Browse Papers
+            </Link>
           </Button>
         </div>
       </div>

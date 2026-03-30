@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import SeoMeta from '@/components/SeoMeta';
 import AuthShowcase from '../components/AuthShowcase';
 import { authApi } from '../lib/auth';
 
@@ -32,6 +33,12 @@ export default function LoginPage() {
 
   return (
     <div className="theme-auth-page min-h-screen overflow-hidden px-4 py-8 md:px-8 md:py-10">
+      <SeoMeta
+        title="Sign in"
+        description="Private sign-in page for UR Academic Resource Hub users."
+        canonicalPath="/login"
+        robots="noindex,nofollow"
+      />
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <AuthShowcase />
 

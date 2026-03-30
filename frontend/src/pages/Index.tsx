@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchAllPapers, Paper } from '../lib/client';
 import OfflineDataBanner from '../components/OfflineDataBanner';
+import ExpandableContentSection from '../components/ExpandableContentSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -58,46 +59,45 @@ function VerificationBadge({ status }: { status: string }) {
   );
 }
 
-function PaperCard({ paper, onClick }: { paper: Paper; onClick: () => void }) {
+function PaperCard({ paper }: { paper: Paper }) {
   return (
-    <Card
-      className="theme-panel group cursor-pointer border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-      onClick={onClick}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between mb-3">
-          <Badge variant="outline" className="border-[hsl(var(--brand))] text-xs font-medium text-[hsl(var(--brand))]">
-            {paper.paper_type}
-          </Badge>
-          <VerificationBadge status={paper.verification_status} />
-        </div>
-        <h3 className="theme-title mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-[hsl(var(--brand))]">
-          {paper.title}
-        </h3>
-        <div className="theme-muted space-y-1 text-sm">
-          <p className="flex items-center gap-1">
-            <BookOpen className="h-3.5 w-3.5" />
-            {paper.course_code} - {paper.course_name}
-          </p>
-          <p className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" />
-            {paper.year} - {paper.department}
-          </p>
-        </div>
-        <div className="mt-4 flex items-center justify-between border-t pt-3">
-          <span className="theme-muted flex items-center gap-1 text-xs">
-            <Download className="h-3.5 w-3.5" />
-            {paper.download_count || 0} downloads
-          </span>
-          {paper.solution_key && (
-            <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
-              <Star className="h-3 w-3 mr-1" />
-              Has Solution
+    <Link to={`/paper/${paper.id}`} className="block">
+      <Card className="theme-panel group border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <CardContent className="p-5">
+          <div className="flex items-start justify-between mb-3">
+            <Badge variant="outline" className="border-[hsl(var(--brand))] text-xs font-medium text-[hsl(var(--brand))]">
+              {paper.paper_type}
             </Badge>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            <VerificationBadge status={paper.verification_status} />
+          </div>
+          <h3 className="theme-title mb-2 line-clamp-2 font-semibold transition-colors group-hover:text-[hsl(var(--brand))]">
+            {paper.title}
+          </h3>
+          <div className="theme-muted space-y-1 text-sm">
+            <p className="flex items-center gap-1">
+              <BookOpen className="h-3.5 w-3.5" />
+              {paper.course_code} - {paper.course_name}
+            </p>
+            <p className="flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" />
+              {paper.year} - {paper.department}
+            </p>
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t pt-3">
+            <span className="theme-muted flex items-center gap-1 text-xs">
+              <Download className="h-3.5 w-3.5" />
+              {paper.download_count || 0} downloads
+            </span>
+            {paper.solution_key && (
+              <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
+                <Star className="h-3 w-3 mr-1" />
+                Has Solution
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -133,9 +133,9 @@ export default function HomePage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/past-papers?q=${encodeURIComponent(searchQuery.trim())}`);
     } else {
-      navigate('/search');
+      navigate('/past-papers');
     }
   };
 
@@ -204,7 +204,7 @@ export default function HomePage() {
                     key={type}
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/search?type=${type}`)}
+                    onClick={() => navigate(`/past-papers?type=${type}`)}
                     className="theme-hero-filter text-xs"
                   >
                     {type}
@@ -336,16 +336,14 @@ export default function HomePage() {
         <h2 className="theme-title mb-6 text-2xl font-bold">Browse by College</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {COLLEGES.map((college) => (
-            <Card
-              key={college}
-              className="theme-panel cursor-pointer border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-              onClick={() => navigate(`/search?college=${encodeURIComponent(college)}`)}
-            >
-              <CardContent className="p-4 flex items-center justify-between">
-                <span className="theme-title text-sm font-medium">{college}</span>
-                <ArrowRight className="theme-accent h-4 w-4" />
-              </CardContent>
-            </Card>
+            <Link key={college} to={`/past-papers?college=${encodeURIComponent(college)}`} className="block">
+              <Card className="theme-panel border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <span className="theme-title text-sm font-medium">{college}</span>
+                  <ArrowRight className="theme-accent h-4 w-4" />
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>
@@ -357,8 +355,8 @@ export default function HomePage() {
             <TrendingUp className="theme-accent h-6 w-6" />
             <h2 className="theme-title text-2xl font-bold">Trending Papers</h2>
           </div>
-          <Button variant="ghost" onClick={() => navigate('/search')} className="theme-accent hover:text-[hsl(var(--brand-hover))]">
-            View All <ArrowRight className="ml-1 h-4 w-4" />
+          <Button variant="ghost" asChild className="theme-accent hover:text-[hsl(var(--brand-hover))]">
+            <Link to="/past-papers">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
         {loading ? (
@@ -376,7 +374,7 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {trendingPapers.map((paper) => (
-              <PaperCard key={paper.id} paper={paper} onClick={() => navigate(`/paper/${paper.id}`)} />
+              <PaperCard key={paper.id} paper={paper} />
             ))}
           </div>
         )}
@@ -389,14 +387,14 @@ export default function HomePage() {
             <Clock className="theme-accent h-6 w-6" />
             <h2 className="theme-title text-2xl font-bold">Recently Added</h2>
           </div>
-          <Button variant="ghost" onClick={() => navigate('/search?sort=-created_at')} className="theme-accent hover:text-[hsl(var(--brand-hover))]">
-            View All <ArrowRight className="ml-1 h-4 w-4" />
+          <Button variant="ghost" asChild className="theme-accent hover:text-[hsl(var(--brand-hover))]">
+            <Link to="/past-papers?sort=-created_at">View All <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
         </div>
         {!loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {recentPapers.map((paper) => (
-              <PaperCard key={paper.id} paper={paper} onClick={() => navigate(`/paper/${paper.id}`)} />
+              <PaperCard key={paper.id} paper={paper} />
             ))}
           </div>
         )}
@@ -427,6 +425,25 @@ export default function HomePage() {
             Upload a Paper
           </Button>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <ExpandableContentSection
+          title="University of Rwanda past papers and study materials Rwanda students can trust"
+          summary="Open this section to learn how the hub organizes UR exam papers, why it helps with revision, and where to start if you want the fastest path into the library."
+          expandLabel="Open overview"
+          collapseLabel="Hide overview"
+        >
+          <p className="theme-muted text-base leading-8">
+            UR Academic Resource Hub is designed to make <strong>University of Rwanda past papers</strong>, revision materials, and peer-reviewed learning resources easier to find in one place. Instead of depending on scattered chats, disappearing links, and unstructured class archives, students can browse one searchable hub for <strong>UR exam papers</strong>, assignments, CATs, and related solution notes. Each paper entry is organized around the information students actually use when revising: course code, course name, department, academic year, paper type, and download popularity.
+          </p>
+          <p className="theme-muted text-base leading-8">
+            The platform also supports stronger study decisions. Learners can compare the most downloaded papers, filter by college, and identify materials that already helped other students prepare. That makes the site useful not only as a file library, but also as a practical guide for faster revision. When students search for <strong>study materials Rwanda</strong> universities rarely centralize well, they need relevant context, not just filenames. This homepage is built to explain that value clearly so visitors and search engines both understand what the site offers.
+          </p>
+          <p className="theme-muted text-base leading-8">
+            If you want to start quickly, go straight to the <Link to="/past-papers" className="theme-link-accent font-medium">past papers page</Link> to search by keyword, course, and year. If you want to understand the mission behind the platform, visit the <Link to="/student-stories" className="theme-link-accent font-medium">student stories and study tips page</Link>. The goal is simple: keep high-value academic content indexable, searchable, and genuinely useful for University of Rwanda learners preparing for exams.
+          </p>
+        </ExpandableContentSection>
       </section>
     </div>
   );

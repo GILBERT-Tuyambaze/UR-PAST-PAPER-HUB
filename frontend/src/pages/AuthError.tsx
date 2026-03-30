@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import SeoMeta from '@/components/SeoMeta';
 import { AlertCircle } from 'lucide-react';
 
 export default function AuthErrorPage() {
@@ -28,6 +29,12 @@ export default function AuthErrorPage() {
 
   return (
     <div className="theme-auth-page min-h-screen p-6 text-center">
+      <SeoMeta
+        title="Authentication error"
+        description="Authentication error page for UR Academic Resource Hub."
+        canonicalPath="/auth/error"
+        robots="noindex,nofollow"
+      />
       <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center space-y-6">
         <div className="space-y-4">
           <div className="flex justify-center">
