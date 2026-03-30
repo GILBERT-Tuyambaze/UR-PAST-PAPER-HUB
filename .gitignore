@@ -55,8 +55,11 @@ frontend/.gbs/
 .vscode/
 .idea/
 .python-version
+.chrome-profile/
+.chrome-profile-local/
+chrome-netlog.json
+chrome-netlog-local.json
 
 # OS files
 .DS_Store
 Thumbs.db
-
