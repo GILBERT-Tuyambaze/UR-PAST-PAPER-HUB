@@ -8,17 +8,17 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-[70vh] px-4 py-16">
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#F08A5D]/15">
-          <Compass className="h-10 w-10 text-[#F08A5D]" />
+        <div className="theme-empty-icon mb-6 flex h-20 w-20 items-center justify-center rounded-full">
+          <Compass className="theme-section-icon h-10 w-10" />
         </div>
-        <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-[#F08A5D]">404</p>
-        <h1 className="mb-4 text-3xl font-bold text-[#343A40] dark:text-white">Page not found</h1>
-        <p className="mb-8 max-w-lg text-gray-500 dark:text-gray-400">
+        <p className="theme-link-accent mb-2 text-sm font-semibold uppercase tracking-[0.2em]">404</p>
+        <h1 className="theme-title mb-4 text-3xl font-bold">Page not found</h1>
+        <p className="theme-muted mb-8 max-w-lg">
           The page you were trying to open does not exist or may have been moved. You can head back home
           or continue browsing papers.
         </p>
         <div className="flex flex-wrap justify-center gap-3">
-          <Button onClick={() => navigate('/')} className="bg-[#F08A5D] text-white hover:bg-[#e07a4d]">
+          <Button onClick={() => navigate('/')} className="theme-accent-bg">
             <Home className="mr-2 h-4 w-4" />
             Go Home
           </Button>

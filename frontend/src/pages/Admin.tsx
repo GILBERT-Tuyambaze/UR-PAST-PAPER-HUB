@@ -316,10 +316,10 @@ export default function AdminPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <Shield className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-        <h2 className="mb-4 text-2xl font-bold text-[#343A40] dark:text-white">Management Access Required</h2>
-        <p className="mb-6 text-gray-500 dark:text-gray-400">Sign in to access the management dashboard.</p>
-        <Button onClick={() => authApi.login('/admin')} className="bg-[#F08A5D] text-white hover:bg-[#e07a4d]">
+        <Shield className="mx-auto mb-4 h-16 w-16 text-muted-foreground/40" />
+        <h2 className="theme-title mb-4 text-2xl font-bold">Management Access Required</h2>
+        <p className="theme-muted mb-6">Sign in to access the management dashboard.</p>
+        <Button onClick={() => authApi.login('/admin')} className="theme-accent-bg">
           Sign In
         </Button>
       </div>
@@ -331,12 +331,12 @@ export default function AdminPage() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="mb-3 flex items-center gap-3">
-            <Shield className="h-8 w-8 text-[#F08A5D]" />
-            <h1 className="text-3xl font-bold text-[#343A40] dark:text-white">
+            <Shield className="theme-section-icon h-8 w-8" />
+            <h1 className="theme-title text-3xl font-bold">
               {isContentManagerView ? 'Content Manager Dashboard' : 'Admin Dashboard'}
             </h1>
           </div>
-          <p className="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+          <p className="theme-muted max-w-2xl text-sm">
             Manage roles, review contributors, moderate reports, and keep the paper library clean and trusted.
           </p>
         </div>
@@ -345,7 +345,7 @@ export default function AdminPage() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             Refresh data
           </Button>
-          <Button onClick={() => navigate('/dashboard')} className="bg-[#F08A5D] text-white hover:bg-[#e07a4d]">
+          <Button onClick={() => navigate('/dashboard')} className="theme-accent-bg">
             Open dashboard
           </Button>
         </div>
@@ -354,30 +354,30 @@ export default function AdminPage() {
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="theme-panel">
           <CardContent className="p-4 text-center">
-            <Users className="mx-auto mb-2 h-6 w-6 text-[#F08A5D]" />
-            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.total_users || users.length}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Users</p>
+            <Users className="theme-section-icon mx-auto mb-2 h-6 w-6" />
+            <p className="theme-title text-2xl font-bold">{overview?.stats.total_users || users.length}</p>
+            <p className="theme-muted text-xs">Users</p>
           </CardContent>
         </Card>
         <Card className="theme-panel">
           <CardContent className="p-4 text-center">
             <FileText className="mx-auto mb-2 h-6 w-6 text-blue-500" />
-            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.total_papers || papers.length}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Papers</p>
+            <p className="theme-title text-2xl font-bold">{overview?.stats.total_papers || papers.length}</p>
+            <p className="theme-muted text-xs">Papers</p>
           </CardContent>
         </Card>
         <Card className="theme-panel">
           <CardContent className="p-4 text-center">
             <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-amber-500" />
-            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{overview?.stats.pending_reports || 0}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Pending Reports</p>
+            <p className="theme-title text-2xl font-bold">{overview?.stats.pending_reports || 0}</p>
+            <p className="theme-muted text-xs">Pending Reports</p>
           </CardContent>
         </Card>
         <Card className="theme-panel">
           <CardContent className="p-4 text-center">
             <Download className="mx-auto mb-2 h-6 w-6 text-emerald-500" />
-            <p className="text-2xl font-bold text-[#343A40] dark:text-white">{totalDownloads.toLocaleString()}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Downloads</p>
+            <p className="theme-title text-2xl font-bold">{totalDownloads.toLocaleString()}</p>
+            <p className="theme-muted text-xs">Downloads</p>
           </CardContent>
         </Card>
       </div>
@@ -392,14 +392,14 @@ export default function AdminPage() {
         <TabsContent value="users">
           <Card className="theme-panel">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-                <UserCog className="h-5 w-5 text-[#F08A5D]" />
+              <CardTitle className="theme-title flex items-center gap-2">
+                <UserCog className="theme-section-icon h-5 w-5" />
                 User Management
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="theme-muted absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <Input
                   value={userSearch}
                   onChange={(event) => setUserSearch(event.target.value)}
@@ -463,8 +463,8 @@ export default function AdminPage() {
         <TabsContent value="reports">
           <Card className="theme-panel">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-                <Flag className="h-5 w-5 text-[#F08A5D]" />
+              <CardTitle className="theme-title flex items-center gap-2">
+                <Flag className="theme-section-icon h-5 w-5" />
                 Recent Reports
               </CardTitle>
             </CardHeader>
@@ -510,7 +510,7 @@ export default function AdminPage() {
 
         <TabsContent value="papers" className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="theme-muted absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <Input
               value={paperSearch}
               onChange={(event) => setPaperSearch(event.target.value)}
@@ -552,11 +552,11 @@ export default function AdminPage() {
                 <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <h4 className="truncate font-medium text-[#343A40] dark:text-white">{paper.title}</h4>
+                      <h4 className="theme-title truncate font-medium">{paper.title}</h4>
                       <PaperVerificationBadge status={paper.verification_status} />
-                      {paper.is_hidden && <Badge className="bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-200">hidden</Badge>}
+                      {paper.is_hidden && <Badge className="theme-error-note border-0">hidden</Badge>}
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="theme-muted flex flex-wrap items-center gap-3 text-xs">
                       <span>{paper.course_code}</span>
                       <span>{paper.paper_type}</span>
                       <span>{paper.year}</span>

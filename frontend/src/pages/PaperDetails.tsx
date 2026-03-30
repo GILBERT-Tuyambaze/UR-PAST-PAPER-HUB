@@ -340,8 +340,8 @@ export default function PaperDetails() {
   if (!paper) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-[#343A40] dark:text-white mb-4">Paper Not Found</h2>
-        <Button onClick={() => navigate('/search')} className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white">
+        <h2 className="theme-title mb-4 text-2xl font-bold">Paper Not Found</h2>
+        <Button onClick={() => navigate('/search')} className="theme-accent-bg">
           Browse Papers
         </Button>
       </div>
@@ -354,91 +354,91 @@ export default function PaperDetails() {
       <Button
         variant="ghost"
         onClick={() => navigate(-1)}
-        className="mb-6 text-gray-500 hover:text-[#F08A5D]"
+        className="theme-muted mb-6 hover:text-[hsl(var(--brand))]"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>
 
       {/* Paper Header */}
-      <Card className="mb-6 dark:bg-[#3E444A] dark:border-gray-700">
+      <Card className="theme-panel mb-6">
         <CardContent className="p-6">
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <Badge variant="outline" className="border-[#F08A5D] text-[#F08A5D]">
+            <Badge variant="outline" className="border-[hsl(var(--brand))] text-[hsl(var(--brand))]">
               {paper.paper_type}
             </Badge>
             <VerificationBadge status={paper.verification_status} />
-            <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-300">
+            <Badge variant="outline">
               {paper.year}
             </Badge>
             {paper.report_count && paper.report_count > 0 && (
-              <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
+              <Badge className="theme-error-note border-0 hover:bg-inherit">
                 <Flag className="h-3 w-3 mr-1" />
                 Reported {paper.report_count}
               </Badge>
             )}
             {paper.is_hidden && (
-              <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
+              <Badge className="theme-error-note border-0 hover:bg-inherit">
                 Hidden from public
               </Badge>
             )}
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-[#343A40] dark:text-white mb-4">
+          <h1 className="theme-title mb-4 text-2xl font-bold md:text-3xl">
             {paper.title}
           </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
+          <div className="theme-muted grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
             <div className="space-y-2">
               <p className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-[#F08A5D]" />
+                <BookOpen className="theme-section-icon h-4 w-4" />
                 <span className="font-medium">{paper.course_code}</span> - {paper.course_name}
               </p>
               <p className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-[#F08A5D]" />
+                <GraduationCap className="theme-section-icon h-4 w-4" />
                 {paper.college}
               </p>
               <p className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#F08A5D]" />
+                <FileText className="theme-section-icon h-4 w-4" />
                 {paper.department}
               </p>
             </div>
             <div className="space-y-2">
               {paper.lecturer && (
                 <p className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-[#F08A5D]" />
+                  <User className="theme-section-icon h-4 w-4" />
                   {paper.lecturer}
                 </p>
               )}
               <p className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#F08A5D]" />
+                <Users className="theme-section-icon h-4 w-4" />
                 Uploaded by {paper.uploader_display_name || `Student ${paper.user_id}`}
               </p>
               <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-[#F08A5D]" />
+                <Clock className="theme-section-icon h-4 w-4" />
                 {paper.created_at ? new Date(paper.created_at).toLocaleDateString() : 'N/A'}
               </p>
               <p className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-[#F08A5D]" />
+                <Download className="theme-section-icon h-4 w-4" />
                 {paper.download_count || 0} downloads
               </p>
             </div>
           </div>
 
           {paper.description && (
-            <p className="mt-4 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-[#343A40] p-4 rounded-lg">
+            <p className="theme-soft-panel theme-muted mt-4 rounded-lg p-4">
               {paper.description}
             </p>
           )}
 
           {(paperUrl || offlinePaperUrl) ? (
-            <div className="mt-6 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-[#343A40]">
+            <div className="theme-surface-card mt-6 overflow-hidden rounded-xl">
+              <div className="theme-soft-panel flex flex-wrap items-center justify-between gap-3 border-b p-3">
                 <div className="flex items-center gap-2">
                   <Button type="button" size="sm" variant="outline" onClick={() => setPdfZoom((prev) => Math.max(0.6, prev - 0.1))}>
                     <ZoomOut className="h-4 w-4" />
                   </Button>
-                  <span className="min-w-16 text-center text-sm text-gray-600 dark:text-gray-300">{Math.round(pdfZoom * 100)}%</span>
+                  <span className="theme-muted min-w-16 text-center text-sm">{Math.round(pdfZoom * 100)}%</span>
                   <Button type="button" size="sm" variant="outline" onClick={() => setPdfZoom((prev) => Math.min(2, prev + 0.1))}>
                     <ZoomIn className="h-4 w-4" />
                   </Button>
@@ -461,30 +461,30 @@ export default function PaperDetails() {
                   </Button>
                 </div>
               </div>
-              <div className="overflow-auto bg-white dark:bg-[#1a1d21]">
+              <div className="overflow-auto bg-background">
                 <iframe
                   src={paperUrl || offlinePaperUrl!}
                   title="Paper preview"
-                  className="min-h-[700px] origin-top-left bg-white dark:bg-[#1a1d21]"
+                  className="min-h-[700px] origin-top-left bg-background"
                   style={{ width: `${pdfZoom * 100}%` }}
                 />
               </div>
             </div>
           ) : (
-            <div className="mt-6 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-6 text-center text-gray-500 dark:text-gray-400">
+            <div className="theme-soft-panel theme-muted mt-6 rounded-xl border-dashed p-6 text-center">
               Paper preview is not available. Use the download button to view the full document.
             </div>
           )}
 
-          <Card className="mt-6 dark:bg-[#3E444A] dark:border-gray-700">
+          <Card className="theme-panel mt-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-                <Sparkles className="h-5 w-5 text-[#F08A5D]" />
+              <CardTitle className="theme-title flex items-center gap-2">
+                <Sparkles className="theme-section-icon h-5 w-5" />
                 AI Study Assistant
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="theme-muted text-sm">
                 Ask for a practical study explanation or a compact brief of what the paper discussion already uncovered.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -495,8 +495,8 @@ export default function PaperDetails() {
                   Summarize Discussion
                 </Button>
               </div>
-              <div className="rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-[#343A40] dark:text-gray-300">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#F08A5D]">
+              <div className="theme-soft-panel p-4 text-sm">
+                <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.2em]">
                   {aiMode === 'summarize' ? 'Discussion Brief' : aiMode === 'explain' ? 'Study Guide' : 'AI Study Assistant'}
                 </p>
                 <div className="whitespace-pre-wrap leading-6">
@@ -510,7 +510,7 @@ export default function PaperDetails() {
           <div className="flex flex-wrap gap-3 mt-6">
             <Button
               onClick={handleDownload}
-              className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white"
+              className="theme-accent-bg"
               disabled={!paper.file_key}
             >
               <Download className="h-4 w-4 mr-2" />
@@ -530,7 +530,6 @@ export default function PaperDetails() {
                       toast.error('Solution download failed');
                     }
                   }}
-                  className="dark:border-gray-600 dark:text-gray-300"
                 >
                   <Lightbulb className="h-4 w-4 mr-2" />
                   Download Solution
@@ -576,9 +575,9 @@ export default function PaperDetails() {
           </div>
 
           {(solutionUrl || offlineSolutionUrl) && (
-            <Card className="mt-6 dark:bg-[#3E444A] dark:border-gray-700">
+            <Card className="theme-panel mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
+                <CardTitle className="theme-title flex items-center gap-2">
                   Solution Preview
                   {offlineSolutionUrl && (
                     <Badge variant="secondary" className="gap-1">
@@ -592,7 +591,7 @@ export default function PaperDetails() {
                 <iframe
                   src={solutionUrl || offlineSolutionUrl!}
                   title="Solution preview"
-                  className="w-full min-h-[520px] bg-white dark:bg-[#1a1d21]"
+                  className="min-h-[520px] w-full bg-background"
                 />
               </CardContent>
             </Card>
@@ -602,7 +601,7 @@ export default function PaperDetails() {
 
       {/* Discussion & Solutions Tabs */}
       <Tabs defaultValue="discussion" className="space-y-4">
-        <TabsList className="dark:bg-[#3E444A]">
+        <TabsList className="theme-soft-panel">
           <TabsTrigger value="discussion" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Discussion ({comments.length})
@@ -616,19 +615,19 @@ export default function PaperDetails() {
         <TabsContent value="discussion">
           {/* New Comment */}
           {user ? (
-            <Card className="mb-4 dark:bg-[#3E444A] dark:border-gray-700">
+            <Card className="theme-panel mb-4">
               <CardContent className="p-4">
                 <Textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Share your thoughts, ask a question, or help others..."
                   rows={3}
-                  className="mb-3 dark:bg-[#343A40] dark:border-gray-600"
+                  className="theme-form-input mb-3"
                 />
                 <Button
                   onClick={handleSubmitComment}
                   disabled={!newComment.trim() || submitting}
-                  className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white"
+                  className="theme-accent-bg"
                   size="sm"
                 >
                   <Send className="h-4 w-4 mr-2" />
@@ -637,8 +636,8 @@ export default function PaperDetails() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="mb-4 dark:bg-[#3E444A] dark:border-gray-700">
-              <CardContent className="p-4 text-center text-gray-500 dark:text-gray-400">
+            <Card className="theme-panel mb-4">
+              <CardContent className="theme-muted p-4 text-center">
                 <p>Sign in to join the discussion</p>
               </CardContent>
             </Card>
@@ -646,8 +645,8 @@ export default function PaperDetails() {
 
           {/* Comments List */}
           {comments.length === 0 ? (
-            <Card className="dark:bg-[#3E444A] dark:border-gray-700">
-              <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <Card className="theme-panel">
+              <CardContent className="theme-muted p-8 text-center">
                 <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
                 <p>No comments yet. Be the first to start a discussion!</p>
               </CardContent>
@@ -655,24 +654,24 @@ export default function PaperDetails() {
           ) : (
             <div className="space-y-3">
               {rootComments.map((comment) => (
-                <Card key={comment.id} className="dark:bg-[#3E444A] dark:border-gray-700">
+                <Card key={comment.id} className="theme-panel">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[#F08A5D]/20 flex items-center justify-center">
-                        <User className="h-4 w-4 text-[#F08A5D]" />
+                      <div className="theme-accent-soft flex h-8 w-8 items-center justify-center rounded-full">
+                        <User className="theme-section-icon h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium text-[#343A40] dark:text-white">Student</span>
-                      <span className="text-xs text-gray-400">
+                      <span className="theme-title text-sm font-medium">Student</span>
+                      <span className="theme-muted text-xs">
                         {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 pl-10">{comment.content}</p>
+                    <p className="pl-10 text-sm text-foreground">{comment.content}</p>
                     <div className="mt-3 flex items-center gap-2 pl-10">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleCommentVote(comment.id)}
-                        className="h-8 px-2 text-gray-500 hover:text-[#F08A5D]"
+                        className="theme-muted h-8 px-2 hover:text-[hsl(var(--brand))]"
                       >
                         <ChevronUp className="mr-1 h-4 w-4" />
                         {comment.upvotes || 0}
@@ -682,7 +681,7 @@ export default function PaperDetails() {
                           size="sm"
                           variant="ghost"
                           onClick={() => setReplyTarget(replyTarget === comment.id ? null : comment.id)}
-                          className="h-8 px-2 text-gray-500 hover:text-[#F08A5D]"
+                          className="theme-muted h-8 px-2 hover:text-[hsl(var(--brand))]"
                         >
                           <Reply className="mr-1 h-4 w-4" />
                           Reply
@@ -696,13 +695,13 @@ export default function PaperDetails() {
                           onChange={(e) => setReplyDraft(e.target.value)}
                           placeholder="Write a reply..."
                           rows={2}
-                          className="mb-2 dark:bg-[#343A40] dark:border-gray-600"
+                          className="theme-form-input mb-2"
                         />
                         <Button
                           size="sm"
                           onClick={() => handleReplySubmit(comment.id)}
                           disabled={!replyDraft.trim() || submitting}
-                          className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white"
+                          className="theme-accent-bg"
                         >
                           Reply
                         </Button>
@@ -713,20 +712,20 @@ export default function PaperDetails() {
                         {getReplies(comment.id).map((reply) => (
                           <div
                             key={reply.id}
-                            className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-[#343A40]"
+                            className="theme-soft-panel rounded-lg p-3"
                           >
                             <div className="mb-1 flex items-center gap-2">
-                              <span className="text-xs font-medium text-[#343A40] dark:text-white">Reply</span>
-                              <span className="text-xs text-gray-400">
+                              <span className="theme-title text-xs font-medium">Reply</span>
+                              <span className="theme-muted text-xs">
                                 {reply.created_at ? new Date(reply.created_at).toLocaleDateString() : ''}
                               </span>
                             </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">{reply.content}</p>
+                            <p className="text-sm text-foreground">{reply.content}</p>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleCommentVote(reply.id)}
-                              className="mt-2 h-8 px-2 text-gray-500 hover:text-[#F08A5D]"
+                              className="theme-muted mt-2 h-8 px-2 hover:text-[hsl(var(--brand))]"
                             >
                               <ChevronUp className="mr-1 h-4 w-4" />
                               {reply.upvotes || 0}
@@ -745,9 +744,9 @@ export default function PaperDetails() {
         <TabsContent value="solutions">
           {/* New Solution */}
           {user ? (
-            <Card className="mb-4 dark:bg-[#3E444A] dark:border-gray-700">
+            <Card className="theme-panel mb-4">
               <CardHeader>
-                <CardTitle className="text-lg dark:text-white">Submit a Solution</CardTitle>
+                <CardTitle className="theme-title text-lg">Submit a Solution</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
@@ -755,12 +754,12 @@ export default function PaperDetails() {
                   onChange={(e) => setNewSolution(e.target.value)}
                   placeholder="Write your solution or explanation here..."
                   rows={5}
-                  className="mb-3 dark:bg-[#343A40] dark:border-gray-600"
+                  className="theme-form-input mb-3"
                 />
                 <Button
                   onClick={handleSubmitSolution}
                   disabled={!newSolution.trim() || submitting}
-                  className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white"
+                  className="theme-accent-bg"
                   size="sm"
                 >
                   <Lightbulb className="h-4 w-4 mr-2" />
@@ -769,8 +768,8 @@ export default function PaperDetails() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="mb-4 dark:bg-[#3E444A] dark:border-gray-700">
-              <CardContent className="p-4 text-center text-gray-500 dark:text-gray-400">
+            <Card className="theme-panel mb-4">
+              <CardContent className="theme-muted p-4 text-center">
                 <p>Sign in to submit a solution</p>
               </CardContent>
             </Card>
@@ -778,8 +777,8 @@ export default function PaperDetails() {
 
           {/* Solutions List */}
           {solutions.length === 0 ? (
-            <Card className="dark:bg-[#3E444A] dark:border-gray-700">
-              <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
+            <Card className="theme-panel">
+              <CardContent className="theme-muted p-8 text-center">
                 <Lightbulb className="h-12 w-12 mx-auto mb-3 opacity-30" />
                 <p>No solutions yet. Be the first to help!</p>
               </CardContent>
@@ -787,21 +786,19 @@ export default function PaperDetails() {
           ) : (
             <div className="space-y-3">
               {solutions.map((solution) => (
-                <Card key={solution.id} className="dark:bg-[#3E444A] dark:border-gray-700">
+                <Card key={solution.id} className="theme-panel">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-[#F08A5D]/20 flex items-center justify-center">
-                        <User className="h-4 w-4 text-[#F08A5D]" />
+                      <div className="theme-accent-soft flex h-8 w-8 items-center justify-center rounded-full">
+                        <User className="theme-section-icon h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium text-[#343A40] dark:text-white">Contributor</span>
-                      {solution.is_best && (
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Best Answer</Badge>
-                      )}
-                      <span className="text-xs text-gray-400 ml-auto">
+                      <span className="theme-title text-sm font-medium">Contributor</span>
+                      {solution.is_best && <Badge className="theme-status-badge--verified hover:bg-inherit">Best Answer</Badge>}
+                      <span className="theme-muted ml-auto text-xs">
                         {solution.created_at ? new Date(solution.created_at).toLocaleDateString() : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 pl-10 whitespace-pre-wrap">
+                    <p className="pl-10 whitespace-pre-wrap text-sm text-foreground">
                       {solution.content}
                     </p>
                     <div className="mt-3 pl-10">
@@ -809,7 +806,7 @@ export default function PaperDetails() {
                         size="sm"
                         variant="ghost"
                         onClick={() => handleSolutionVote(solution.id)}
-                        className="h-8 px-2 text-gray-500 hover:text-[#F08A5D]"
+                        className="theme-muted h-8 px-2 hover:text-[hsl(var(--brand))]"
                       >
                         <ChevronUp className="mr-1 h-4 w-4" />
                         {solution.upvotes || 0}

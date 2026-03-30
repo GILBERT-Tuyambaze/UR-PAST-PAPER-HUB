@@ -129,24 +129,24 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[linear-gradient(135deg,_#fff8f2_0%,_#f6f8ff_50%,_#eefaf7_100%)] px-4 py-8 dark:bg-[linear-gradient(135deg,_#0f172a_0%,_#111827_45%,_#0b1120_100%)] md:px-8 md:py-10">
+    <div className="theme-auth-page min-h-screen overflow-hidden px-4 py-8 md:px-8 md:py-10">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <AuthShowcase />
 
         <div className="flex items-center justify-center">
-          <div className="w-full max-w-2xl rounded-[2rem] border border-slate-200/80 bg-white/90 p-8 shadow-2xl backdrop-blur dark:border-white/10 dark:bg-[#111827]/90 md:p-10">
+          <div className="theme-auth-card w-full max-w-2xl rounded-[2rem] p-8 md:p-10">
             <div className="mb-8">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-[#F08A5D]">Join the hub</p>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white md:text-4xl">Build your student profile</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-white/70">
+              <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.28em]">Join the hub</p>
+              <h1 className="theme-title text-3xl font-bold md:text-4xl">Build your student profile</h1>
+              <p className="theme-muted mt-3 text-sm leading-6">
                 We collect a richer profile so contributors can be identified correctly, verified when needed, and supported with more relevant features.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/5">
+              <div className="theme-soft-panel rounded-2xl p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-slate-200 text-2xl font-semibold text-slate-600 dark:bg-[#0f172a] dark:text-white/80">
+                  <div className="theme-soft-panel flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl text-2xl font-semibold">
                     {profileImagePreview ? (
                       <img src={profileImagePreview} alt="Profile preview" className="h-full w-full object-cover" />
                     ) : (
@@ -154,21 +154,21 @@ export default function RegisterPage() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <Label htmlFor="profile-image" className="text-slate-700 dark:text-white/85">Profile picture</Label>
+                    <Label htmlFor="profile-image" className="theme-form-label">Profile picture</Label>
                     <div className="mt-2 flex items-center gap-3">
                       <Input
                         id="profile-image"
                         type="file"
                         accept="image/*"
                         onChange={handleProfileImageChange}
-                        className="h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                        className="theme-form-input h-12 rounded-xl"
                       />
-                      <div className="hidden rounded-xl bg-[#F08A5D]/10 px-3 py-2 text-xs font-medium text-[#F08A5D] sm:flex sm:items-center sm:gap-2">
+                      <div className="theme-accent-soft hidden rounded-xl px-3 py-2 text-xs font-medium sm:flex sm:items-center sm:gap-2">
                         <Camera className="h-4 w-4" />
                         Optional
                       </div>
                     </div>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-white/55">
+                    <p className="theme-muted mt-2 text-xs">
                       Add a face or logo so your profile is easier to recognize in the community.
                     </p>
                   </div>
@@ -177,9 +177,9 @@ export default function RegisterPage() {
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Label className="text-slate-700 dark:text-white/85">Account type</Label>
+                  <Label className="theme-form-label">Account type</Label>
                   <Select value={accountRole} onValueChange={(value) => setAccountRole(value as PublicAccountRole)}>
-                    <SelectTrigger className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                    <SelectTrigger className="theme-form-input mt-2 h-12 rounded-xl">
                       <SelectValue placeholder="Choose how you contribute" />
                     </SelectTrigger>
                     <SelectContent>
@@ -190,16 +190,16 @@ export default function RegisterPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="mt-2 text-xs text-slate-500 dark:text-white/55">
+                  <p className="theme-muted mt-2 text-xs">
                     {publicAccountRoleOptions.find((option) => option.value === accountRole)?.description}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-white/45">
+                  <p className="theme-muted mt-1 text-xs">
                     Admin and content manager accounts are assigned later by the management team.
                   </p>
                 </div>
 
                 <div>
-                  <Label htmlFor="display_name" className="text-slate-700 dark:text-white/85">Full Name</Label>
+                  <Label htmlFor="display_name" className="theme-form-label">Full Name</Label>
                   <Input
                     id="display_name"
                     type="text"
@@ -207,12 +207,12 @@ export default function RegisterPage() {
                     onChange={(event) => updateField('display_name', event.target.value)}
                     placeholder="Your full name"
                     required
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email" className="text-slate-700 dark:text-white/85">Email</Label>
+                  <Label htmlFor="email" className="theme-form-label">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -220,12 +220,12 @@ export default function RegisterPage() {
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="password" className="text-slate-700 dark:text-white/85">Password</Label>
+                  <Label htmlFor="password" className="theme-form-label">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -233,17 +233,17 @@ export default function RegisterPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Create a password"
                     required
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-700 dark:text-white/85">Student type</Label>
+                  <Label className="theme-form-label">Student type</Label>
                   <Select
                     value={profileForm.institution_type}
                     onValueChange={(value) => updateField('institution_type', value as ProfileFormValues['institution_type'])}
                   >
-                    <SelectTrigger className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                    <SelectTrigger className="theme-form-input mt-2 h-12 rounded-xl">
                       <SelectValue placeholder="Choose your institution type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -257,7 +257,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="university_name" className="text-slate-700 dark:text-white/85">University</Label>
+                  <Label htmlFor="university_name" className="theme-form-label">University</Label>
                   <Input
                     id="university_name"
                     type="text"
@@ -265,12 +265,12 @@ export default function RegisterPage() {
                     onChange={(event) => updateField('university_name', event.target.value)}
                     placeholder="University name"
                     disabled={profileForm.institution_type === 'ur_student'}
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white disabled:opacity-80"
+                    className="theme-form-input mt-2 h-12 rounded-xl disabled:opacity-80"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="ur_student_code" className="text-slate-700 dark:text-white/85">UR Student Code</Label>
+                  <Label htmlFor="ur_student_code" className="theme-form-label">UR Student Code</Label>
                   <Input
                     id="ur_student_code"
                     type="text"
@@ -278,50 +278,50 @@ export default function RegisterPage() {
                     onChange={(event) => updateField('ur_student_code', event.target.value)}
                     placeholder={profileForm.institution_type === 'ur_student' ? 'Required for UR verification' : 'Not required'}
                     disabled={profileForm.institution_type !== 'ur_student'}
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white disabled:opacity-60"
+                    className="theme-form-input mt-2 h-12 rounded-xl disabled:opacity-60"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="phone_number" className="text-slate-700 dark:text-white/85">Phone Number</Label>
+                  <Label htmlFor="phone_number" className="theme-form-label">Phone Number</Label>
                   <Input
                     id="phone_number"
                     type="tel"
                     value={profileForm.phone_number}
                     onChange={(event) => updateField('phone_number', event.target.value)}
                     placeholder="+250..."
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="college_name" className="text-slate-700 dark:text-white/85">College</Label>
+                  <Label htmlFor="college_name" className="theme-form-label">College</Label>
                   <Input
                     id="college_name"
                     type="text"
                     value={profileForm.college_name}
                     onChange={(event) => updateField('college_name', event.target.value)}
                     placeholder="College or faculty"
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="department_name" className="text-slate-700 dark:text-white/85">Department</Label>
+                  <Label htmlFor="department_name" className="theme-form-label">Department</Label>
                   <Input
                     id="department_name"
                     type="text"
                     value={profileForm.department_name}
                     onChange={(event) => updateField('department_name', event.target.value)}
                     placeholder="Department or program"
-                    className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                    className="theme-form-input mt-2 h-12 rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <Label className="text-slate-700 dark:text-white/85">Year of study</Label>
+                  <Label className="theme-form-label">Year of study</Label>
                   <Select value={profileForm.year_of_study} onValueChange={(value) => updateField('year_of_study', value)}>
-                    <SelectTrigger className="mt-2 h-12 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white">
+                    <SelectTrigger className="theme-form-input mt-2 h-12 rounded-xl">
                       <SelectValue placeholder="Select your current year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -336,43 +336,43 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <Label htmlFor="bio" className="text-slate-700 dark:text-white/85">Short Bio</Label>
+                <Label htmlFor="bio" className="theme-form-label">Short Bio</Label>
                 <Textarea
                   id="bio"
                   value={profileForm.bio}
                   onChange={(event) => updateField('bio', event.target.value)}
                   placeholder="Tell the community what you study or what you like contributing."
-                  className="mt-2 min-h-[110px] rounded-2xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                  className="theme-form-input mt-2 min-h-[110px] rounded-2xl"
                 />
               </div>
 
-              <div className="rounded-2xl bg-amber-50 px-4 py-4 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
+              <div className="theme-warning-note rounded-2xl px-4 py-4 text-sm">
                 If you register as a University of Rwanda student, your UR student code is required and your verification status will start as pending until it is reviewed.
               </div>
 
-              {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300">{error}</p>}
+              {error && <p className="theme-error-note rounded-xl px-4 py-3 text-sm">{error}</p>}
 
               <Button
                 type="submit"
-                className="h-12 w-full rounded-xl bg-[#F08A5D] text-white hover:bg-[#e07a4d]"
+                className="theme-accent-bg h-12 w-full rounded-xl"
                 disabled={loading}
               >
                 {loading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
 
-            <div className="mt-6 rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-600 dark:bg-white/5 dark:text-white/75">
+            <div className="theme-auth-subtle mt-6 rounded-2xl px-4 py-4 text-sm">
               <p>
                 Already have an account?{' '}
                 <button
                   type="button"
                   onClick={() => navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`)}
-                  className="font-semibold text-[#F08A5D] underline underline-offset-4"
+                  className="theme-link-accent font-semibold underline underline-offset-4"
                 >
                   Sign in
                 </button>
               </p>
-              <p className="mt-2 text-xs text-slate-500 dark:text-white/50">
+              <p className="theme-muted mt-2 text-xs">
                 Your profile details help us verify contributors and build better community trust.
               </p>
             </div>

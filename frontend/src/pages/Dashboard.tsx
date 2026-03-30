@@ -47,7 +47,7 @@ import { toast } from 'sonner';
 function VerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
     return (
-      <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+      <Badge className="theme-status-badge--verified hover:bg-inherit">
         <CheckCircle className="h-3 w-3 mr-1" />
         Verified
       </Badge>
@@ -55,7 +55,7 @@ function VerificationBadge({ status }: { status: string }) {
   }
   if (status === 'community') {
     return (
-      <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
+      <Badge className="theme-status-badge--community hover:bg-inherit">
         <Users className="h-3 w-3 mr-1" />
         Community
       </Badge>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#F08A5D]" />
+        <div className="theme-spinner h-8 w-8 animate-spin rounded-full border-b-2 border-current" />
       </div>
     );
   }
@@ -142,11 +142,11 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-[#343A40] dark:text-white mb-4">Sign In Required</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <h2 className="theme-title mb-4 text-2xl font-bold">Sign In Required</h2>
+        <p className="theme-muted mb-6">
           Sign in to view your dashboard and manage your uploads.
         </p>
-        <Button onClick={() => authApi.login('/dashboard')} className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white">
+        <Button onClick={() => authApi.login('/dashboard')} className="theme-accent-bg">
           Sign In
         </Button>
       </div>
@@ -175,10 +175,10 @@ export default function DashboardPage() {
       )}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[#343A40] dark:text-white">My Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{user?.email || 'Welcome back!'}</p>
+          <h1 className="theme-title text-3xl font-bold">My Dashboard</h1>
+          <p className="theme-muted mt-1">{user?.email || 'Welcome back!'}</p>
         </div>
-        <Button onClick={() => navigate('/upload')} className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white">
+        <Button onClick={() => navigate('/upload')} className="theme-accent-bg">
           <Upload className="h-4 w-4 mr-2" />
           Upload Paper
         </Button>
@@ -186,63 +186,63 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+            <div className="theme-soft-panel flex h-12 w-12 items-center justify-center rounded-lg text-blue-600 dark:text-blue-300">
               <FileText className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#343A40] dark:text-white">{papers.length}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">My Uploads</p>
+              <p className="theme-title text-2xl font-bold">{papers.length}</p>
+              <p className="theme-muted text-sm">My Uploads</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <div className="theme-soft-panel flex h-12 w-12 items-center justify-center rounded-lg text-green-600 dark:text-green-300">
               <Download className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#343A40] dark:text-white">{totalDownloads}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Downloads</p>
+              <p className="theme-title text-2xl font-bold">{totalDownloads}</p>
+              <p className="theme-muted text-sm">Total Downloads</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-[#F08A5D]/20 flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-[#F08A5D]" />
+            <div className="theme-accent-soft flex h-12 w-12 items-center justify-center rounded-lg">
+              <CheckCircle className="theme-section-icon h-6 w-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#343A40] dark:text-white">{verifiedCount}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Verified</p>
+              <p className="theme-title text-2xl font-bold">{verifiedCount}</p>
+              <p className="theme-muted text-sm">Verified</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+            <div className="theme-soft-panel flex h-12 w-12 items-center justify-center rounded-lg text-purple-600 dark:text-purple-300">
               <BarChart3 className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-[#343A40] dark:text-white">
+              <p className="theme-title text-2xl font-bold">
                 {papers.length > 0 ? Math.round(totalDownloads / papers.length) : 0}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Avg Downloads</p>
+              <p className="theme-muted text-sm">Avg Downloads</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-              <Shield className="h-5 w-5 text-[#F08A5D]" />
+            <CardTitle className="theme-title flex items-center gap-2">
+              <Shield className="theme-section-icon h-5 w-5" />
               Contributor Status
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+          <CardContent className="theme-muted space-y-2 text-sm">
             <p>Role: <span className="font-semibold">{profile?.role || 'normal'}</span></p>
             <p>Institution: <span className="font-semibold">{profile?.institution_type === 'ur_student' ? 'University of Rwanda' : profile?.university_name || 'Not set'}</span></p>
             <p>UR verification: <span className="font-semibold">{profile?.ur_verification_status || 'not_requested'}</span></p>
@@ -254,28 +254,26 @@ export default function DashboardPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/profile')}
-                className="dark:border-gray-600 dark:text-gray-200"
               >
                 View profile
               </Button>
             </div>
           </CardContent>
         </Card>
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-              <Trophy className="h-5 w-5 text-[#F08A5D]" />
+            <CardTitle className="theme-title flex items-center gap-2">
+              <Trophy className="theme-section-icon h-5 w-5" />
               Leaderboard
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {leaderboard.slice(0, 5).map((entry, index) => (
-              <div key={entry.id} className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-[#343A40]">
+              <div key={entry.id} className="theme-list-row flex items-center justify-between rounded-lg p-3 transition-colors">
                 <div>
-                  <p className="text-sm font-medium text-[#343A40] dark:text-white">
+                  <p className="theme-title text-sm font-medium">
                     {index + 1}. {entry.display_name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{entry.role}</p>
                 </div>
                 <Badge variant="secondary">{entry.trust_score || 0} pts</Badge>
               </div>
@@ -285,9 +283,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="mb-8 grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardHeader>
-            <CardTitle className="text-[#343A40] dark:text-white">Download Performance</CardTitle>
+            <CardTitle className="theme-title">Download Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer
@@ -305,9 +303,9 @@ export default function DashboardPage() {
             </ChartContainer>
           </CardContent>
         </Card>
-        <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+        <Card className="theme-panel">
           <CardHeader>
-            <CardTitle className="text-[#343A40] dark:text-white">Verification Mix</CardTitle>
+            <CardTitle className="theme-title">Verification Mix</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer
@@ -331,11 +329,11 @@ export default function DashboardPage() {
       <Card
         id="notifications"
         ref={notificationsRef}
-        className="mb-8 scroll-mt-24 dark:bg-[#3E444A] dark:border-gray-700"
+        className="theme-panel mb-8 scroll-mt-24"
       >
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-            <Bell className="h-5 w-5 text-[#F08A5D]" />
+          <CardTitle className="theme-title flex items-center gap-2">
+            <Bell className="theme-section-icon h-5 w-5" />
             Notifications
           </CardTitle>
           <Button
@@ -352,7 +350,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {notifications.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No notifications yet.</p>
+            <p className="theme-muted text-sm">No notifications yet.</p>
           ) : (
             notifications.slice(0, 8).map((item) => (
               <button
@@ -369,15 +367,15 @@ export default function DashboardPage() {
                 }}
                 className={`w-full rounded-lg border p-3 text-left transition-colors ${
                   item.is_read
-                    ? 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-[#343A40]'
-                    : 'border-[#F08A5D]/30 bg-[#FFF7F1] dark:border-[#F08A5D]/40 dark:bg-[#3b3028]'
+                    ? 'theme-list-row border-border'
+                    : 'theme-accent-soft-border'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-[#343A40] dark:text-white">{item.title}</p>
+                  <p className="theme-title text-sm font-medium">{item.title}</p>
                   {!item.is_read && <Badge>New</Badge>}
                 </div>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{item.message}</p>
+                <p className="theme-muted mt-1 text-sm">{item.message}</p>
               </button>
             ))
           )}
@@ -385,10 +383,10 @@ export default function DashboardPage() {
       </Card>
 
       {/* My Papers */}
-      <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+      <Card className="theme-panel">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-            <BookOpen className="h-5 w-5 text-[#F08A5D]" />
+          <CardTitle className="theme-title flex items-center gap-2">
+            <BookOpen className="theme-section-icon h-5 w-5" />
             My Uploaded Papers
           </CardTitle>
         </CardHeader>
@@ -396,21 +394,21 @@ export default function DashboardPage() {
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#343A40] rounded-lg">
-                  <div className="h-12 w-12 bg-gray-200 dark:bg-gray-600 rounded" />
+                <div key={i} className="theme-list-row animate-pulse flex items-center gap-4 rounded-lg p-4">
+                  <div className="h-12 w-12 rounded bg-muted" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2" />
+                    <div className="h-4 w-3/4 rounded bg-muted" />
+                    <div className="h-3 w-1/2 rounded bg-muted" />
                   </div>
                 </div>
               ))}
             </div>
           ) : papers.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-              <h3 className="text-lg font-semibold text-[#343A40] dark:text-white mb-2">No uploads yet</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Start contributing by uploading your first paper!</p>
-              <Button onClick={() => navigate('/upload')} className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white">
+              <FileText className="mx-auto mb-4 h-16 w-16 text-muted-foreground/45" />
+              <h3 className="theme-title mb-2 text-lg font-semibold">No uploads yet</h3>
+              <p className="theme-muted mb-4">Start contributing by uploading your first paper!</p>
+              <Button onClick={() => navigate('/upload')} className="theme-accent-bg">
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Paper
               </Button>
@@ -420,24 +418,24 @@ export default function DashboardPage() {
               {papers.map((paper) => (
                 <div
                   key={paper.id}
-                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-[#343A40] rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2e33] transition-colors"
+                  className="theme-list-row flex items-center gap-4 rounded-lg p-4 transition-colors"
                 >
-                  <div className="w-12 h-12 rounded-lg bg-[#F08A5D]/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="h-6 w-6 text-[#F08A5D]" />
+                  <div className="theme-accent-soft flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg">
+                    <FileText className="theme-section-icon h-6 w-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-[#343A40] dark:text-white truncate">{paper.title}</h4>
+                    <h4 className="theme-title truncate font-medium">{paper.title}</h4>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{paper.course_code}</span>
+                      <span className="theme-muted text-xs">{paper.course_code}</span>
                       <span className="text-xs text-gray-400">·</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{paper.year}</span>
+                      <span className="theme-muted text-xs">{paper.year}</span>
                       <span className="text-xs text-gray-400">·</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{paper.paper_type}</span>
+                      <span className="theme-muted text-xs">{paper.paper_type}</span>
                       <VerificationBadge status={paper.verification_status} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
+                    <span className="theme-muted flex items-center gap-1 text-xs">
                       <Download className="h-3.5 w-3.5" />
                       {paper.download_count || 0}
                     </span>
@@ -445,7 +443,7 @@ export default function DashboardPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => navigate(`/paper/${paper.id}`)}
-                      className="h-8 w-8 text-gray-400 hover:text-[#F08A5D]"
+                      className="theme-muted h-8 w-8 hover:text-[hsl(var(--brand))]"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

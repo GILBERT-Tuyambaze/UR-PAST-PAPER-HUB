@@ -1,0 +1,553 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/frontend/src/pages/Story.tsx");import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+
+let prevRefreshReg;
+let prevRefreshSig;
+
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react-swc can't detect preamble. Something is wrong."
+    );
+  }
+
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=97a10951"; const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"];
+import BrandMark from "/frontend/src/components/BrandMark.tsx";
+import { Badge } from "/frontend/src/components/ui/badge.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "/frontend/src/components/ui/card.tsx";
+import { Lightbulb, ShieldCheck, Search, Users, ExternalLink } from "/node_modules/.vite/deps/lucide-react.js?v=97a10951";
+const pillars = [
+    {
+        title: 'The problem we saw',
+        description: 'UR students often depend on scattered class groups and informal sharing to find past papers, assignments, and worked solutions. Valuable material disappears, quality is uneven, and preparation becomes harder than it should be.'
+    },
+    {
+        title: 'The system we wanted',
+        description: 'A structured academic hub where content is organized by college, department, course, and year, while still keeping the energy of a student community through uploads, discussion, and shared solutions.'
+    },
+    {
+        title: 'The promise we care about',
+        description: 'Reliable access, better revision, and a digital academic archive that can serve both current students and future generations at the University of Rwanda.'
+    }
+];
+const features = [
+    'Centralized repository of past papers and solutions',
+    'Role-based moderation with admin, content manager, CP, lecturer, and contributor paths',
+    'Verification layers for official, community-trusted, and unverified content',
+    'Discussion and collaborative learning around each paper',
+    'Fast search by course code, name, lecturer, year, and type',
+    'Mobile-first access with progressive enhancement and offline support'
+];
+export default function StoryPage() {
+    return /*#__PURE__*/ _jsxDEV("div", {
+        className: "mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8",
+        children: [
+            /*#__PURE__*/ _jsxDEV("section", {
+                className: "theme-panel overflow-hidden rounded-[2rem] border",
+                children: /*#__PURE__*/ _jsxDEV("div", {
+                    className: "grid gap-8 p-8 lg:grid-cols-[1.05fr_0.95fr] lg:p-10",
+                    children: [
+                        /*#__PURE__*/ _jsxDEV("div", {
+                            children: [
+                                /*#__PURE__*/ _jsxDEV(Badge, {
+                                    className: "mb-4 bg-[#F08A5D]/10 text-[#F08A5D] hover:bg-[#F08A5D]/10",
+                                    children: "Story Behind This Website"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 39,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("h1", {
+                                    className: "text-4xl font-bold text-foreground",
+                                    children: "UR Academic Resource Hub began with a simple need: stop losing useful academic material."
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 40,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("p", {
+                                    className: "mt-5 max-w-2xl text-base leading-7 text-muted-foreground",
+                                    children: "This platform was designed for University of Rwanda students who needed a dependable place to find past papers, revise with confidence, and contribute resources that stay useful over time."
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 41,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mt-6 flex flex-wrap gap-3",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Badge, {
+                                            variant: "outline",
+                                            children: "Centralized access"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 45,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Badge, {
+                                            variant: "outline",
+                                            children: "Community verification"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 46,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Badge, {
+                                            variant: "outline",
+                                            children: "Structured organization"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 47,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Badge, {
+                                            variant: "outline",
+                                            children: "Long-term academic archive"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 48,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 44,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                            lineNumber: 38,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ _jsxDEV("div", {
+                            className: "rounded-[1.6rem] border border-border/70 bg-muted/40 p-6",
+                            children: [
+                                /*#__PURE__*/ _jsxDEV(BrandMark, {
+                                    label: true,
+                                    imageClassName: "h-16 w-16",
+                                    labelClassName: "text-2xl text-foreground"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 53,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("p", {
+                                    className: "mt-5 text-sm leading-7 text-muted-foreground",
+                                    children: "The hub combines accessibility, collaboration, verification, and practical system design so academic preparation feels less chaotic and more intentional."
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 54,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mt-6 grid gap-3 sm:grid-cols-2",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "rounded-2xl bg-background p-4",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                    className: "text-xs uppercase tracking-[0.2em] text-muted-foreground",
+                                                    children: "Focus"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                    lineNumber: 59,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                    className: "mt-2 font-semibold text-foreground",
+                                                    children: "Reliable UR learning resources"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                    lineNumber: 60,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 58,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "rounded-2xl bg-background p-4",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                    className: "text-xs uppercase tracking-[0.2em] text-muted-foreground",
+                                                    children: "Scope"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                    lineNumber: 63,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                    className: "mt-2 font-semibold text-foreground",
+                                                    children: "Built for UR first, scalable later"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                    lineNumber: 64,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 62,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 57,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                            lineNumber: 52,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                    lineNumber: 37,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                lineNumber: 36,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("section", {
+                className: "mt-10 grid gap-5 lg:grid-cols-3",
+                children: pillars.map((pillar, index)=>/*#__PURE__*/ _jsxDEV(Card, {
+                        className: "theme-panel",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(CardHeader, {
+                                children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                                    className: "flex items-center gap-3 text-foreground",
+                                    children: [
+                                        index === 0 ? /*#__PURE__*/ _jsxDEV(Lightbulb, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 76,
+                                            columnNumber: 32
+                                        }, this) : index === 1 ? /*#__PURE__*/ _jsxDEV(ShieldCheck, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 76,
+                                            columnNumber: 97
+                                        }, this) : /*#__PURE__*/ _jsxDEV(Users, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 76,
+                                            columnNumber: 150
+                                        }, this),
+                                        pillar.title
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 75,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 74,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(CardContent, {
+                                children: /*#__PURE__*/ _jsxDEV("p", {
+                                    className: "text-sm leading-7 text-muted-foreground",
+                                    children: pillar.description
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 81,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 80,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, pillar.title, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                        lineNumber: 73,
+                        columnNumber: 11
+                    }, this))
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                lineNumber: 71,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("section", {
+                className: "mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]",
+                children: [
+                    /*#__PURE__*/ _jsxDEV(Card, {
+                        className: "theme-panel",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(CardHeader, {
+                                children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                                    className: "flex items-center gap-3 text-foreground",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Search, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                            lineNumber: 91,
+                                            columnNumber: 15
+                                        }, this),
+                                        "What This Platform Is Meant To Do"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 90,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 89,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(CardContent, {
+                                className: "space-y-3",
+                                children: features.map((feature)=>/*#__PURE__*/ _jsxDEV("div", {
+                                        className: "rounded-2xl bg-muted/40 px-4 py-3 text-sm text-muted-foreground",
+                                        children: feature
+                                    }, feature, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                        lineNumber: 97,
+                                        columnNumber: 15
+                                    }, this))
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 95,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                        lineNumber: 88,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ _jsxDEV(Card, {
+                        className: "theme-panel",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(CardHeader, {
+                                children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                                    className: "text-foreground",
+                                    children: "People Behind It"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                    lineNumber: 106,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 105,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(CardContent, {
+                                className: "space-y-4",
+                                children: [
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "rounded-2xl border border-border/70 bg-background p-5",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV("div", {
+                                                className: "flex items-center gap-4",
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(BrandMark, {
+                                                        imageClassName: "h-14 w-14"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 111,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ _jsxDEV("p", {
+                                                                className: "font-semibold text-foreground",
+                                                                children: "Gilbert Tuyambaze"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                                lineNumber: 113,
+                                                                columnNumber: 19
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV("p", {
+                                                                className: "text-sm text-muted-foreground",
+                                                                children: "A lead builder and creative technologist at the forefront of the project, driving its vision, shaping its experience, and turning ideas into impactful digital solutions."
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                                lineNumber: 114,
+                                                                columnNumber: 19
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 112,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                lineNumber: 110,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV("a", {
+                                                href: "https://tuyambaze-gilbert.vercel.app/",
+                                                target: "_blank",
+                                                rel: "noreferrer",
+                                                className: "mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#F08A5D] hover:underline",
+                                                children: [
+                                                    "Visit portfolio",
+                                                    /*#__PURE__*/ _jsxDEV(ExternalLink, {
+                                                        className: "h-4 w-4"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 124,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                lineNumber: 117,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                        lineNumber: 109,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "rounded-2xl border border-border/70 bg-background p-5",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV("div", {
+                                                className: "flex items-center gap-4",
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(BrandMark, {
+                                                        imageClassName: "h-14 w-14"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 130,
+                                                        columnNumber: 17
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV("div", {
+                                                        children: [
+                                                            /*#__PURE__*/ _jsxDEV("p", {
+                                                                className: "font-semibold text-foreground",
+                                                                children: "Karly Ngarambe"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                                lineNumber: 132,
+                                                                columnNumber: 19
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV("p", {
+                                                                className: "text-sm text-muted-foreground",
+                                                                children: "A strategic collaborator contributing to the platform’s vision, shaping its story and user experience, and leading the generation of core project ideas."
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                                lineNumber: 133,
+                                                                columnNumber: 19
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 131,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                lineNumber: 129,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV("a", {
+                                                href: "https://rw.linkedin.com/in/karly-ngarambe-designer",
+                                                target: "_blank",
+                                                rel: "noreferrer",
+                                                className: "mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#F08A5D] hover:underline",
+                                                children: [
+                                                    "Visit LinkedIn",
+                                                    /*#__PURE__*/ _jsxDEV(ExternalLink, {
+                                                        className: "h-4 w-4"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                        lineNumber: 143,
+                                                        columnNumber: 17
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                                lineNumber: 136,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                        lineNumber: 128,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "rounded-2xl bg-muted/40 p-5 text-sm leading-7 text-muted-foreground",
+                                        children: "The vision behind this website is not just to host files. It is to create a trustworthy academic ecosystem where revision resources, discussion, and quality control can live together in one sustainable place, shaped by people who understand the real academic pressure students face."
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                        lineNumber: 147,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                                lineNumber: 108,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                        lineNumber: 104,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+                lineNumber: 87,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx",
+        lineNumber: 35,
+        columnNumber: 5
+    }, this);
+}
+_c = StoryPage;
+var _c;
+$RefreshReg$(_c, "StoryPage");
+
+
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Story.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIlN0b3J5LnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQnJhbmRNYXJrIGZyb20gJ0AvY29tcG9uZW50cy9CcmFuZE1hcmsnO1xuaW1wb3J0IHsgQmFkZ2UgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYmFkZ2UnO1xuaW1wb3J0IHsgQ2FyZCwgQ2FyZENvbnRlbnQsIENhcmRIZWFkZXIsIENhcmRUaXRsZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9jYXJkJztcbmltcG9ydCB7IExpZ2h0YnVsYiwgU2hpZWxkQ2hlY2ssIFNlYXJjaCwgVXNlcnMsIEV4dGVybmFsTGluayB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5cbmNvbnN0IHBpbGxhcnMgPSBbXG4gIHtcbiAgICB0aXRsZTogJ1RoZSBwcm9ibGVtIHdlIHNhdycsXG4gICAgZGVzY3JpcHRpb246XG4gICAgICAnVVIgc3R1ZGVudHMgb2Z0ZW4gZGVwZW5kIG9uIHNjYXR0ZXJlZCBjbGFzcyBncm91cHMgYW5kIGluZm9ybWFsIHNoYXJpbmcgdG8gZmluZCBwYXN0IHBhcGVycywgYXNzaWdubWVudHMsIGFuZCB3b3JrZWQgc29sdXRpb25zLiBWYWx1YWJsZSBtYXRlcmlhbCBkaXNhcHBlYXJzLCBxdWFsaXR5IGlzIHVuZXZlbiwgYW5kIHByZXBhcmF0aW9uIGJlY29tZXMgaGFyZGVyIHRoYW4gaXQgc2hvdWxkIGJlLicsXG4gIH0sXG4gIHtcbiAgICB0aXRsZTogJ1RoZSBzeXN0ZW0gd2Ugd2FudGVkJyxcbiAgICBkZXNjcmlwdGlvbjpcbiAgICAgICdBIHN0cnVjdHVyZWQgYWNhZGVtaWMgaHViIHdoZXJlIGNvbnRlbnQgaXMgb3JnYW5pemVkIGJ5IGNvbGxlZ2UsIGRlcGFydG1lbnQsIGNvdXJzZSwgYW5kIHllYXIsIHdoaWxlIHN0aWxsIGtlZXBpbmcgdGhlIGVuZXJneSBvZiBhIHN0dWRlbnQgY29tbXVuaXR5IHRocm91Z2ggdXBsb2FkcywgZGlzY3Vzc2lvbiwgYW5kIHNoYXJlZCBzb2x1dGlvbnMuJyxcbiAgfSxcbiAge1xuICAgIHRpdGxlOiAnVGhlIHByb21pc2Ugd2UgY2FyZSBhYm91dCcsXG4gICAgZGVzY3JpcHRpb246XG4gICAgICAnUmVsaWFibGUgYWNjZXNzLCBiZXR0ZXIgcmV2aXNpb24sIGFuZCBhIGRpZ2l0YWwgYWNhZGVtaWMgYXJjaGl2ZSB0aGF0IGNhbiBzZXJ2ZSBib3RoIGN1cnJlbnQgc3R1ZGVudHMgYW5kIGZ1dHVyZSBnZW5lcmF0aW9ucyBhdCB0aGUgVW5pdmVyc2l0eSBvZiBSd2FuZGEuJyxcbiAgfSxcbl07XG5cbmNvbnN0IGZlYXR1cmVzID0gW1xuICAnQ2VudHJhbGl6ZWQgcmVwb3NpdG9yeSBvZiBwYXN0IHBhcGVycyBhbmQgc29sdXRpb25zJyxcbiAgJ1JvbGUtYmFzZWQgbW9kZXJhdGlvbiB3aXRoIGFkbWluLCBjb250ZW50IG1hbmFnZXIsIENQLCBsZWN0dXJlciwgYW5kIGNvbnRyaWJ1dG9yIHBhdGhzJyxcbiAgJ1ZlcmlmaWNhdGlvbiBsYXllcnMgZm9yIG9mZmljaWFsLCBjb21tdW5pdHktdHJ1c3RlZCwgYW5kIHVudmVyaWZpZWQgY29udGVudCcsXG4gICdEaXNjdXNzaW9uIGFuZCBjb2xsYWJvcmF0aXZlIGxlYXJuaW5nIGFyb3VuZCBlYWNoIHBhcGVyJyxcbiAgJ0Zhc3Qgc2VhcmNoIGJ5IGNvdXJzZSBjb2RlLCBuYW1lLCBsZWN0dXJlciwgeWVhciwgYW5kIHR5cGUnLFxuICAnTW9iaWxlLWZpcnN0IGFjY2VzcyB3aXRoIHByb2dyZXNzaXZlIGVuaGFuY2VtZW50IGFuZCBvZmZsaW5lIHN1cHBvcnQnLFxuXTtcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gU3RvcnlQYWdlKCkge1xuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwibXgtYXV0byBtYXgtdy02eGwgcHgtNCBweS0xMCBzbTpweC02IGxnOnB4LThcIj5cbiAgICAgIDxzZWN0aW9uIGNsYXNzTmFtZT1cInRoZW1lLXBhbmVsIG92ZXJmbG93LWhpZGRlbiByb3VuZGVkLVsycmVtXSBib3JkZXJcIj5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdhcC04IHAtOCBsZzpncmlkLWNvbHMtWzEuMDVmcl8wLjk1ZnJdIGxnOnAtMTBcIj5cbiAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgPEJhZGdlIGNsYXNzTmFtZT1cIm1iLTQgYmctWyNGMDhBNURdLzEwIHRleHQtWyNGMDhBNURdIGhvdmVyOmJnLVsjRjA4QTVEXS8xMFwiPlN0b3J5IEJlaGluZCBUaGlzIFdlYnNpdGU8L0JhZGdlPlxuICAgICAgICAgICAgPGgxIGNsYXNzTmFtZT1cInRleHQtNHhsIGZvbnQtYm9sZCB0ZXh0LWZvcmVncm91bmRcIj5VUiBBY2FkZW1pYyBSZXNvdXJjZSBIdWIgYmVnYW4gd2l0aCBhIHNpbXBsZSBuZWVkOiBzdG9wIGxvc2luZyB1c2VmdWwgYWNhZGVtaWMgbWF0ZXJpYWwuPC9oMT5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cIm10LTUgbWF4LXctMnhsIHRleHQtYmFzZSBsZWFkaW5nLTcgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+XG4gICAgICAgICAgICAgIFRoaXMgcGxhdGZvcm0gd2FzIGRlc2lnbmVkIGZvciBVbml2ZXJzaXR5IG9mIFJ3YW5kYSBzdHVkZW50cyB3aG8gbmVlZGVkIGEgZGVwZW5kYWJsZSBwbGFjZSB0byBmaW5kIHBhc3QgcGFwZXJzLCByZXZpc2Ugd2l0aCBjb25maWRlbmNlLCBhbmQgY29udHJpYnV0ZSByZXNvdXJjZXMgdGhhdCBzdGF5IHVzZWZ1bCBvdmVyIHRpbWUuXG4gICAgICAgICAgICA8L3A+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTYgZmxleCBmbGV4LXdyYXAgZ2FwLTNcIj5cbiAgICAgICAgICAgICAgPEJhZGdlIHZhcmlhbnQ9XCJvdXRsaW5lXCI+Q2VudHJhbGl6ZWQgYWNjZXNzPC9CYWRnZT5cbiAgICAgICAgICAgICAgPEJhZGdlIHZhcmlhbnQ9XCJvdXRsaW5lXCI+Q29tbXVuaXR5IHZlcmlmaWNhdGlvbjwvQmFkZ2U+XG4gICAgICAgICAgICAgIDxCYWRnZSB2YXJpYW50PVwib3V0bGluZVwiPlN0cnVjdHVyZWQgb3JnYW5pemF0aW9uPC9CYWRnZT5cbiAgICAgICAgICAgICAgPEJhZGdlIHZhcmlhbnQ9XCJvdXRsaW5lXCI+TG9uZy10ZXJtIGFjYWRlbWljIGFyY2hpdmU8L0JhZGdlPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJvdW5kZWQtWzEuNnJlbV0gYm9yZGVyIGJvcmRlci1ib3JkZXIvNzAgYmctbXV0ZWQvNDAgcC02XCI+XG4gICAgICAgICAgICA8QnJhbmRNYXJrIGxhYmVsIGltYWdlQ2xhc3NOYW1lPVwiaC0xNiB3LTE2XCIgbGFiZWxDbGFzc05hbWU9XCJ0ZXh0LTJ4bCB0ZXh0LWZvcmVncm91bmRcIiAvPlxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwibXQtNSB0ZXh0LXNtIGxlYWRpbmctNyB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj5cbiAgICAgICAgICAgICAgVGhlIGh1YiBjb21iaW5lcyBhY2Nlc3NpYmlsaXR5LCBjb2xsYWJvcmF0aW9uLCB2ZXJpZmljYXRpb24sIGFuZCBwcmFjdGljYWwgc3lzdGVtIGRlc2lnbiBzbyBhY2FkZW1pYyBwcmVwYXJhdGlvbiBmZWVscyBsZXNzIGNoYW90aWMgYW5kIG1vcmUgaW50ZW50aW9uYWwuXG4gICAgICAgICAgICA8L3A+XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTYgZ3JpZCBnYXAtMyBzbTpncmlkLWNvbHMtMlwiPlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJvdW5kZWQtMnhsIGJnLWJhY2tncm91bmQgcC00XCI+XG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC14cyB1cHBlcmNhc2UgdHJhY2tpbmctWzAuMmVtXSB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj5Gb2N1czwvcD5cbiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtdC0yIGZvbnQtc2VtaWJvbGQgdGV4dC1mb3JlZ3JvdW5kXCI+UmVsaWFibGUgVVIgbGVhcm5pbmcgcmVzb3VyY2VzPC9wPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJyb3VuZGVkLTJ4bCBiZy1iYWNrZ3JvdW5kIHAtNFwiPlxuICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQteHMgdXBwZXJjYXNlIHRyYWNraW5nLVswLjJlbV0gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+U2NvcGU8L3A+XG4gICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwibXQtMiBmb250LXNlbWlib2xkIHRleHQtZm9yZWdyb3VuZFwiPkJ1aWx0IGZvciBVUiBmaXJzdCwgc2NhbGFibGUgbGF0ZXI8L3A+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9zZWN0aW9uPlxuXG4gICAgICA8c2VjdGlvbiBjbGFzc05hbWU9XCJtdC0xMCBncmlkIGdhcC01IGxnOmdyaWQtY29scy0zXCI+XG4gICAgICAgIHtwaWxsYXJzLm1hcCgocGlsbGFyLCBpbmRleCkgPT4gKFxuICAgICAgICAgIDxDYXJkIGtleT17cGlsbGFyLnRpdGxlfSBjbGFzc05hbWU9XCJ0aGVtZS1wYW5lbFwiPlxuICAgICAgICAgICAgPENhcmRIZWFkZXI+XG4gICAgICAgICAgICAgIDxDYXJkVGl0bGUgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgdGV4dC1mb3JlZ3JvdW5kXCI+XG4gICAgICAgICAgICAgICAge2luZGV4ID09PSAwID8gPExpZ2h0YnVsYiBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtWyNGMDhBNURdXCIgLz4gOiBpbmRleCA9PT0gMSA/IDxTaGllbGRDaGVjayBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtWyNGMDhBNURdXCIgLz4gOiA8VXNlcnMgY2xhc3NOYW1lPVwiaC01IHctNSB0ZXh0LVsjRjA4QTVEXVwiIC8+fVxuICAgICAgICAgICAgICAgIHtwaWxsYXIudGl0bGV9XG4gICAgICAgICAgICAgIDwvQ2FyZFRpdGxlPlxuICAgICAgICAgICAgPC9DYXJkSGVhZGVyPlxuICAgICAgICAgICAgPENhcmRDb250ZW50PlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIGxlYWRpbmctNyB0ZXh0LW11dGVkLWZvcmVncm91bmRcIj57cGlsbGFyLmRlc2NyaXB0aW9ufTwvcD5cbiAgICAgICAgICAgIDwvQ2FyZENvbnRlbnQ+XG4gICAgICAgICAgPC9DYXJkPlxuICAgICAgICApKX1cbiAgICAgIDwvc2VjdGlvbj5cblxuICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPVwibXQtMTAgZ3JpZCBnYXAtNiBsZzpncmlkLWNvbHMtWzEuMWZyXzAuOWZyXVwiPlxuICAgICAgICA8Q2FyZCBjbGFzc05hbWU9XCJ0aGVtZS1wYW5lbFwiPlxuICAgICAgICAgIDxDYXJkSGVhZGVyPlxuICAgICAgICAgICAgPENhcmRUaXRsZSBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyB0ZXh0LWZvcmVncm91bmRcIj5cbiAgICAgICAgICAgICAgPFNlYXJjaCBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtWyNGMDhBNURdXCIgLz5cbiAgICAgICAgICAgICAgV2hhdCBUaGlzIFBsYXRmb3JtIElzIE1lYW50IFRvIERvXG4gICAgICAgICAgICA8L0NhcmRUaXRsZT5cbiAgICAgICAgICA8L0NhcmRIZWFkZXI+XG4gICAgICAgICAgPENhcmRDb250ZW50IGNsYXNzTmFtZT1cInNwYWNlLXktM1wiPlxuICAgICAgICAgICAge2ZlYXR1cmVzLm1hcCgoZmVhdHVyZSkgPT4gKFxuICAgICAgICAgICAgICA8ZGl2IGtleT17ZmVhdHVyZX0gY2xhc3NOYW1lPVwicm91bmRlZC0yeGwgYmctbXV0ZWQvNDAgcHgtNCBweS0zIHRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+XG4gICAgICAgICAgICAgICAge2ZlYXR1cmV9XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgKSl9XG4gICAgICAgICAgPC9DYXJkQ29udGVudD5cbiAgICAgICAgPC9DYXJkPlxuXG4gICAgICAgIDxDYXJkIGNsYXNzTmFtZT1cInRoZW1lLXBhbmVsXCI+XG4gICAgICAgICAgPENhcmRIZWFkZXI+XG4gICAgICAgICAgICA8Q2FyZFRpdGxlIGNsYXNzTmFtZT1cInRleHQtZm9yZWdyb3VuZFwiPlBlb3BsZSBCZWhpbmQgSXQ8L0NhcmRUaXRsZT5cbiAgICAgICAgICA8L0NhcmRIZWFkZXI+XG4gICAgICAgICAgPENhcmRDb250ZW50IGNsYXNzTmFtZT1cInNwYWNlLXktNFwiPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJyb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLWJvcmRlci83MCBiZy1iYWNrZ3JvdW5kIHAtNVwiPlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC00XCI+XG4gICAgICAgICAgICAgICAgPEJyYW5kTWFyayBpbWFnZUNsYXNzTmFtZT1cImgtMTQgdy0xNFwiIC8+XG4gICAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cImZvbnQtc2VtaWJvbGQgdGV4dC1mb3JlZ3JvdW5kXCI+R2lsYmVydCBUdXlhbWJhemU8L3A+XG4gICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPkEgbGVhZCBidWlsZGVyIGFuZCBjcmVhdGl2ZSB0ZWNobm9sb2dpc3QgYXQgdGhlIGZvcmVmcm9udCBvZiB0aGUgcHJvamVjdCwgZHJpdmluZyBpdHMgdmlzaW9uLCBzaGFwaW5nIGl0cyBleHBlcmllbmNlLCBhbmQgdHVybmluZyBpZGVhcyBpbnRvIGltcGFjdGZ1bCBkaWdpdGFsIHNvbHV0aW9ucy48L3A+XG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8YVxuICAgICAgICAgICAgICAgIGhyZWY9XCJodHRwczovL3R1eWFtYmF6ZS1naWxiZXJ0LnZlcmNlbC5hcHAvXCJcbiAgICAgICAgICAgICAgICB0YXJnZXQ9XCJfYmxhbmtcIlxuICAgICAgICAgICAgICAgIHJlbD1cIm5vcmVmZXJyZXJcIlxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm10LTQgaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1bI0YwOEE1RF0gaG92ZXI6dW5kZXJsaW5lXCJcbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIFZpc2l0IHBvcnRmb2xpb1xuICAgICAgICAgICAgICAgIDxFeHRlcm5hbExpbmsgY2xhc3NOYW1lPVwiaC00IHctNFwiIC8+XG4gICAgICAgICAgICAgIDwvYT5cbiAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJvdW5kZWQtMnhsIGJvcmRlciBib3JkZXItYm9yZGVyLzcwIGJnLWJhY2tncm91bmQgcC01XCI+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTRcIj5cbiAgICAgICAgICAgICAgICA8QnJhbmRNYXJrIGltYWdlQ2xhc3NOYW1lPVwiaC0xNCB3LTE0XCIgLz5cbiAgICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZCB0ZXh0LWZvcmVncm91bmRcIj5LYXJseSBOZ2FyYW1iZTwvcD5cbiAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1tdXRlZC1mb3JlZ3JvdW5kXCI+QSBzdHJhdGVnaWMgY29sbGFib3JhdG9yIGNvbnRyaWJ1dGluZyB0byB0aGUgcGxhdGZvcm3igJlzIHZpc2lvbiwgc2hhcGluZyBpdHMgc3RvcnkgYW5kIHVzZXIgZXhwZXJpZW5jZSwgYW5kIGxlYWRpbmcgdGhlIGdlbmVyYXRpb24gb2YgY29yZSBwcm9qZWN0IGlkZWFzLjwvcD5cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxhXG4gICAgICAgICAgICAgICAgaHJlZj1cImh0dHBzOi8vcncubGlua2VkaW4uY29tL2luL2thcmx5LW5nYXJhbWJlLWRlc2lnbmVyXCJcbiAgICAgICAgICAgICAgICB0YXJnZXQ9XCJfYmxhbmtcIlxuICAgICAgICAgICAgICAgIHJlbD1cIm5vcmVmZXJyZXJcIlxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm10LTQgaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1bI0YwOEE1RF0gaG92ZXI6dW5kZXJsaW5lXCJcbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIFZpc2l0IExpbmtlZEluXG4gICAgICAgICAgICAgICAgPEV4dGVybmFsTGluayBjbGFzc05hbWU9XCJoLTQgdy00XCIgLz5cbiAgICAgICAgICAgICAgPC9hPlxuICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicm91bmRlZC0yeGwgYmctbXV0ZWQvNDAgcC01IHRleHQtc20gbGVhZGluZy03IHRleHQtbXV0ZWQtZm9yZWdyb3VuZFwiPlxuICAgICAgICAgICAgICBUaGUgdmlzaW9uIGJlaGluZCB0aGlzIHdlYnNpdGUgaXMgbm90IGp1c3QgdG8gaG9zdCBmaWxlcy4gSXQgaXMgdG8gY3JlYXRlIGEgdHJ1c3R3b3J0aHkgYWNhZGVtaWMgZWNvc3lzdGVtIHdoZXJlIHJldmlzaW9uIHJlc291cmNlcywgZGlzY3Vzc2lvbiwgYW5kIHF1YWxpdHkgY29udHJvbCBjYW4gbGl2ZSB0b2dldGhlciBpbiBvbmUgc3VzdGFpbmFibGUgcGxhY2UsIHNoYXBlZCBieSBwZW9wbGUgd2hvIHVuZGVyc3RhbmQgdGhlIHJlYWwgYWNhZGVtaWMgcHJlc3N1cmUgc3R1ZGVudHMgZmFjZS5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgIDwvQ2FyZENvbnRlbnQ+XG4gICAgICAgIDwvQ2FyZD5cbiAgICAgIDwvc2VjdGlvbj5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJuYW1lcyI6WyJCcmFuZE1hcmsiLCJCYWRnZSIsIkNhcmQiLCJDYXJkQ29udGVudCIsIkNhcmRIZWFkZXIiLCJDYXJkVGl0bGUiLCJMaWdodGJ1bGIiLCJTaGllbGRDaGVjayIsIlNlYXJjaCIsIlVzZXJzIiwiRXh0ZXJuYWxMaW5rIiwicGlsbGFycyIsInRpdGxlIiwiZGVzY3JpcHRpb24iLCJmZWF0dXJlcyIsIlN0b3J5UGFnZSIsImRpdiIsImNsYXNzTmFtZSIsInNlY3Rpb24iLCJoMSIsInAiLCJ2YXJpYW50IiwibGFiZWwiLCJpbWFnZUNsYXNzTmFtZSIsImxhYmVsQ2xhc3NOYW1lIiwibWFwIiwicGlsbGFyIiwiaW5kZXgiLCJmZWF0dXJlIiwiYSIsImhyZWYiLCJ0YXJnZXQiLCJyZWwiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsT0FBT0EsZUFBZSx5QkFBeUI7QUFDL0MsU0FBU0MsS0FBSyxRQUFRLHdCQUF3QjtBQUM5QyxTQUFTQyxJQUFJLEVBQUVDLFdBQVcsRUFBRUMsVUFBVSxFQUFFQyxTQUFTLFFBQVEsdUJBQXVCO0FBQ2hGLFNBQVNDLFNBQVMsRUFBRUMsV0FBVyxFQUFFQyxNQUFNLEVBQUVDLEtBQUssRUFBRUMsWUFBWSxRQUFRLGVBQWU7QUFFbkYsTUFBTUMsVUFBVTtJQUNkO1FBQ0VDLE9BQU87UUFDUEMsYUFDRTtJQUNKO0lBQ0E7UUFDRUQsT0FBTztRQUNQQyxhQUNFO0lBQ0o7SUFDQTtRQUNFRCxPQUFPO1FBQ1BDLGFBQ0U7SUFDSjtDQUNEO0FBRUQsTUFB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

@@ -210,7 +210,7 @@ export default function UploadPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F08A5D]" />
+        <div className="theme-spinner h-8 w-8 animate-spin rounded-full border-b-2 border-current" />
       </div>
     );
   }
@@ -223,13 +223,13 @@ export default function UploadPage() {
           alt="Upload"
           className="w-48 h-48 mx-auto mb-6 rounded-lg opacity-80"
         />
-        <h2 className="text-2xl font-bold text-[#343A40] dark:text-white mb-4">Sign In Required</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <h2 className="theme-title mb-4 text-2xl font-bold">Sign In Required</h2>
+        <p className="theme-muted mb-6">
           You need to sign in to upload papers and contribute to the community.
         </p>
         <Button
           onClick={() => authApi.login('/upload')}
-          className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white"
+          className="theme-accent-bg"
         >
           Sign In to Upload
         </Button>
@@ -240,18 +240,18 @@ export default function UploadPage() {
   if (success) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
+        <div className="theme-soft-panel mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full text-green-600 dark:text-green-300">
           <CheckCircle className="h-10 w-10 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-[#343A40] dark:text-white mb-4">Upload Successful!</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
+        <h2 className="theme-title mb-4 text-2xl font-bold">Upload Successful!</h2>
+        <p className="theme-muted mb-6">
           Your paper has been submitted with a {inferVerificationStatus()} verification status. Thank you for contributing!
         </p>
         <div className="flex gap-3 justify-center">
-          <Button onClick={() => { setSuccess(false); setTitle(''); setCourseCode(''); setCourseName(''); setCollege(''); setDepartment(''); setYear(''); setPaperType(''); setLecturer(''); setDescription(''); setPaperFile(null); setSolutionFile(null); }} variant="outline" className="dark:border-gray-600 dark:text-gray-300">
+          <Button onClick={() => { setSuccess(false); setTitle(''); setCourseCode(''); setCourseName(''); setCollege(''); setDepartment(''); setYear(''); setPaperType(''); setLecturer(''); setDescription(''); setPaperFile(null); setSolutionFile(null); }} variant="outline">
             Upload Another
           </Button>
-          <Button onClick={() => navigate('/dashboard')} className="bg-[#F08A5D] hover:bg-[#e07a4d] text-white">
+          <Button onClick={() => navigate('/dashboard')} className="theme-accent-bg">
             Go to Dashboard
           </Button>
         </div>
@@ -261,15 +261,15 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 text-gray-500 hover:text-[#F08A5D]">
+      <Button variant="ghost" onClick={() => navigate(-1)} className="theme-muted mb-6 hover:text-[hsl(var(--brand))]">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>
 
-      <Card className="dark:bg-[#3E444A] dark:border-gray-700">
+      <Card className="theme-panel">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[#343A40] dark:text-white">
-            <UploadIcon className="h-6 w-6 text-[#F08A5D]" />
+          <CardTitle className="theme-title flex items-center gap-2">
+            <UploadIcon className="theme-section-icon h-6 w-6" />
             Upload Past Paper
           </CardTitle>
         </CardHeader>
@@ -277,13 +277,13 @@ export default function UploadPage() {
           <form onSubmit={handleUpload} className="space-y-6">
             {/* Title */}
             <div>
-              <Label htmlFor="title" className="dark:text-gray-300">Paper Title *</Label>
+              <Label htmlFor="title" className="theme-form-label">Paper Title *</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., Data Structures - Final Exam 2024"
-                className="mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                className="theme-form-input mt-1"
                 required
               />
             </div>
@@ -291,39 +291,39 @@ export default function UploadPage() {
             {/* Course Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="courseCode" className="dark:text-gray-300">Course Code *</Label>
+                <Label htmlFor="courseCode" className="theme-form-label">Course Code *</Label>
                 <Input
                   id="courseCode"
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
                   placeholder="e.g., CSC2101"
-                  className="mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                  className="theme-form-input mt-1"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="courseName" className="dark:text-gray-300">Course Name *</Label>
+                <Label htmlFor="courseName" className="theme-form-label">Course Name *</Label>
                 <Input
                   id="courseName"
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
                   placeholder="e.g., Data Structures and Algorithms"
-                  className="mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                  className="theme-form-input mt-1"
                   required
                 />
               </div>
             </div>
 
             {matchingSuggestions.length > 0 && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-[#343A40]">
-                <p className="mb-3 text-sm font-medium text-[#343A40] dark:text-white">Auto-suggested course details</p>
+              <div className="theme-soft-panel rounded-lg p-4">
+                <p className="theme-title mb-3 text-sm font-medium">Auto-suggested course details</p>
                 <div className="flex flex-wrap gap-2">
                   {matchingSuggestions.map((paper) => (
                     <button
                       key={paper.id}
                       type="button"
                       onClick={() => applySuggestion(paper)}
-                      className="rounded-full border border-[#F08A5D]/40 px-3 py-1 text-xs text-[#343A40] transition-colors hover:bg-[#F08A5D] hover:text-white dark:text-white"
+                      className="theme-accent-soft-border rounded-full px-3 py-1 text-xs transition-colors hover:bg-[hsl(var(--brand))] hover:text-white"
                     >
                       {paper.course_code} · {paper.course_name}
                     </button>
@@ -335,12 +335,12 @@ export default function UploadPage() {
             {/* College & Department */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="dark:text-gray-300">College *</Label>
+                <Label className="theme-form-label">College *</Label>
                 <Select value={college} onValueChange={(val) => { setCollege(val); setDepartment(''); }}>
-                  <SelectTrigger className="mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600">
+                  <SelectTrigger className="theme-form-input mt-1">
                     <SelectValue placeholder="Select College" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white">
+                  <SelectContent>
                     {COLLEGES.map((c) => (
                       <SelectItem key={c} value={c}>{c.replace('College of ', '')}</SelectItem>
                     ))}
@@ -348,12 +348,12 @@ export default function UploadPage() {
                 </Select>
               </div>
               <div>
-                <Label className="dark:text-gray-300">Department *</Label>
+                <Label className="theme-form-label">Department *</Label>
                 <Select value={department} onValueChange={setDepartment} disabled={!college}>
-                  <SelectTrigger className="mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600">
+                  <SelectTrigger className="theme-form-input mt-1">
                     <SelectValue placeholder="Select Department" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white">
+                  <SelectContent>
                     {(DEPARTMENTS[college] || []).map((d) => (
                       <SelectItem key={d} value={d}>{d}</SelectItem>
                     ))}
@@ -365,12 +365,12 @@ export default function UploadPage() {
             {/* Year & Type */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="dark:text-gray-300">Academic Year *</Label>
+                <Label className="theme-form-label">Academic Year *</Label>
                 <Select value={year} onValueChange={setYear}>
-                  <SelectTrigger className="mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600">
+                  <SelectTrigger className="theme-form-input mt-1">
                     <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white">
+                  <SelectContent>
                     {YEARS.map((y) => (
                       <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                     ))}
@@ -378,12 +378,12 @@ export default function UploadPage() {
                 </Select>
               </div>
               <div>
-                <Label className="dark:text-gray-300">Paper Type *</Label>
+                <Label className="theme-form-label">Paper Type *</Label>
                 <Select value={paperType} onValueChange={setPaperType}>
-                  <SelectTrigger className="mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600">
+                  <SelectTrigger className="theme-form-input mt-1">
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white">
+                  <SelectContent>
                     {PAPER_TYPES.map((t) => (
                       <SelectItem key={t} value={t}>{t}</SelectItem>
                     ))}
@@ -394,32 +394,32 @@ export default function UploadPage() {
 
             {/* Lecturer */}
             <div>
-              <Label htmlFor="lecturer" className="dark:text-gray-300">Lecturer (Optional)</Label>
+              <Label htmlFor="lecturer" className="theme-form-label">Lecturer (Optional)</Label>
               <Input
                 id="lecturer"
                 value={lecturer}
                 onChange={(e) => setLecturer(e.target.value)}
                 placeholder="e.g., Dr. Jean Baptiste Uwimana"
-                className="mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                className="theme-form-input mt-1"
               />
             </div>
 
             {/* Description */}
             <div>
-              <Label htmlFor="description" className="dark:text-gray-300">Description (Optional)</Label>
+              <Label htmlFor="description" className="theme-form-label">Description (Optional)</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description of the paper content..."
                 rows={3}
-                className="mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                className="theme-form-input mt-1"
               />
             </div>
 
-            <div className="rounded-lg border border-dashed border-[#F08A5D]/40 bg-[#FFF8F3] p-4 dark:bg-[#2f2620]">
-              <p className="text-sm font-medium text-[#343A40] dark:text-white">Upload status preview</p>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <div className="theme-accent-soft-border rounded-lg border-dashed p-4">
+              <p className="theme-title text-sm font-medium">Upload status preview</p>
+              <p className="theme-muted mt-1 text-sm">
                 This upload will be marked as <span className="font-semibold">{inferVerificationStatus()}</span>
                 {profile ? ` based on your role "${profile.role}" and trust score ${profile.trust_score || 0}.` : '.'}
               </p>
@@ -428,13 +428,14 @@ export default function UploadPage() {
             {/* File Uploads */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label className="dark:text-gray-300">Paper File (PDF)</Label>
+                <Label className="theme-form-label">Paper File (PDF)</Label>
                 <div
-                  className={`mt-1 border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
+                  className={`theme-dropzone mt-1 rounded-lg p-4 text-center transition-colors ${
                     paperDragActive
-                      ? 'border-[#F08A5D] bg-[#FFF4E6] dark:bg-[#3b2e1f]'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-[#F08A5D]'
+                      ? 'theme-dropzone--active'
+                      : ''
                   }`}
+                  onClick={() => document.getElementById('paperFile')?.click()}
                   onDragOver={(e) => handleDragOver(e, setPaperDragActive)}
                   onDragEnter={(e) => handleDragOver(e, setPaperDragActive)}
                   onDragLeave={(e) => handleDragLeave(e, setPaperDragActive)}
@@ -448,21 +449,22 @@ export default function UploadPage() {
                     id="paperFile"
                   />
                   <label htmlFor="paperFile" className="cursor-pointer">
-                    <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                    <p className="theme-muted text-sm">
                       {paperFile ? paperFile.name : 'Click to upload paper'}
                     </p>
                   </label>
                 </div>
               </div>
               <div>
-                <Label className="dark:text-gray-300">Solution File (Optional)</Label>
+                <Label className="theme-form-label">Solution File (Optional)</Label>
                 <div
-                  className={`mt-1 border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
+                  className={`theme-dropzone mt-1 rounded-lg p-4 text-center transition-colors ${
                     solutionDragActive
-                      ? 'border-[#F08A5D] bg-[#FFF4E6] dark:bg-[#3b2e1f]'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-[#F08A5D]'
+                      ? 'theme-dropzone--active'
+                      : ''
                   }`}
+                  onClick={() => document.getElementById('solutionFile')?.click()}
                   onDragOver={(e) => handleDragOver(e, setSolutionDragActive)}
                   onDragEnter={(e) => handleDragOver(e, setSolutionDragActive)}
                   onDragLeave={(e) => handleDragLeave(e, setSolutionDragActive)}
@@ -476,8 +478,8 @@ export default function UploadPage() {
                     id="solutionFile"
                   />
                   <label htmlFor="solutionFile" className="cursor-pointer">
-                    <FileText className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                    <p className="theme-muted text-sm">
                       {solutionFile ? solutionFile.name : 'Click to upload solution'}
                     </p>
                   </label>
@@ -488,7 +490,7 @@ export default function UploadPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-[#F08A5D] hover:bg-[#e07a4d] text-white h-12 text-lg"
+              className="theme-accent-bg h-12 w-full text-lg"
             >
               {submitting ? (
                 <div className="flex items-center gap-2">

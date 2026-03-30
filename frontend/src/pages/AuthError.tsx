@@ -27,7 +27,7 @@ export default function AuthErrorPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 text-center dark:from-[#2d3338] dark:to-[#343A40]">
+    <div className="theme-auth-page min-h-screen p-6 text-center">
       <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center space-y-6">
         <div className="space-y-4">
           <div className="flex justify-center">
@@ -37,7 +37,7 @@ export default function AuthErrorPage() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Authentication Error</h1>
+          <h1 className="theme-title text-2xl font-bold">Authentication Error</h1>
           <p className="text-base text-muted-foreground">{errorMessage}</p>
           {errorMessage.toLowerCase().includes('not configured') && (
             <p className="text-sm text-muted-foreground">
@@ -47,11 +47,11 @@ export default function AuthErrorPage() {
           )}
 
           <div className="pt-2">
-            <p className="text-sm text-gray-500 dark:text-gray-300">
+            <p className="theme-muted text-sm">
               {countdown > 0 ? (
                 <>
                   Returning to the home page in{' '}
-                  <span className="text-blue-600 dark:text-[#F08A5D] font-semibold text-base">{countdown}</span>{' '}
+                  <span className="theme-link-accent text-base font-semibold">{countdown}</span>{' '}
                   seconds
                 </>
               ) : (

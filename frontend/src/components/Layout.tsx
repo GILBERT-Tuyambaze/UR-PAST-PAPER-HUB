@@ -25,6 +25,7 @@ import {
   Search,
   Moon,
   Sun,
+  Monitor,
   Bell,
 } from 'lucide-react';
 
@@ -34,7 +35,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user, login, logout } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const location = useLocation();
@@ -42,17 +43,31 @@ export default function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('ur-theme');
-    if (storedTheme) {
-      setDarkMode(storedTheme === 'dark');
-    } else {
-      setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system') {
+      setTheme(storedTheme);
+      return;
     }
+
+    setTheme('system');
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('ur-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const applyTheme = (nextTheme: 'light' | 'dark' | 'system') => {
+      const isDark = nextTheme === 'dark' || (nextTheme === 'system' && mediaQuery.matches);
+      document.documentElement.classList.toggle('dark', isDark);
+    };
+
+    applyTheme(theme);
+    localStorage.setItem('ur-theme', theme);
+
+    if (theme !== 'system') return;
+
+    const handleChange = () => applyTheme('system');
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
 
   useEffect(() => {
     if (!user) {
@@ -77,8 +92,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const isActive = (path: string) => location.pathname === path;
   const navLinkClass = (active: boolean) =>
-    `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-      active ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10 hover:text-white'
+    `theme-nav-link flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+      active ? 'theme-nav-link--active' : ''
     }`;
 
   return (
@@ -111,14 +126,41 @@ export default function Layout({ children }: LayoutProps) {
             </nav>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDarkMode((prev) => !prev)}
-                className="text-white/75 hover:bg-white/10 hover:text-white"
-              >
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+              <div className="theme-control-group flex items-center space-x-2 rounded-full p-1 backdrop-blur">
+                <Button
+                  type="button"
+                  variant={theme === 'light' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setTheme('light')}
+                  className="h-8 w-8 rounded-full p-0"
+                  aria-label="Switch to light mode"
+                  title="Switch to light mode"
+                >
+                  <Sun className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant={theme === 'dark' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setTheme('dark')}
+                  className="h-8 w-8 rounded-full p-0"
+                  aria-label="Switch to dark mode"
+                  title="Switch to dark mode"
+                >
+                  <Moon className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant={theme === 'system' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setTheme('system')}
+                  className="h-8 w-8 rounded-full p-0"
+                  aria-label="Use system theme"
+                  title="Use system theme"
+                >
+                  <Monitor className="h-4 w-4" />
+                </Button>
+              </div>
 
               {user ? (
                 <>
@@ -126,7 +168,7 @@ export default function Layout({ children }: LayoutProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => navigate('/dashboard#notifications')}
-                    className="relative text-white/75 hover:bg-white/10 hover:text-white"
+                    className="theme-icon-button relative"
                   >
                     <Bell className="h-5 w-5" />
                     {notificationCount > 0 && (
@@ -141,16 +183,16 @@ export default function Layout({ children }: LayoutProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white/75 hover:bg-white/10 hover:text-white"
+                        className="theme-icon-button"
                       >
                         <User className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="w-48 border-white/10 bg-[hsl(var(--surface-strong))] text-white"
+                      className="theme-dropdown-surface w-48"
                     >
-                      <div className="px-2 py-1.5 text-sm text-white/70">{user.email || 'Logged in'}</div>
+                      <div className="theme-dropdown-muted px-2 py-1.5 text-sm">{user.email || 'Logged in'}</div>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => navigate('/profile')}>
                         <UserCircle2 className="mr-2 h-4 w-4" />
@@ -186,12 +228,12 @@ export default function Layout({ children }: LayoutProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white/75 hover:bg-white/10 hover:text-white md:hidden"
+                    className="theme-icon-button md:hidden"
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="theme-nav-surface w-64 border-none text-white">
+                <SheetContent side="right" className="theme-nav-surface w-64 border-none">
                   <SheetHeader className="sr-only">
                     <SheetTitle>Mobile navigation menu</SheetTitle>
                     <SheetDescription>
@@ -204,7 +246,7 @@ export default function Layout({ children }: LayoutProps) {
                         to="/profile"
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                          isActive('/profile') ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'
+                          isActive('/profile') ? 'theme-accent-bg' : 'theme-mobile-link'
                         }`}
                       >
                         <UserCircle2 className="h-5 w-5" />
@@ -221,7 +263,7 @@ export default function Layout({ children }: LayoutProps) {
                           to={item.path}
                           onClick={() => setMobileOpen(false)}
                           className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                            isActive(item.path) ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'
+                            isActive(item.path) ? 'theme-accent-bg' : 'theme-mobile-link'
                           }`}
                         >
                           <Icon className="h-5 w-5" />
@@ -234,7 +276,7 @@ export default function Layout({ children }: LayoutProps) {
                         to={managementPath}
                         onClick={() => setMobileOpen(false)}
                         className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
-                          isActive('/admin') || isActive('/content-manager') ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'
+                          isActive('/admin') || isActive('/content-manager') ? 'theme-accent-bg' : 'theme-mobile-link'
                         }`}
                       >
                         <Shield className="h-5 w-5" />

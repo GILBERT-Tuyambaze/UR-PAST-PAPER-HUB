@@ -1,0 +1,815 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/frontend/src/components/Layout.tsx");import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+
+let prevRefreshReg;
+let prevRefreshSig;
+
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react-swc can't detect preamble. Something is wrong."
+    );
+  }
+
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=97a10951"; const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"]; const _Fragment = __vite__cjsImport2_react_jsxDevRuntime["Fragment"];
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=97a10951"; const useState = __vite__cjsImport3_react["useState"]; const useEffect = __vite__cjsImport3_react["useEffect"];
+import { Link, useLocation, useNavigate } from "/node_modules/.vite/deps/react-router-dom.js?v=97a10951";
+import { Button } from "/frontend/src/components/ui/button.tsx";
+import BrandMark from "/frontend/src/components/BrandMark.tsx";
+import { useAuth } from "/frontend/src/contexts/AuthContext.tsx";
+import { fetchNotifications } from "/frontend/src/lib/client.ts";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "/frontend/src/components/ui/dropdown-menu.tsx";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "/frontend/src/components/ui/sheet.tsx";
+import { BookOpen, Upload, LayoutDashboard, Shield, Menu, User, LogOut, LogIn, UserCircle2, Search, Moon, Sun, Bell } from "/node_modules/.vite/deps/lucide-react.js?v=97a10951";
+export default function Layout({ children }) {
+    _s();
+    const { user, login, logout } = useAuth();
+    const [darkMode, setDarkMode] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
+    const location = useLocation();
+    const navigate = useNavigate();
+    useEffect(()=>{
+        const storedTheme = localStorage.getItem('ur-theme');
+        if (storedTheme) {
+            setDarkMode(storedTheme === 'dark');
+        } else {
+            setDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+        }
+    }, []);
+    useEffect(()=>{
+        document.documentElement.classList.toggle('dark', darkMode);
+        localStorage.setItem('ur-theme', darkMode ? 'dark' : 'light');
+    }, [
+        darkMode
+    ]);
+    useEffect(()=>{
+        if (!user) {
+            setNotificationCount(0);
+            return;
+        }
+        void fetchNotifications().then((items)=>setNotificationCount(items.filter((item)=>!item.is_read).length)).catch(()=>setNotificationCount(0));
+    }, [
+        user,
+        location.pathname
+    ]);
+    const navItems = [
+        {
+            path: '/',
+            label: 'Home',
+            icon: BookOpen
+        },
+        {
+            path: '/search',
+            label: 'Browse Papers',
+            icon: Search
+        },
+        {
+            path: '/upload',
+            label: 'Upload',
+            icon: Upload,
+            auth: true
+        },
+        {
+            path: '/dashboard',
+            label: 'Dashboard',
+            icon: LayoutDashboard,
+            auth: true
+        }
+    ];
+    const canAccessManagement = user?.role === 'admin' || user?.role === 'content_manager';
+    const managementPath = user?.role === 'content_manager' ? '/content-manager' : '/admin';
+    const managementLabel = user?.role === 'content_manager' ? 'Content Manager' : 'Admin';
+    const isActive = (path)=>location.pathname === path;
+    const navLinkClass = (active)=>`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10 hover:text-white'}`;
+    return /*#__PURE__*/ _jsxDEV("div", {
+        className: "theme-shell",
+        children: [
+            /*#__PURE__*/ _jsxDEV("header", {
+                className: "theme-nav-surface sticky top-0 z-50 shadow-lg",
+                children: /*#__PURE__*/ _jsxDEV("div", {
+                    className: "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8",
+                    children: /*#__PURE__*/ _jsxDEV("div", {
+                        className: "flex h-16 items-center justify-between",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(Link, {
+                                to: "/",
+                                className: "flex items-center gap-2 transition-opacity hover:opacity-90",
+                                children: /*#__PURE__*/ _jsxDEV(BrandMark, {
+                                    label: true,
+                                    imageClassName: "h-10 w-10",
+                                    labelClassName: "hidden text-lg sm:block"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 90,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                lineNumber: 89,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV("nav", {
+                                className: "hidden items-center gap-1 md:flex",
+                                children: [
+                                    navItems.map((item)=>{
+                                        if (item.auth && !user) return null;
+                                        const Icon = item.icon;
+                                        return /*#__PURE__*/ _jsxDEV(Link, {
+                                            to: item.path,
+                                            className: navLinkClass(isActive(item.path)),
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Icon, {
+                                                    className: "h-4 w-4"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 100,
+                                                    columnNumber: 21
+                                                }, this),
+                                                item.label
+                                            ]
+                                        }, item.path, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 99,
+                                            columnNumber: 19
+                                        }, this);
+                                    }),
+                                    canAccessManagement && /*#__PURE__*/ _jsxDEV(Link, {
+                                        to: managementPath,
+                                        className: navLinkClass(isActive('/admin') || isActive('/content-manager')),
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Shield, {
+                                                className: "h-4 w-4"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 107,
+                                                columnNumber: 19
+                                            }, this),
+                                            managementLabel
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                        lineNumber: 106,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                lineNumber: 93,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ _jsxDEV(Button, {
+                                        variant: "ghost",
+                                        size: "icon",
+                                        onClick: ()=>setDarkMode((prev)=>!prev),
+                                        className: "text-white/75 hover:bg-white/10 hover:text-white",
+                                        children: darkMode ? /*#__PURE__*/ _jsxDEV(Sun, {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 120,
+                                            columnNumber: 29
+                                        }, this) : /*#__PURE__*/ _jsxDEV(Moon, {
+                                            className: "h-5 w-5"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 120,
+                                            columnNumber: 59
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                        lineNumber: 114,
+                                        columnNumber: 15
+                                    }, this),
+                                    user ? /*#__PURE__*/ _jsxDEV(_Fragment, {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Button, {
+                                                variant: "ghost",
+                                                size: "icon",
+                                                onClick: ()=>navigate('/dashboard#notifications'),
+                                                className: "relative text-white/75 hover:bg-white/10 hover:text-white",
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(Bell, {
+                                                        className: "h-5 w-5"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 131,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    notificationCount > 0 && /*#__PURE__*/ _jsxDEV("span", {
+                                                        className: "theme-accent-bg absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px]",
+                                                        children: notificationCount
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 133,
+                                                        columnNumber: 23
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 125,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(DropdownMenu, {
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(DropdownMenuTrigger, {
+                                                        asChild: true,
+                                                        children: /*#__PURE__*/ _jsxDEV(Button, {
+                                                            variant: "ghost",
+                                                            size: "icon",
+                                                            className: "text-white/75 hover:bg-white/10 hover:text-white",
+                                                            children: /*#__PURE__*/ _jsxDEV(User, {
+                                                                className: "h-5 w-5"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 146,
+                                                                columnNumber: 25
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                            lineNumber: 141,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 140,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV(DropdownMenuContent, {
+                                                        align: "end",
+                                                        className: "w-48 border-white/10 bg-[hsl(var(--surface-strong))] text-white",
+                                                        children: [
+                                                            /*#__PURE__*/ _jsxDEV("div", {
+                                                                className: "px-2 py-1.5 text-sm text-white/70",
+                                                                children: user.email || 'Logged in'
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 153,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuSeparator, {}, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 154,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuItem, {
+                                                                onClick: ()=>navigate('/profile'),
+                                                                children: [
+                                                                    /*#__PURE__*/ _jsxDEV(UserCircle2, {
+                                                                        className: "mr-2 h-4 w-4"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                        lineNumber: 156,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    "My Profile"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 155,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuSeparator, {}, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 159,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuItem, {
+                                                                onClick: ()=>navigate('/dashboard'),
+                                                                children: [
+                                                                    /*#__PURE__*/ _jsxDEV(LayoutDashboard, {
+                                                                        className: "mr-2 h-4 w-4"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                        lineNumber: 161,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    "Dashboard"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 160,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuSeparator, {}, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 164,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(DropdownMenuItem, {
+                                                                onClick: async ()=>{
+                                                                    await logout();
+                                                                    navigate('/');
+                                                                },
+                                                                children: [
+                                                                    /*#__PURE__*/ _jsxDEV(LogOut, {
+                                                                        className: "mr-2 h-4 w-4"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                        lineNumber: 171,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    "Logout"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 165,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 149,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 139,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, void 0, true) : /*#__PURE__*/ _jsxDEV(Button, {
+                                        onClick: login,
+                                        className: "theme-accent-bg text-sm",
+                                        size: "sm",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(LogIn, {
+                                                className: "mr-2 h-4 w-4"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 179,
+                                                columnNumber: 19
+                                            }, this),
+                                            "Sign In"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                        lineNumber: 178,
+                                        columnNumber: 17
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(Sheet, {
+                                        open: mobileOpen,
+                                        onOpenChange: setMobileOpen,
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(SheetTrigger, {
+                                                asChild: true,
+                                                children: /*#__PURE__*/ _jsxDEV(Button, {
+                                                    variant: "ghost",
+                                                    size: "icon",
+                                                    className: "text-white/75 hover:bg-white/10 hover:text-white md:hidden",
+                                                    children: /*#__PURE__*/ _jsxDEV(Menu, {
+                                                        className: "h-5 w-5"
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 191,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 186,
+                                                    columnNumber: 19
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 185,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(SheetContent, {
+                                                side: "right",
+                                                className: "theme-nav-surface w-64 border-none text-white",
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(SheetHeader, {
+                                                        className: "sr-only",
+                                                        children: [
+                                                            /*#__PURE__*/ _jsxDEV(SheetTitle, {
+                                                                children: "Mobile navigation menu"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 196,
+                                                                columnNumber: 21
+                                                            }, this),
+                                                            /*#__PURE__*/ _jsxDEV(SheetDescription, {
+                                                                children: "Browse pages, access uploads, open the dashboard, and reach admin tools from the mobile menu."
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 197,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 195,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV("div", {
+                                                        className: "mt-8 flex flex-col gap-2",
+                                                        children: [
+                                                            user && /*#__PURE__*/ _jsxDEV(Link, {
+                                                                to: "/profile",
+                                                                onClick: ()=>setMobileOpen(false),
+                                                                className: `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive('/profile') ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'}`,
+                                                                children: [
+                                                                    /*#__PURE__*/ _jsxDEV(UserCircle2, {
+                                                                        className: "h-5 w-5"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                        lineNumber: 210,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    "My Profile"
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 203,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            navItems.map((item)=>{
+                                                                if (item.auth && !user) return null;
+                                                                const Icon = item.icon;
+                                                                return /*#__PURE__*/ _jsxDEV(Link, {
+                                                                    to: item.path,
+                                                                    onClick: ()=>setMobileOpen(false),
+                                                                    className: `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive(item.path) ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'}`,
+                                                                    children: [
+                                                                        /*#__PURE__*/ _jsxDEV(Icon, {
+                                                                            className: "h-5 w-5"
+                                                                        }, void 0, false, {
+                                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                            lineNumber: 227,
+                                                                            columnNumber: 27
+                                                                        }, this),
+                                                                        item.label
+                                                                    ]
+                                                                }, item.path, true, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                    lineNumber: 219,
+                                                                    columnNumber: 25
+                                                                }, this);
+                                                            }),
+                                                            canAccessManagement && /*#__PURE__*/ _jsxDEV(Link, {
+                                                                to: managementPath,
+                                                                onClick: ()=>setMobileOpen(false),
+                                                                className: `flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive('/admin') || isActive('/content-manager') ? 'theme-accent-bg' : 'text-white/75 hover:bg-white/10'}`,
+                                                                children: [
+                                                                    /*#__PURE__*/ _jsxDEV(Shield, {
+                                                                        className: "h-5 w-5"
+                                                                    }, void 0, false, {
+                                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                        lineNumber: 240,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    managementLabel
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                                lineNumber: 233,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                        lineNumber: 201,
+                                                        columnNumber: 19
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 194,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                        lineNumber: 184,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                lineNumber: 113,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                        lineNumber: 88,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                    lineNumber: 87,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                lineNumber: 86,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("main", {
+                children: children
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                lineNumber: 252,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("footer", {
+                className: "theme-footer mt-16 py-8",
+                children: /*#__PURE__*/ _jsxDEV("div", {
+                    className: "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8",
+                    children: [
+                        /*#__PURE__*/ _jsxDEV("div", {
+                            className: "grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4",
+                            children: [
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "mb-3",
+                                            children: /*#__PURE__*/ _jsxDEV(BrandMark, {
+                                                label: true,
+                                                imageClassName: "h-8 w-8",
+                                                labelClassName: "theme-title"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                lineNumber: 259,
+                                                columnNumber: 17
+                                            }, this)
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 258,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "theme-muted text-sm",
+                                            children: "A collaborative platform for University of Rwanda students to share and access academic resources."
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 261,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 257,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("h3", {
+                                            className: "theme-title mb-3 font-semibold",
+                                            children: "Quick Links"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 266,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "theme-muted flex flex-col gap-2 text-sm",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Home"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 268,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/search",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Browse Papers"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 269,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/upload",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Upload Paper"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 270,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/story",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Story Behind This Website"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 271,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 267,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 265,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("h3", {
+                                            className: "theme-title mb-3 font-semibold",
+                                            children: "Policy"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 275,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "theme-muted flex flex-col gap-2 text-sm",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/terms",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Terms"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 277,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Link, {
+                                                    to: "/privacy",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Privacy Policy"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 278,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 276,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 274,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("h3", {
+                                            className: "theme-title mb-3 font-semibold",
+                                            children: "Credits"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 283,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "theme-muted text-sm",
+                                            children: "Led by Gilbert Tuyambaze with  Karly Ngarambe, inspired by the need for a reliable UR academic archive."
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 284,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "theme-muted mt-3 flex flex-col gap-2 text-sm",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("a", {
+                                                    href: "https://tuyambaze-gilbert.vercel.app/",
+                                                    target: "_blank",
+                                                    rel: "noreferrer",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Gilbert Tuyambaze"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 288,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("a", {
+                                                    href: "https://rw.linkedin.com/in/karly-ngarambe-designer",
+                                                    target: "_blank",
+                                                    rel: "noreferrer",
+                                                    className: "transition-colors hover:text-[hsl(var(--brand))]",
+                                                    children: "Karly Ngarambe"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                                    lineNumber: 296,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                            lineNumber: 287,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 282,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                            lineNumber: 256,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ _jsxDEV("div", {
+                            className: "theme-muted mt-8 border-t border-border/70 pt-6 text-center text-sm",
+                            children: [
+                                "Copyright 2026 UR Academic Resource Hub. Led by",
+                                ' ',
+                                /*#__PURE__*/ _jsxDEV("a", {
+                                    href: "https://tuyambaze-gilbert.vercel.app/",
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                    className: "hover:text-[hsl(var(--brand))]",
+                                    children: "Gilbert Tuyambaze"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 309,
+                                    columnNumber: 13
+                                }, this),
+                                ' ',
+                                "with ",
+                                ' ',
+                                /*#__PURE__*/ _jsxDEV("a", {
+                                    href: "https://rw.linkedin.com/in/karly-ngarambe-designer",
+                                    target: "_blank",
+                                    rel: "noreferrer",
+                                    className: "hover:text-[hsl(var(--brand))]",
+                                    children: "Karly Ngarambe"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                                    lineNumber: 313,
+                                    columnNumber: 13
+                                }, this),
+                                "."
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                            lineNumber: 307,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                    lineNumber: 255,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+                lineNumber: 254,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx",
+        lineNumber: 85,
+        columnNumber: 5
+    }, this);
+}
+_s(Layout, "IXOpIlq+jBq2KI3bQMc7/1Oae2Y=", false, function() {
+    return [
+        useAuth,
+        useLocation,
+        useNavigate
+    ];
+});
+_c = Layout;
+var _c;
+$RefreshReg$(_c, "Layout");
+
+
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/components/Layout.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIkxheW91dC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JztcbmltcG9ydCB7IExpbmssIHVzZUxvY2F0aW9uLCB1c2VOYXZpZ2F0ZSB9IGZyb20gJ3JlYWN0LXJvdXRlci1kb20nO1xuaW1wb3J0IHsgQnV0dG9uIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2J1dHRvbic7XG5pbXBvcnQgQnJhbmRNYXJrIGZyb20gJ0AvY29tcG9uZW50cy9CcmFuZE1hcmsnO1xuaW1wb3J0IHsgdXNlQXV0aCB9IGZyb20gJ0AvY29udGV4dHMvQXV0aENvbnRleHQnO1xuaW1wb3J0IHsgZmV0Y2hOb3RpZmljYXRpb25zIH0gZnJvbSAnQC9saWIvY2xpZW50JztcbmltcG9ydCB7XG4gIERyb3Bkb3duTWVudSxcbiAgRHJvcGRvd25NZW51Q29udGVudCxcbiAgRHJvcGRvd25NZW51SXRlbSxcbiAgRHJvcGRvd25NZW51U2VwYXJhdG9yLFxuICBEcm9wZG93bk1lbnVUcmlnZ2VyLFxufSBmcm9tICdAL2NvbXBvbmVudHMvdWkvZHJvcGRvd24tbWVudSc7XG5pbXBvcnQgeyBTaGVldCwgU2hlZXRDb250ZW50LCBTaGVldERlc2NyaXB0aW9uLCBTaGVldEhlYWRlciwgU2hlZXRUaXRsZSwgU2hlZXRUcmlnZ2VyIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL3NoZWV0JztcbmltcG9ydCB7XG4gIEJvb2tPcGVuLFxuICBVcGxvYWQsXG4gIExheW91dERhc2hib2FyZCxcbiAgU2hpZWxkLFxuICBNZW51LFxuICBVc2VyLFxuICBMb2dPdXQsXG4gIExvZ0luLFxuICBVc2VyQ2lyY2xlMixcbiAgU2VhcmNoLFxuICBNb29uLFxuICBTdW4sXG4gIEJlbGwsXG59IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5cbmludGVyZmFjZSBMYXlvdXRQcm9wcyB7XG4gIGNoaWxkcmVuOiBSZWFjdC5SZWFjdE5vZGU7XG59XG5cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIExheW91dCh7IGNoaWxkcmVuIH06IExheW91dFByb3BzKSB7XG4gIGNvbnN0IHsgdXNlciwgbG9naW4sIGxvZ291dCB9ID0gdXNlQXV0aCgpO1xuICBjb25zdCBbZGFya01vZGUsIHNldERhcmtNb2RlXSA9IHVzZVN0YXRlKGZhbHNlKTtcbiAgY29uc3QgW21vYmlsZU9wZW4sIHNldE1vYmlsZU9wZW5dID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBbbm90aWZpY2F0aW9uQ291bnQsIHNldE5vdGlmaWNhdGlvbkNvdW50XSA9IHVzZVN0YXRlKDApO1xuICBjb25zdCBsb2NhdGlvbiA9IHVzZUxvY2F0aW9uKCk7XG4gIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTtcblxuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIGNvbnN0IHN0b3JlZFRoZW1lID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3VyLXRoZW1lJyk7XG4gICAgaWYgKHN0b3JlZFRoZW1lKSB7XG4gICAgICBzZXREYXJrTW9kZShzdG9yZWRUaGVtZSA9PT0gJ2RhcmsnKTtcbiAgICB9IGVsc2Uge1xuICAgICAgc2V0RGFya01vZGUod2luZG93Lm1hdGNoTWVkaWEoJyhwcmVmZXJzLWNvbG9yLXNjaGVtZTogZGFyayknKS5tYXRjaGVzKTtcbiAgICB9XG4gIH0sIFtdKTtcblxuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIGRvY3VtZW50LmRvY3VtZW50RWxlbWVudC5jbGFzc0xpc3QudG9nZ2xlKCdkYXJrJywgZGFya01vZGUpO1xuICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCd1ci10aGVtZScsIGRhcmtNb2RlID8gJ2RhcmsnIDogJ2xpZ2h0Jyk7XG4gIH0sIFtkYXJrTW9kZV0pO1xuXG4gIHVzZUVmZmVjdCgoKSA9PiB7XG4gICAgaWYgKCF1c2VyKSB7XG4gICAgICBzZXROb3RpZmljYXRpb25Db3VudCgwKTtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICB2b2lkIGZldGNoTm90aWZpY2F0aW9ucygpXG4gICAgICAudGhlbigoaXRlbXMpID0+IHNldE5vdGlmaWNhdGlvbkNvdW50KGl0ZW1zLmZpbHRlcigoaXRlbSkgPT4gIWl0ZW0uaXNfcmVhZCkubGVuZ3RoKSlcbiAgICAgIC5jYXRjaCgoKSA9PiBzZXROb3RpZmljYXRpb25Db3VudCgwKSk7XG4gIH0sIFt1c2VyLCBsb2NhdGlvbi5wYXRobmFtZV0pO1xuXG4gIGNvbnN0IG5hdkl0ZW1zID0gW1xuICAgIHsgcGF0aDogJy8nLCBsYWJlbDogJ0hvbWUnLCBpY29uOiBCb29rT3BlbiB9LFxuICAgIHsgcGF0aDogJy9zZWFyY2gnLCBsYWJlbDogJ0Jyb3dzZSBQYXBlcnMnLCBpY29uOiBTZWFyY2ggfSxcbiAgICB7IHBhdGg6ICcvdXBsb2FkJywgbGFiZWw6ICdVcGxvYWQnLCBpY29uOiBVcGxvYWQsIGF1dGg6IHRydWUgfSxcbiAgICB7IHBhdGg6ICcvZGFzaGJvYXJkJywgbGFiZWw6ICdEYXNoYm9hcmQnLCBpY29uOiBMYXlvdXREYXNoYm9hcmQsIGF1dGg6IHRydWUgfSxcbiAgXTtcbiAgY29uc3QgY2FuQWNjZXNzTWFuYWdlbWVudCA9IHVzZXI/LnJvbGUgPT09ICdhZG1pbicgfHwgdXNlcj8ucm9sZSA9PT0gJ2NvbnRlbnRfbWFuYWdlcic7XG4gIGNvbnN0IG1hbmFnZW1lbnRQYXRoID0gdXNlcj8ucm9sZSA9PT0gJ2NvbnRlbnRfbWFuYWdlcicgPyAnL2NvbnRlbnQtbWFuYWdlcicgOiAnL2FkbWluJztcbiAgY29uc3QgbWFuYWdlbWVudExhYmVsID0gdXNlcj8ucm9sZSA9PT0gJ2NvbnRlbnRfbWFuYWdlcicgPyAnQ29udGVudCBNYW5hZ2VyJyA6ICdBZG1pbic7XG5cbiAgY29uc3QgaXNBY3RpdmUgPSAocGF0aDogc3RyaW5nKSA9PiBsb2NhdGlvbi5wYXRobmFtZSA9PT0gcGF0aDtcbiAgY29uc3QgbmF2TGlua0NsYXNzID0gKGFjdGl2ZTogYm9vbGVhbikgPT5cbiAgICBgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcm91bmRlZC1sZyBweC0zIHB5LTIgdGV4dC1zbSBmb250LW1lZGl1bSB0cmFuc2l0aW9uLWNvbG9ycyAke1xuICAgICAgYWN0aXZlID8gJ3RoZW1lLWFjY2VudC1iZycgOiAndGV4dC13aGl0ZS83NSBob3ZlcjpiZy13aGl0ZS8xMCBob3Zlcjp0ZXh0LXdoaXRlJ1xuICAgIH1gO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9XCJ0aGVtZS1zaGVsbFwiPlxuICAgICAgPGhlYWRlciBjbGFzc05hbWU9XCJ0aGVtZS1uYXYtc3VyZmFjZSBzdGlja3kgdG9wLTAgei01MCBzaGFkb3ctbGdcIj5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJteC1hdXRvIG1heC13LTd4bCBweC00IHNtOnB4LTYgbGc6cHgtOFwiPlxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBoLTE2IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW5cIj5cbiAgICAgICAgICAgIDxMaW5rIHRvPVwiL1wiIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRyYW5zaXRpb24tb3BhY2l0eSBob3ZlcjpvcGFjaXR5LTkwXCI+XG4gICAgICAgICAgICAgIDxCcmFuZE1hcmsgbGFiZWwgaW1hZ2VDbGFzc05hbWU9XCJoLTEwIHctMTBcIiBsYWJlbENsYXNzTmFtZT1cImhpZGRlbiB0ZXh0LWxnIHNtOmJsb2NrXCIgLz5cbiAgICAgICAgICAgIDwvTGluaz5cblxuICAgICAgICAgICAgPG5hdiBjbGFzc05hbWU9XCJoaWRkZW4gaXRlbXMtY2VudGVyIGdhcC0xIG1kOmZsZXhcIj5cbiAgICAgICAgICAgICAge25hdkl0ZW1zLm1hcCgoaXRlbSkgPT4ge1xuICAgICAgICAgICAgICAgIGlmIChpdGVtLmF1dGggJiYgIXVzZXIpIHJldHVybiBudWxsO1xuICAgICAgICAgICAgICAgIGNvbnN0IEljb24gPSBpdGVtLmljb247XG5cbiAgICAgICAgICAgICAgICByZXR1cm4gKFxuICAgICAgICAgICAgICAgICAgPExpbmsga2V5PXtpdGVtLnBhdGh9IHRvPXtpdGVtLnBhdGh9IGNsYXNzTmFtZT17bmF2TGlua0NsYXNzKGlzQWN0aXZlKGl0ZW0ucGF0aCkpfT5cbiAgICAgICAgICAgICAgICAgICAgPEljb24gY2xhc3NOYW1lPVwiaC00IHctNFwiIC8+XG4gICAgICAgICAgICAgICAgICAgIHtpdGVtLmxhYmVsfVxuICAgICAgICAgICAgICAgICAgPC9MaW5rPlxuICAgICAgICAgICAgICAgICk7XG4gICAgICAgICAgICAgIH0pfVxuICAgICAgICAgICAgICB7Y2FuQWNjZXNzTWFuYWdlbWVudCAmJiAoXG4gICAgICAgICAgICAgICAgPExpbmsgdG89e21hbmFnZW1lbnRQYXRofSBjbGFzc05hbWU9e25hdkxpbmtDbGFzcyhpc0FjdGl2ZSgnL2FkbWluJykgfHwgaXNBY3RpdmUoJy9jb250ZW50LW1hbmFnZXInKSl9PlxuICAgICAgICAgICAgICAgICAgPFNoaWVsZCBjbGFzc05hbWU9XCJoLTQgdy00XCIgLz5cbiAgICAgICAgICAgICAgICAgIHttYW5hZ2VtZW50TGFiZWx9XG4gICAgICAgICAgICAgICAgPC9MaW5rPlxuICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgPC9uYXY+XG5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTJcIj5cbiAgICAgICAgICAgICAgPEJ1dHRvblxuICAgICAgICAgICAgICAgIHZhcmlhbnQ9XCJnaG9zdFwiXG4gICAgICAgICAgICAgICAgc2l6ZT1cImljb25cIlxuICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldERhcmtNb2RlKChwcmV2KSA9PiAhcHJldil9XG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidGV4dC13aGl0ZS83NSBob3ZlcjpiZy13aGl0ZS8xMCBob3Zlcjp0ZXh0LXdoaXRlXCJcbiAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgIHtkYXJrTW9kZSA/IDxTdW4gY2xhc3NOYW1lPVwiaC01IHctNVwiIC8+IDogPE1vb24gY2xhc3NOYW1lPVwiaC01IHctNVwiIC8+fVxuICAgICAgICAgICAgICA8L0J1dHRvbj5cblxuICAgICAgICAgICAgICB7dXNlciA/IChcbiAgICAgICAgICAgICAgICA8PlxuICAgICAgICAgICAgICAgICAgPEJ1dHRvblxuICAgICAgICAgICAgICAgICAgICB2YXJpYW50PVwiZ2hvc3RcIlxuICAgICAgICAgICAgICAgICAgICBzaXplPVwiaWNvblwiXG4gICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IG5hdmlnYXRlKCcvZGFzaGJvYXJkI25vdGlmaWNhdGlvbnMnKX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicmVsYXRpdmUgdGV4dC13aGl0ZS83NSBob3ZlcjpiZy13aGl0ZS8xMCBob3Zlcjp0ZXh0LXdoaXRlXCJcbiAgICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgICAgPEJlbGwgY2xhc3NOYW1lPVwiaC01IHctNVwiIC8+XG4gICAgICAgICAgICAgICAgICAgIHtub3RpZmljYXRpb25Db3VudCA+IDAgJiYgKFxuICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRoZW1lLWFjY2VudC1iZyBhYnNvbHV0ZSByaWdodC0xIHRvcC0xIGZsZXggaC00IG1pbi13LTQgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHJvdW5kZWQtZnVsbCBweC0xIHRleHQtWzEwcHhdXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICB7bm90aWZpY2F0aW9uQ291bnR9XG4gICAgICAgICAgICAgICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgICAgICAgPC9CdXR0b24+XG5cbiAgICAgICAgICAgICAgICAgIDxEcm9wZG93bk1lbnU+XG4gICAgICAgICAgICAgICAgICAgIDxEcm9wZG93bk1lbnVUcmlnZ2VyIGFzQ2hpbGQ+XG4gICAgICAgICAgICAgICAgICAgICAgPEJ1dHRvblxuICAgICAgICAgICAgICAgICAgICAgICAgdmFyaWFudD1cImdob3N0XCJcbiAgICAgICAgICAgICAgICAgICAgICAgIHNpemU9XCJpY29uXCJcbiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInRleHQtd2hpdGUvNzUgaG92ZXI6Ymctd2hpdGUvMTAgaG92ZXI6dGV4dC13aGl0ZVwiXG4gICAgICAgICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgICAgICAgPFVzZXIgY2xhc3NOYW1lPVwiaC01IHctNVwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgPC9CdXR0b24+XG4gICAgICAgICAgICAgICAgICAgIDwvRHJvcGRvd25NZW51VHJpZ2dlcj5cbiAgICAgICAgICAgICAgICAgICAgPERyb3Bkb3duTWVudUNvbnRlbnRcbiAgICAgICAgICAgICAgICAgICAgICBhbGlnbj1cImVuZFwiXG4gICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy00OCBib3JkZXItd2hpdGUvMTAgYmctW2hzbCh2YXIoLS1zdXJmYWNlLXN0cm9uZykpXSB0ZXh0LXdoaXRlXCJcbiAgICAgICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicHgtMiBweS0xLjUgdGV4dC1zbSB0ZXh0LXdoaXRlLzcwXCI+e3VzZXIuZW1haWwgfHwgJ0xvZ2dlZCBpbid9PC9kaXY+XG4gICAgICAgICAgICAgICAgICAgICAgPERyb3Bkb3duTWVudVNlcGFyYXRvciAvPlxuICAgICAgICAgICAgICAgICAgICAgIDxEcm9wZG93bk1lbnVJdGVtIG9uQ2xpY2s9eygpID0+IG5hdmlnYXRlKCcvcHJvZmlsZScpfT5cbiAgICAgICAgICAgICAgICAgICAgICAgIDxVc2VyQ2lyY2xlMiBjbGFzc05hbWU9XCJtci0yIGgtNCB3LTRcIiAvPlxuICAgICAgICAgICAgICAgICAgICAgICAgTXkgUHJvZmlsZVxuICAgICAgICAgICAgICAgICAgICAgIDwvRHJvcGRvd25NZW51SXRlbT5cbiAgICAgICAgICAgICAgICAgICAgICA8RHJvcGRvd25NZW51U2VwYXJhdG9yIC8+XG4gICAgICAgICAgICAgICAgICAgICAgPERyb3Bkb3duTWVudUl0ZW0gb25DbGljaz17KCkgPT4gbmF2aWdhdGUoJy9kYXNoYm9hcmQnKX0+XG4gICAgICAgICAgICAgICAgICAgICAgICA8TGF5b3V0RGFzaGJvYXJkIGNsYXNzTmFtZT1cIm1yLTIgaC00IHctNFwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgICBEYXNoYm9hcmRcbiAgICAgICAgICAgICAgICAgICAgICA8L0Ryb3Bkb3duTWVudUl0ZW0+XG4gICAgICAgICAgICAgICAgICAgICAgPERyb3Bkb3duTWVudVNlcGFyYXRvciAvPlxuICAgICAgICAgICAgICAgICAgICAgIDxEcm9wZG93bk1lbnVJdGVtXG4gICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXthc3luYyAoKSA9PiB7XG4gICAgICAgICAgICAgICAgICAgICAgICAgIGF3YWl0IGxvZ291dCgpO1xuICAgICAgICAgICAgICAgICAgICAgICAgICBuYXZpZ2F0ZSgnLycpO1xuICAgICAgICAgICAgICAgICAgICAgICAgfX1cbiAgICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAgICA8TG9nT3V0IGNsYXNzTmFtZT1cIm1yLTIgaC00IHctNFwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgICBMb2dvdXRcbiAgICAgICAgICAgICAgICAgICAgICA8L0Ryb3Bkb3duTWVudUl0ZW0+XG4gICAgICAgICAgICAgICAgICAgIDwvRHJvcGRvd25NZW51Q29udGVudD5cbiAgICAgICAgICAgICAgICAgIDwvRHJvcGRvd25NZW51PlxuICAgICAgICAgICAgICAgIDwvPlxuICAgICAgICAgICAgICApIDogKFxuICAgICAgICAgICAgICAgIDxCdXR0b24gb25DbGljaz17bG9naW59IGNsYXNzTmFtZT1cInRoZW1lLWFjY2VudC1iZyB0ZXh0LXNtXCIgc2l6ZT1cInNtXCI+XG4gICAgICAgICAgICAgICAgICA8TG9nSW4gY2xhc3NOYW1lPVwibXItMiBoLTQgdy00XCIgLz5cbiAgICAgICAgICAgICAgICAgIFNpZ24gSW5cbiAgICAgICAgICAgICAgICA8L0J1dHRvbj5cbiAgICAgICAgICAgICAgKX1cblxuICAgICAgICAgICAgICA8U2hlZXQgb3Blbj17bW9iaWxlT3Blbn0gb25PcGVuQ2hhbmdlPXtzZXRNb2JpbGVPcGVufT5cbiAgICAgICAgICAgICAgICA8U2hlZXRUcmlnZ2VyIGFzQ2hpbGQ+XG4gICAgICAgICAgICAgICAgICA8QnV0dG9uXG4gICAgICAgICAgICAgICAgICAgIHZhcmlhbnQ9XCJnaG9zdFwiXG4gICAgICAgICAgICAgICAgICAgIHNpemU9XCJpY29uXCJcbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidGV4dC13aGl0ZS83NSBob3ZlcjpiZy13aGl0ZS8xMCBob3Zlcjp0ZXh0LXdoaXRlIG1kOmhpZGRlblwiXG4gICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgIDxNZW51IGNsYXNzTmFtZT1cImgtNSB3LTVcIiAvPlxuICAgICAgICAgICAgICAgICAgPC9CdXR0b24+XG4gICAgICAgICAgICAgICAgPC9TaGVldFRyaWdnZXI+XG4gICAgICAgICAgICAgICAgPFNoZWV0Q29udGVudCBzaWRlPVwicmlnaHRcIiBjbGFzc05hbWU9XCJ0aGVtZS1uYXYtc3VyZmFjZSB3LTY0IGJvcmRlci1ub25lIHRleHQtd2hpdGVcIj5cbiAgICAgICAgICAgICAgICAgIDxTaGVldEhlYWRlciBjbGFzc05hbWU9XCJzci1vbmx5XCI+XG4gICAgICAgICAgICAgICAgICAgIDxTaGVldFRpdGxlPk1vYmlsZSBuYXZpZ2F0aW9uIG1lbnU8L1NoZWV0VGl0bGU+XG4gICAgICAgICAgICAgICAgICAgIDxTaGVldERlc2NyaXB0aW9uPlxuICAgICAgICAgICAgICAgICAgICAgIEJyb3dzZSBwYWdlcywgYWNjZXNzIHVwbG9hZHMsIG9wZW4gdGhlIGRhc2hib2FyZCwgYW5kIHJlYWNoIGFkbWluIHRvb2xzIGZyb20gdGhlIG1vYmlsZSBtZW51LlxuICAgICAgICAgICAgICAgICAgICA8L1NoZWV0RGVzY3JpcHRpb24+XG4gICAgICAgICAgICAgICAgICA8L1NoZWV0SGVhZGVyPlxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC04IGZsZXggZmxleC1jb2wgZ2FwLTJcIj5cbiAgICAgICAgICAgICAgICAgICAge3VzZXIgJiYgKFxuICAgICAgICAgICAgICAgICAgICAgIDxMaW5rXG4gICAgICAgICAgICAgICAgICAgICAgICB0bz1cIi9wcm9maWxlXCJcbiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldE1vYmlsZU9wZW4oZmFsc2UpfVxuICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPXtgZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTMgcm91bmRlZC1sZyBweC00IHB5LTMgdGV4dC1zbSBmb250LW1lZGl1bSB0cmFuc2l0aW9uLWNvbG9ycyAke1xuICAgICAgICAgICAgICAgICAgICAgICAgICBpc0FjdGl2ZSgnL3Byb2ZpbGUnKSA/ICd0aGVtZS1hY2NlbnQtYmcnIDogJ3RleHQtd2hpdGUvNzUgaG92ZXI6Ymctd2hpdGUvMTAnXG4gICAgICAgICAgICAgICAgICAgICAgICB9YH1cbiAgICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAgICA8VXNlckNpcmNsZTIgY2xhc3NOYW1lPVwiaC01IHctNVwiIC8+XG4gICAgICAgICAgICAgICAgICAgICAgICBNeSBQcm9maWxlXG4gICAgICAgICAgICAgICAgICAgICAgPC9MaW5rPlxuICAgICAgICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgICAgICAgICB7bmF2SXRlbXMubWFwKChpdGVtKSA9PiB7XG4gICAgICAgICAgICAgICAgICAgICAgaWYgKGl0ZW0uYXV0aCAmJiAhdXNlcikgcmV0dXJuIG51bGw7XG4gICAgICAgICAgICAgICAgICAgICAgY29uc3QgSWNvbiA9IGl0ZW0uaWNvbjtcblxuICAgICAgICAgICAgICAgICAgICAgIHJldHVybiAoXG4gICAgICAgICAgICAgICAgICAgICAgICA8TGlua1xuICAgICAgICAgICAgICAgICAgICAgICAgICBrZXk9e2l0ZW0ucGF0aH1cbiAgICAgICAgICAgICAgICAgICAgICAgICAgdG89e2l0ZW0ucGF0aH1cbiAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0TW9iaWxlT3BlbihmYWxzZSl9XG4gICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHJvdW5kZWQtbGcgcHgtNCBweS0zIHRleHQtc20gZm9udC1tZWRpdW0gdHJhbnNpdGlvbi1jb2xvcnMgJHtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICBpc0FjdGl2ZShpdGVtLnBhdGgpID8gJ3RoZW1lLWFjY2VudC1iZycgOiAndGV4dC13aGl0ZS83NSBob3ZlcjpiZy13aGl0ZS8xMCdcbiAgICAgICAgICAgICAgICAgICAgICAgICAgfWB9XG4gICAgICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxJY29uIGNsYXNzTmFtZT1cImgtNSB3LTVcIiAvPlxuICAgICAgICAgICAgICAgICAgICAgICAgICB7aXRlbS5sYWJlbH1cbiAgICAgICAgICAgICAgICAgICAgICAgIDwvTGluaz5cbiAgICAgICAgICAgICAgICAgICAgICApO1xuICAgICAgICAgICAgICAgICAgICB9KX1cbiAgICAgICAgICAgICAgICAgICAge2NhbkFjY2Vzc01hbmFnZW1lbnQgJiYgKFxuICAgICAgICAgICAgICAgICAgICAgIDxMaW5rXG4gICAgICAgICAgICAgICAgICAgICAgICB0bz17bWFuYWdlbWVudFBhdGh9XG4gICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRNb2JpbGVPcGVuKGZhbHNlKX1cbiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGZsZXggaXRlbXMtY2VudGVyIGdhcC0zIHJvdW5kZWQtbGcgcHgtNCBweS0zIHRleHQtc20gZm9udC1tZWRpdW0gdHJhbnNpdGlvbi1jb2xvcnMgJHtcbiAgICAgICAgICAgICAgICAgICAgICAgICAgaXNBY3RpdmUoJy9hZG1pbicpIHx8IGlzQWN0aXZlKCcvY29udGVudC1tYW5hZ2VyJykgPyAndGhlbWUtYWNjZW50LWJnJyA6ICd0ZXh0LXdoaXRlLzc1IGhvdmVyOmJnLXdoaXRlLzEwJ1xuICAgICAgICAgICAgICAgICAgICAgICAgfWB9XG4gICAgICAgICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgICAgICAgPFNoaWVsZCBjbGFzc05hbWU9XCJoLTUgdy01XCIgLz5cbiAgICAgICAgICAgICAgICAgICAgICAgIHttYW5hZ2VtZW50TGFiZWx9XG4gICAgICAgICAgICAgICAgICAgICAgPC9MaW5rPlxuICAgICAgICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICAgPC9TaGVldENvbnRlbnQ+XG4gICAgICAgICAgICAgIDwvU2hlZXQ+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2hlYWRlcj5cblxuICAgICAgPG1haW4+e2NoaWxkcmVufTwvbWFpbj5cblxuICAgICAgPGZvb3RlciBjbGFzc05hbWU9XCJ0aGVtZS1mb290ZXIgbXQtMTYgcHktOFwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm14LWF1dG8gbWF4LXctN3hsIHB4LTQgc206cHgtNiBsZzpweC04XCI+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdyaWQtY29scy0xIGdhcC04IG1kOmdyaWQtY29scy0yIHhsOmdyaWQtY29scy00XCI+XG4gICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1iLTNcIj5cbiAgICAgICAgICAgICAgICA8QnJhbmRNYXJrIGxhYmVsIGltYWdlQ2xhc3NOYW1lPVwiaC04IHctOFwiIGxhYmVsQ2xhc3NOYW1lPVwidGhlbWUtdGl0bGVcIiAvPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGhlbWUtbXV0ZWQgdGV4dC1zbVwiPlxuICAgICAgICAgICAgICAgIEEgY29sbGFib3JhdGl2ZSBwbGF0Zm9ybSBmb3IgVW5pdmVyc2l0eSBvZiBSd2FuZGEgc3R1ZGVudHMgdG8gc2hhcmUgYW5kIGFjY2VzcyBhY2FkZW1pYyByZXNvdXJjZXMuXG4gICAgICAgICAgICAgIDwvcD5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRoZW1lLXRpdGxlIG1iLTMgZm9udC1zZW1pYm9sZFwiPlF1aWNrIExpbmtzPC9oMz5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0aGVtZS1tdXRlZCBmbGV4IGZsZXgtY29sIGdhcC0yIHRleHQtc21cIj5cbiAgICAgICAgICAgICAgICA8TGluayB0bz1cIi9cIiBjbGFzc05hbWU9XCJ0cmFuc2l0aW9uLWNvbG9ycyBob3Zlcjp0ZXh0LVtoc2wodmFyKC0tYnJhbmQpKV1cIj5Ib21lPC9MaW5rPlxuICAgICAgICAgICAgICAgIDxMaW5rIHRvPVwiL3NlYXJjaFwiIGNsYXNzTmFtZT1cInRyYW5zaXRpb24tY29sb3JzIGhvdmVyOnRleHQtW2hzbCh2YXIoLS1icmFuZCkpXVwiPkJyb3dzZSBQYXBlcnM8L0xpbms+XG4gICAgICAgICAgICAgICAgPExpbmsgdG89XCIvdXBsb2FkXCIgY2xhc3NOYW1lPVwidHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6dGV4dC1baHNsKHZhcigtLWJyYW5kKSldXCI+VXBsb2FkIFBhcGVyPC9MaW5rPlxuICAgICAgICAgICAgICAgIDxMaW5rIHRvPVwiL3N0b3J5XCIgY2xhc3NOYW1lPVwidHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6dGV4dC1baHNsKHZhcigtLWJyYW5kKSldXCI+U3RvcnkgQmVoaW5kIFRoaXMgV2Vic2l0ZTwvTGluaz5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9XCJ0aGVtZS10aXRsZSBtYi0zIGZvbnQtc2VtaWJvbGRcIj5Qb2xpY3k8L2gzPlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRoZW1lLW11dGVkIGZsZXggZmxleC1jb2wgZ2FwLTIgdGV4dC1zbVwiPlxuICAgICAgICAgICAgICAgIDxMaW5rIHRvPVwiL3Rlcm1zXCIgY2xhc3NOYW1lPVwidHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6dGV4dC1baHNsKHZhcigtLWJyYW5kKSldXCI+VGVybXM8L0xpbms+XG4gICAgICAgICAgICAgICAgPExpbmsgdG89XCIvcHJpdmFjeVwiIGNsYXNzTmFtZT1cInRyYW5zaXRpb24tY29sb3JzIGhvdmVyOnRleHQtW2hzbCh2YXIoLS1icmFuZCkpXVwiPlByaXZhY3kgUG9saWN5PC9MaW5rPlxuICAgICAgICAgICAgICAgIFxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRoZW1lLXRpdGxlIG1iLTMgZm9udC1zZW1pYm9sZFwiPkNyZWRpdHM8L2gzPlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0aGVtZS1tdXRlZCB0ZXh0LXNtXCI+XG4gICAgICAgICAgICAgICAgTGVkIGJ5IEdpbGJlcnQgVHV5YW1iYXplIHdpdGggIEthcmx5IE5nYXJhbWJlLCBpbnNwaXJlZCBieSB0aGUgbmVlZCBmb3IgYSByZWxpYWJsZSBVUiBhY2FkZW1pYyBhcmNoaXZlLlxuICAgICAgICAgICAgICA8L3A+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGhlbWUtbXV0ZWQgbXQtMyBmbGV4IGZsZXgtY29sIGdhcC0yIHRleHQtc21cIj5cbiAgICAgICAgICAgICAgICA8YVxuICAgICAgICAgICAgICAgICAgaHJlZj1cImh0dHBzOi8vdHV5YW1iYXplLWdpbGJlcnQudmVyY2VsLmFwcC9cIlxuICAgICAgICAgICAgICAgICAgdGFyZ2V0PVwiX2JsYW5rXCJcbiAgICAgICAgICAgICAgICAgIHJlbD1cIm5vcmVmZXJyZXJcIlxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidHJhbnNpdGlvbi1jb2xvcnMgaG92ZXI6dGV4dC1baHNsKHZhcigtLWJyYW5kKSldXCJcbiAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICBHaWxiZXJ0IFR1eWFtYmF6ZVxuICAgICAgICAgICAgICAgIDwvYT5cbiAgICAgICAgICAgICAgICA8YVxuICAgICAgICAgICAgICAgICAgaHJlZj1cImh0dHBzOi8vcncubGlua2VkaW4uY29tL2luL2thcmx5LW5nYXJhbWJlLWRlc2lnbmVyXCJcbiAgICAgICAgICAgICAgICAgIHRhcmdldD1cIl9ibGFua1wiXG4gICAgICAgICAgICAgICAgICByZWw9XCJub3JlZmVycmVyXCJcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cInRyYW5zaXRpb24tY29sb3JzIGhvdmVyOnRleHQtW2hzbCh2YXIoLS1icmFuZCkpXVwiXG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgS2FybHkgTmdhcmFtYmVcbiAgICAgICAgICAgICAgICA8L2E+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0aGVtZS1tdXRlZCBtdC04IGJvcmRlci10IGJvcmRlci1ib3JkZXIvNzAgcHQtNiB0ZXh0LWNlbnRlciB0ZXh0LXNtXCI+XG4gICAgICAgICAgICBDb3B5cmlnaHQgMjAyNiBVUiBBY2FkZW1pYyBSZXNvdXJjZSBIdWIuIExlZCBieXsnICd9XG4gICAgICAgICAgICA8YSBocmVmPVwiaHR0cHM6Ly90dXlhbWJhemUtZ2lsYmVydC52ZXJjZWwuYXBwL1wiIHRhcmdldD1cIl9ibGFua1wiIHJlbD1cIm5vcmVmZXJyZXJcIiBjbGFzc05hbWU9XCJob3Zlcjp0ZXh0LVtoc2wodmFyKC0tYnJhbmQpKV1cIj5cbiAgICAgICAgICAgICAgR2lsYmVydCBUdXlhbWJhemVcbiAgICAgICAgICAgIDwvYT57JyAnfVxuICAgICAgICAgICAgd2l0aCB7JyAnfVxuICAgICAgICAgICAgPGFcbiAgICAgICAgICAgICAgaHJlZj1cImh0dHBzOi8vcncubGlua2VkaW4uY29tL2luL2thcmx5LW5nYXJhbWJlLWRlc2lnbmVyXCJcbiAgICAgICAgICAgICAgdGFyZ2V0PVwiX2JsYW5rXCJcbiAgICAgICAgICAgICAgcmVsPVwibm9yZWZlcnJlclwiXG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cImhvdmVyOnRleHQtW2hzbCh2YXIoLS1icmFuZCkpXVwiXG4gICAgICAgICAgICA+XG4gICAgICAgICAgICAgIEthcmx5IE5nYXJhbWJlXG4gICAgICAgICAgICA8L2E+XG4gICAgICAgICAgICAuXG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9mb290ZXI+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwibmFtZXMiOlsidXNlU3RhdGUiLCJ1c2VFZmZlY3QiLCJMaW5rIiwidXNlTG9jYXRpb24iLCJ1c2VOYXZpZ2F0ZSIsIkJ1dHRvbiIsIkJyYW5kTWFyayIsInVzZUF1dGgiLCJmZXRjaE5vdGlmaWNhdGlvbnMiLCJEcm9wZG93bk1lbnUiLCJEcm9wZG93bk1lbnVDb250ZW50IiwiRHJvcGRvd25NZW51SXRlbSIsIkRyb3Bkb3duTWVudVNlcGFyYXRvciIsIkRyb3Bkb3duTWVudVRyaWdnZXIiLCJTaGVldCIsIlNoZWV0Q29udGVudCIsIlNoZWV0RGVzY3JpcHRpb24iLCJTaGVldEhlYWRlciIsIlNoZWV0VGl0bGUiLCJTaGVldFRyaWdnZXIiLCJCb29rT3BlbiIsIlVwbG9hZCIsIkxheW91dERhc2hib2FyZCIsIlNoaWVsZCIsIk1lbnUiLCJVc2VyIiwiTG9nT3V0IiwiTG9nSW4iLCJVc2VyQ2lyY2xlMiIsIlNlYXJjaCIsIk1vb24iLCJTdW4iLCJCZWxsIiwiTGF5b3V0IiwiY2hpbGRyZW4iLCJ1c2VyIiwibG9naW4iLCJsb2dvdXQiLCJkYXJrTW9kZSIsInNldERhcmtNb2RlIiwibW9iaWxlT3BlbiIsInNldE1vYmlsZU9wZW4iLCJub3RpZmljYXRpb25Db3VudCIsInNldE5vdGlmaWNhdGlvbkNvdW50IiwibG9jYXRpb24iLCJuYXZpZ2F0ZSIsInN0b3JlZFRoZW1lIiwibG9jYWxTdG9yYWdlIiwiZ2V0SXRlbSIsIndpbmRvdyIsIm1hdGNoTWVkaWEiLCJtYXRjaGVzIiwiZG9jdW1lbnQiLCJkb2N1bWVudEVsZW1lbnQiLCJjbGFzc0xpc3QiLCJ0b2dnbGUiLCJzZXRJdGVtIiwidGhlbiIsIml0ZW1zIiwiZmlsdGVyIiwiaXRlbSIsImlzX3JlYWQiLCJsZW5ndGgiLCJjYXRjaCIsInBhdGhuYW1lIiwibmF2SXRlbXMiLCJwYXRoIiwibGFiZWwiLCJpY29uIiwiYXV0aCIsImNhbkFjY2Vzc01hbmFnZW1lbnQiLCJyb2xlIiwibWFuYWdlbWVudFBhdGgiLCJtYW5hZ2VtZW50TGFiZWwiLCJpc0FjdGl2ZSIsIm5hdkxpbmtDbGFzcyIsImFjdGl2ZSIsImRpdiIsImNsYXNzTmFtZSIsImhlYWRlciIsInRvIiwiaW1hZ2VDbGFzc05hbWUiLCJsYWJlbENsYXNzTmFtZSIsIm5hdiIsIm1hcCIsIkljb24iLCJ2YXJpYW50Iiwic2l6ZSIsIm9uQ2xpY2siLCJwcmV2Iiwic3BhbiIsImFzQ2hpbGQiLCJhbGlnbiIsImVtYWlsIiwib3BlbiIsIm9uT3BlbkNoYW5nZSIsInNpZGUiLCJtYWluIiwiZm9vdGVyIiwicCIsImgzIiwiYSIsImhyZWYiLCJ0YXJnZXQiLCJyZWwiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFBLFNBQVNBLFFBQVEsRUFBRUMsU0FBUyxRQUFRLFFBQVE7QUFDNUMsU0FBU0MsSUFBSSxFQUFFQyxXQUFXLEVBQUVDLFdBQVcsUUFBUSxtQkFBbUI7QUFDbEUsU0FBU0MsTUFBTSxRQUFRLHlCQUF5QjtBQUNoRCxPQUFPQyxlQUFlLHlCQUF5QjtBQUMvQyxTQUFTQyxPQUFPLFFBQVEseUJBQXlCO0FBQ2pELFNBQVNDLGtCQUFrQixRQUFRLGVBQWU7QUFDbEQsU0FDRUMsWUFBWSxFQUNaQyxtQkFBbUIsRUFDbkJDLGdCQUFnQixFQUNoQkMscUJBQXFCLEVBQ3JCQyxtQkFBbUIsUUFDZCxnQ0FBZ0M7QUFDdkMsU0FBU0MsS0FBSyxFQUFFQyxZQUFZLEVBQUVDLGdCQUFnQixFQUFFQyxXQUFXLEVBQUVDLFVBQVUsRUFBRUMsWUFBWSxRQUFRLHdCQUF3QjtBQUNySCxTQUNFQyxRQUFRLEVBQ1JDLE1BQU0sRUFDTkMsZUFBZSxFQUNmQyxNQUFNLEVBQ05DLElBQUksRUFDSkMsSUFBSSxFQUNKQyxNQUFNLEVBQ05DLEtBQUssRUFDTEMsV0FBVyxFQUNYQyxNQUFNLEVBQ05DLElBQUksRUFDSkMsR0FBRyxFQUNIQyxJQUFJLFFBQ0MsZUFBZTtBQU10QixlQUFlLFNBQVNDLE9BQU8sRUFBRUMsUUFBUSxFQUFlOztJQUN0RCxNQUFNLEVBQUVDLElBQUksRUFBRUMsS0FBSyxFQUFFQyxNQUFNLEVBQUUsR0FBRzlCO0lBQ2hDLE1BQU0sQ0FBQytCLFVBQVVDLFlBQVksR0FBR3ZDLFNBQVM7SUFDekMsTUFBTSxDQUFDd0MsWUFBWUMsY0FBYyxHQUFHekMsU0FBUztJQUM3QyxNQUFNLENBQUMwQyxtQkFBbUJDLHFCQUFxQixHQUFHM0MsU0FBUztJQUMzRCxNQUFNNEMsV0FBV3pDO0lBQ2pCLE1BQU0wQyxX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

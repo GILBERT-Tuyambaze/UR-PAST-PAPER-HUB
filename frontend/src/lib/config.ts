@@ -1,11 +1,37 @@
-let runtimeConfig: { API_BASE_URL: string } | null = null;
+export interface RuntimeConfig {
+  API_BASE_URL: string;
+}
+
+let runtimeConfig: RuntimeConfig | null = null;
 let configLoading = true;
 
-const defaultConfig = {
+const defaultConfig: RuntimeConfig = {
   API_BASE_URL: '',
 };
 
-export async function loadRuntimeConfig(): Promise<void> {
+const CONFIG_TIMEOUT_MS = 2500;
+const CONFIG_TIMEOUT_REASON = 'runtime-config-timeout';
+
+export function getDefaultConfig(): RuntimeConfig {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return {
+      API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    };
+  }
+
+  return defaultConfig;
+}
+
+export function applyRuntimeConfig(config: RuntimeConfig) {
+  runtimeConfig = config;
+  configLoading = false;
+}
+
+export function markRuntimeConfigResolved() {
+  configLoading = false;
+}
+
+export async function loadRuntimeConfig(timeoutMs = CONFIG_TIMEOUT_MS): Promise<RuntimeConfig> {
   try {
     const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     let configUrl: string | null = null;
@@ -17,38 +43,54 @@ export async function loadRuntimeConfig(): Promise<void> {
     }
 
     if (!configUrl) {
-      runtimeConfig = defaultConfig;
-      return;
+      const fallback = getDefaultConfig();
+      applyRuntimeConfig(fallback);
+      return fallback;
     }
 
-    const response = await fetch(configUrl);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(CONFIG_TIMEOUT_REASON), timeoutMs);
+    const response = await fetch(configUrl, {
+      signal: controller.signal,
+    });
+    window.clearTimeout(timeout);
     const contentType = response.headers.get('content-type') || '';
 
     if (response.ok && contentType.includes('application/json')) {
-      runtimeConfig = await response.json();
+      const loadedConfig = (await response.json()) as RuntimeConfig;
+      applyRuntimeConfig(loadedConfig);
+      return loadedConfig;
     }
-  } catch {
+    console.warn('Runtime config endpoint returned a non-JSON or non-OK response, using fallback config');
+    const fallback = getDefaultConfig();
+    applyRuntimeConfig(fallback);
+    return fallback;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.warn(
+        `Runtime config request timed out after ${timeoutMs}ms, using fallback config`
+      );
+    } else {
+      console.warn('Runtime config request failed, using fallback config:', error);
+    }
+    const fallback = getDefaultConfig();
+    applyRuntimeConfig(fallback);
+    return fallback;
   } finally {
-    configLoading = false;
+    markRuntimeConfigResolved();
   }
 }
 
 export function getConfig() {
   if (configLoading) {
-    return defaultConfig;
+    return getDefaultConfig();
   }
 
   if (runtimeConfig) {
     return runtimeConfig;
   }
 
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return {
-      API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-    };
-  }
-
-  return defaultConfig;
+  return getDefaultConfig();
 }
 
 function isLocalFrontendDevOrigin(origin: string): boolean {

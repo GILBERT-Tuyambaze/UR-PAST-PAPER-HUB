@@ -365,11 +365,6 @@ async def initialize_admin_user():
         logger.info("Ignore initialize admin")
         return
 
-    from services.database import initialize_database
-
-    # Ensure database is initialized first
-    await initialize_database()
-
     admin_user_id = getattr(settings, "admin_user_id", "")
     admin_user_email = getattr(settings, "admin_user_email", "")
 

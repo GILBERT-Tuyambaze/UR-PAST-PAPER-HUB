@@ -36,7 +36,7 @@ export default function StoryPage() {
       <section className="theme-panel overflow-hidden rounded-[2rem] border">
         <div className="grid gap-8 p-8 lg:grid-cols-[1.05fr_0.95fr] lg:p-10">
           <div>
-            <Badge className="mb-4 bg-[#F08A5D]/10 text-[#F08A5D] hover:bg-[#F08A5D]/10">Story Behind This Website</Badge>
+            <Badge className="theme-accent-soft mb-4 hover:bg-inherit">Story Behind This Website</Badge>
             <h1 className="text-4xl font-bold text-foreground">UR Academic Resource Hub began with a simple need: stop losing useful academic material.</h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
               This platform was designed for University of Rwanda students who needed a dependable place to find past papers, revise with confidence, and contribute resources that stay useful over time.
@@ -73,7 +73,7 @@ export default function StoryPage() {
           <Card key={pillar.title} className="theme-panel">
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-foreground">
-                {index === 0 ? <Lightbulb className="h-5 w-5 text-[#F08A5D]" /> : index === 1 ? <ShieldCheck className="h-5 w-5 text-[#F08A5D]" /> : <Users className="h-5 w-5 text-[#F08A5D]" />}
+                {index === 0 ? <Lightbulb className="theme-section-icon h-5 w-5" /> : index === 1 ? <ShieldCheck className="theme-section-icon h-5 w-5" /> : <Users className="theme-section-icon h-5 w-5" />}
                 {pillar.title}
               </CardTitle>
             </CardHeader>
@@ -88,7 +88,7 @@ export default function StoryPage() {
         <Card className="theme-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-foreground">
-              <Search className="h-5 w-5 text-[#F08A5D]" />
+              <Search className="theme-section-icon h-5 w-5" />
               What This Platform Is Meant To Do
             </CardTitle>
           </CardHeader>
@@ -118,7 +118,7 @@ export default function StoryPage() {
                 href="https://tuyambaze-gilbert.vercel.app/"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#F08A5D] hover:underline"
+                className="theme-link-accent mt-4 inline-flex items-center gap-2 text-sm font-medium hover:underline"
               >
                 Visit portfolio
                 <ExternalLink className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function StoryPage() {
                 href="https://rw.linkedin.com/in/karly-ngarambe-designer"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[#F08A5D] hover:underline"
+                className="theme-link-accent mt-4 inline-flex items-center gap-2 text-sm font-medium hover:underline"
               >
                 Visit LinkedIn
                 <ExternalLink className="h-4 w-4" />

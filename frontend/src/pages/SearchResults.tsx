@@ -40,7 +40,7 @@ const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
 function VerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
     return (
-      <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">
+      <Badge className="theme-status-badge--verified hover:bg-inherit">
         <CheckCircle className="mr-1 h-3 w-3" />
         Verified
       </Badge>
@@ -48,7 +48,7 @@ function VerificationBadge({ status }: { status: string }) {
   }
   if (status === 'community') {
     return (
-      <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-100">
+      <Badge className="theme-status-badge--community hover:bg-inherit">
         <Users className="mr-1 h-3 w-3" />
         Community
       </Badge>
@@ -433,7 +433,7 @@ export default function SearchResults() {
                     {paper.download_count || 0}
                   </span>
                   {paper.solution_key && (
-                    <Badge className="bg-blue-100 text-xs text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400">
+                    <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
                       <Star className="mr-1 h-3 w-3" />
                       Solution
                     </Badge>

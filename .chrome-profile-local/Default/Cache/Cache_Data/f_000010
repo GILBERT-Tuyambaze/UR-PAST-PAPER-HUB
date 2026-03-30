@@ -1,0 +1,1331 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/frontend/src/pages/Profile.tsx");import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+
+let prevRefreshReg;
+let prevRefreshSig;
+
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react-swc can't detect preamble. Something is wrong."
+    );
+  }
+
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=97a10951"; const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=97a10951"; const useEffect = __vite__cjsImport3_react["useEffect"]; const useState = __vite__cjsImport3_react["useState"];
+import { useNavigate } from "/node_modules/.vite/deps/react-router-dom.js?v=97a10951";
+import { fetchUserProfile, getStorageDownloadUrl, updateUserProfile, uploadFileObject } from "/frontend/src/lib/client.ts";
+import { authApi } from "/frontend/src/lib/auth.ts";
+import { useAuth } from "/frontend/src/contexts/AuthContext.tsx";
+import { Button } from "/frontend/src/components/ui/button.tsx";
+import { Badge } from "/frontend/src/components/ui/badge.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "/frontend/src/components/ui/card.tsx";
+import { Input } from "/frontend/src/components/ui/input.tsx";
+import { Label } from "/frontend/src/components/ui/label.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "/frontend/src/components/ui/select.tsx";
+import { Textarea } from "/frontend/src/components/ui/textarea.tsx";
+import { BadgeCheck, Camera, Pencil, School, ShieldCheck } from "/node_modules/.vite/deps/lucide-react.js?v=97a10951";
+import { toast } from "/node_modules/.vite/deps/sonner.js?v=97a10951";
+import { buildProfilePictureObjectKey, createEmptyProfileForm, institutionTypeOptions, normalizeOptionalField, yearOfStudyOptions } from "/frontend/src/lib/profile-form.ts";
+function displayNameInitials(name) {
+    const parts = name.split(' ').map((part)=>part.trim()).filter(Boolean).slice(0, 2);
+    if (parts.length === 0) {
+        return 'UR';
+    }
+    return parts.map((part)=>part[0]?.toUpperCase() || '').join('');
+}
+function URVerificationBadge({ status }) {
+    if (status === 'verified') {
+        return /*#__PURE__*/ _jsxDEV(Badge, {
+            className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
+            children: [
+                /*#__PURE__*/ _jsxDEV(BadgeCheck, {
+                    className: "mr-1 h-3 w-3"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 48,
+                    columnNumber: 9
+                }, this),
+                "UR verified"
+            ]
+        }, void 0, true, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 47,
+            columnNumber: 7
+        }, this);
+    }
+    if (status === 'pending') {
+        return /*#__PURE__*/ _jsxDEV(Badge, {
+            className: "bg-amber-100 text-amber-700 hover:bg-amber-100",
+            children: "UR review pending"
+        }, void 0, false, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 54,
+            columnNumber: 12
+        }, this);
+    }
+    if (status === 'rejected') {
+        return /*#__PURE__*/ _jsxDEV(Badge, {
+            className: "bg-red-100 text-red-700 hover:bg-red-100",
+            children: "UR verification rejected"
+        }, void 0, false, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 57,
+            columnNumber: 12
+        }, this);
+    }
+    return /*#__PURE__*/ _jsxDEV(Badge, {
+        className: "bg-slate-100 text-slate-700 hover:bg-slate-100",
+        children: "No UR verification"
+    }, void 0, false, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+        lineNumber: 59,
+        columnNumber: 10
+    }, this);
+}
+_c = URVerificationBadge;
+function profileFormFromProfile(profile, fallbackName) {
+    const inferredInstitutionType = profile.institution_type || (profile.ur_student_code ? 'ur_student' : 'other_university');
+    return {
+        display_name: profile.display_name || fallbackName,
+        institution_type: inferredInstitutionType,
+        university_name: inferredInstitutionType === 'ur_student' ? 'University of Rwanda' : profile.university_name || '',
+        ur_student_code: profile.ur_student_code || '',
+        phone_number: profile.phone_number || '',
+        college_name: profile.college_name || '',
+        department_name: profile.department_name || '',
+        year_of_study: profile.year_of_study || '',
+        bio: profile.bio || ''
+    };
+}
+export default function ProfilePage() {
+    _s();
+    const navigate = useNavigate();
+    const { user, loading: authLoading, refetch } = useAuth();
+    const [profile, setProfile] = useState(null);
+    const [profileForm, setProfileForm] = useState(createEmptyProfileForm());
+    const [loading, setLoading] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [profileImageUrl, setProfileImageUrl] = useState(null);
+    const [profileImageFile, setProfileImageFile] = useState(null);
+    const [profileImagePreview, setProfileImagePreview] = useState(null);
+    useEffect(()=>{
+        if (!user) {
+            setProfile(null);
+            setLoading(false);
+            return;
+        }
+        void loadProfile();
+    }, [
+        user
+    ]);
+    useEffect(()=>{
+        let cancelled = false;
+        if (!profile?.profile_picture_key) {
+            setProfileImageUrl(null);
+            return ()=>{
+                cancelled = true;
+            };
+        }
+        void getStorageDownloadUrl('profiles', profile.profile_picture_key).then((url)=>{
+            if (!cancelled) {
+                setProfileImageUrl(url);
+            }
+        }).catch(()=>{
+            if (!cancelled) {
+                setProfileImageUrl(null);
+            }
+        });
+        return ()=>{
+            cancelled = true;
+        };
+    }, [
+        profile?.profile_picture_key
+    ]);
+    const loadProfile = async ()=>{
+        try {
+            setLoading(true);
+            const currentProfile = await fetchUserProfile();
+            if (currentProfile) {
+                setProfile(currentProfile);
+                setProfileForm(profileFormFromProfile(currentProfile, user?.name || ''));
+            }
+        } catch (err) {
+            console.error('Failed to load profile:', err);
+            toast.error('Failed to load your profile');
+        } finally{
+            setLoading(false);
+        }
+    };
+    const updateField = (field, value)=>{
+        setProfileForm((prev)=>{
+            const next = {
+                ...prev,
+                [field]: value
+            };
+            if (field === 'institution_type') {
+                if (value === 'ur_student') {
+                    next.university_name = 'University of Rwanda';
+                } else if (prev.university_name === 'University of Rwanda') {
+                    next.university_name = '';
+                }
+            }
+            return next;
+        });
+    };
+    const handleProfileImageChange = (event)=>{
+        const file = event.target.files?.[0] || null;
+        setProfileImageFile(file);
+        if (profileImagePreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(profileImagePreview);
+        }
+        if (!file) {
+            setProfileImagePreview(null);
+            return;
+        }
+        setProfileImagePreview(URL.createObjectURL(file));
+    };
+    const handleCancelEdit = ()=>{
+        if (profile) {
+            setProfileForm(profileFormFromProfile(profile, user?.name || ''));
+        }
+        if (profileImagePreview?.startsWith('blob:')) {
+            URL.revokeObjectURL(profileImagePreview);
+        }
+        setProfileImagePreview(null);
+        setProfileImageFile(null);
+        setEditing(false);
+    };
+    const handleSaveProfile = async ()=>{
+        if (!user || !profile) return;
+        const displayName = profileForm.display_name.trim();
+        const isUrStudent = profileForm.institution_type === 'ur_student';
+        const urCodeLocked = profile.ur_verification_status === 'verified';
+        if (!displayName) {
+            toast.error('Full name is required.');
+            return;
+        }
+        if (isUrStudent && !urCodeLocked && !profileForm.ur_student_code.trim()) {
+            toast.error('UR student code is required for UR verification.');
+            return;
+        }
+        if (!isUrStudent && !urCodeLocked && !profileForm.university_name.trim()) {
+            toast.error('University name is required when selecting another university.');
+            return;
+        }
+        setSaving(true);
+        try {
+            const updatePayload = {
+                display_name: displayName,
+                phone_number: normalizeOptionalField(profileForm.phone_number),
+                college_name: normalizeOptionalField(profileForm.college_name),
+                department_name: normalizeOptionalField(profileForm.department_name),
+                year_of_study: normalizeOptionalField(profileForm.year_of_study),
+                bio: normalizeOptionalField(profileForm.bio)
+            };
+            if (!urCodeLocked) {
+                updatePayload.institution_type = profileForm.institution_type;
+                updatePayload.university_name = isUrStudent ? 'University of Rwanda' : normalizeOptionalField(profileForm.university_name);
+                updatePayload.ur_student_code = isUrStudent ? normalizeOptionalField(profileForm.ur_student_code) : undefined;
+            }
+            if (profileImageFile) {
+                const objectKey = buildProfilePictureObjectKey(user.id, profileImageFile.name);
+                updatePayload.profile_picture_key = await uploadFileObject('profiles', objectKey, profileImageFile);
+            }
+            const updatedProfile = await updateUserProfile(updatePayload);
+            setProfile(updatedProfile);
+            setProfileForm(profileFormFromProfile(updatedProfile, displayName));
+            if (profileImagePreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(profileImagePreview);
+            }
+            setProfileImagePreview(null);
+            setProfileImageFile(null);
+            setEditing(false);
+            await refetch();
+            toast.success('Profile updated');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Failed to update profile';
+            toast.error(message);
+        } finally{
+            setSaving(false);
+        }
+    };
+    if (authLoading || loading) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "flex min-h-screen items-center justify-center",
+            children: /*#__PURE__*/ _jsxDEV("div", {
+                className: "h-8 w-8 animate-spin rounded-full border-b-2 border-[#F08A5D]"
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 257,
+                columnNumber: 9
+            }, this)
+        }, void 0, false, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 256,
+            columnNumber: 7
+        }, this);
+    }
+    if (!user) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "mx-auto max-w-2xl px-4 py-16 text-center",
+            children: [
+                /*#__PURE__*/ _jsxDEV("h2", {
+                    className: "mb-4 text-2xl font-bold text-[#343A40] dark:text-white",
+                    children: "Sign In Required"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 265,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("p", {
+                    className: "mb-6 text-gray-500 dark:text-gray-400",
+                    children: "Sign in to view and manage your profile."
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 266,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV(Button, {
+                    onClick: ()=>authApi.login('/profile'),
+                    className: "bg-[#F08A5D] text-white hover:bg-[#e07a4d]",
+                    children: "Sign In"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 269,
+                    columnNumber: 9
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 264,
+            columnNumber: 7
+        }, this);
+    }
+    if (!profile) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "mx-auto max-w-3xl px-4 py-16",
+            children: /*#__PURE__*/ _jsxDEV(Card, {
+                className: "dark:bg-[#3E444A] dark:border-gray-700",
+                children: /*#__PURE__*/ _jsxDEV(CardContent, {
+                    className: "p-10 text-center",
+                    children: [
+                        /*#__PURE__*/ _jsxDEV("p", {
+                            className: "text-gray-500 dark:text-gray-400",
+                            children: "We could not load your profile right now."
+                        }, void 0, false, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                            lineNumber: 281,
+                            columnNumber: 13
+                        }, this),
+                        /*#__PURE__*/ _jsxDEV(Button, {
+                            onClick: ()=>void loadProfile(),
+                            className: "mt-4 bg-[#F08A5D] text-white hover:bg-[#e07a4d]",
+                            children: "Try again"
+                        }, void 0, false, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                            lineNumber: 282,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 280,
+                    columnNumber: 11
+                }, this)
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 279,
+                columnNumber: 9
+            }, this)
+        }, void 0, false, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+            lineNumber: 278,
+            columnNumber: 7
+        }, this);
+    }
+    const urCodeLocked = profile.ur_verification_status === 'verified';
+    const previewImage = profileImagePreview || profileImageUrl;
+    return /*#__PURE__*/ _jsxDEV("div", {
+        className: "mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8",
+        children: [
+            /*#__PURE__*/ _jsxDEV("div", {
+                className: "mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between",
+                children: [
+                    /*#__PURE__*/ _jsxDEV("div", {
+                        children: [
+                            /*#__PURE__*/ _jsxDEV("h1", {
+                                className: "text-3xl font-bold text-[#343A40] dark:text-white",
+                                children: "My Profile"
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 298,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV("p", {
+                                className: "mt-1 text-gray-500 dark:text-gray-400",
+                                children: "View your academic identity, community details, and verification status in one place."
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 299,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                        lineNumber: 297,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ _jsxDEV("div", {
+                        className: "flex flex-wrap gap-2",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(Badge, {
+                                variant: "secondary",
+                                children: profile.role || 'normal'
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 304,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(URVerificationBadge, {
+                                status: profile.ur_verification_status
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 305,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(Badge, {
+                                variant: "outline",
+                                className: "dark:border-gray-600 dark:text-gray-200",
+                                children: profile.account_status || 'active'
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 306,
+                                columnNumber: 11
+                            }, this),
+                            !editing ? /*#__PURE__*/ _jsxDEV(Button, {
+                                onClick: ()=>setEditing(true),
+                                className: "bg-[#F08A5D] text-white hover:bg-[#e07a4d]",
+                                children: [
+                                    /*#__PURE__*/ _jsxDEV(Pencil, {
+                                        className: "mr-2 h-4 w-4"
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 311,
+                                        columnNumber: 15
+                                    }, this),
+                                    "Edit profile"
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 310,
+                                columnNumber: 13
+                            }, this) : /*#__PURE__*/ _jsxDEV(Button, {
+                                variant: "outline",
+                                onClick: handleCancelEdit,
+                                className: "dark:border-gray-600 dark:text-gray-200",
+                                children: "Cancel"
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 315,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                        lineNumber: 303,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 296,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("div", {
+                className: "grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]",
+                children: [
+                    /*#__PURE__*/ _jsxDEV(Card, {
+                        className: "dark:bg-[#3E444A] dark:border-gray-700",
+                        children: /*#__PURE__*/ _jsxDEV(CardContent, {
+                            className: "p-6",
+                            children: [
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-[2rem] bg-[#FFF4EC] text-4xl font-semibold text-[#9a5f43] dark:bg-[#2e2723] dark:text-white/85",
+                                    children: previewImage ? /*#__PURE__*/ _jsxDEV("img", {
+                                        src: previewImage,
+                                        alt: "Profile",
+                                        className: "h-full w-full object-cover"
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 327,
+                                        columnNumber: 17
+                                    }, this) : displayNameInitials(profile.display_name)
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 325,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mt-5 text-center",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("h2", {
+                                            className: "text-2xl font-semibold text-[#343A40] dark:text-white",
+                                            children: profile.display_name
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 334,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "mt-1 text-sm text-gray-500 dark:text-gray-400",
+                                            children: user.email
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 335,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 333,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mt-5 space-y-3 rounded-2xl bg-gray-50 p-4 text-sm dark:bg-[#343A40]",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-center justify-between gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-gray-500 dark:text-gray-400",
+                                                    children: "Institution"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 340,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-right font-medium text-[#343A40] dark:text-white",
+                                                    children: profile.institution_type === 'ur_student' ? 'University of Rwanda' : profile.university_name || 'Not set'
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 341,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 339,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-center justify-between gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-gray-500 dark:text-gray-400",
+                                                    children: "UR status"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 346,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-right font-medium text-[#343A40] dark:text-white",
+                                                    children: profile.ur_verification_status || 'not_requested'
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 347,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 345,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-center justify-between gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-gray-500 dark:text-gray-400",
+                                                    children: "Trust score"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 352,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-right font-medium text-[#343A40] dark:text-white",
+                                                    children: profile.trust_score || 0
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 353,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 351,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-center justify-between gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-gray-500 dark:text-gray-400",
+                                                    children: "Uploads"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 358,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-right font-medium text-[#343A40] dark:text-white",
+                                                    children: profile.upload_count || 0
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 359,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 357,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-center justify-between gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-gray-500 dark:text-gray-400",
+                                                    children: "Downloads"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 364,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "text-right font-medium text-[#343A40] dark:text-white",
+                                                    children: profile.download_count || 0
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 365,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 363,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 338,
+                                    columnNumber: 13
+                                }, this),
+                                editing && /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "mt-5",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Label, {
+                                            htmlFor: "profile-image",
+                                            className: "text-slate-700 dark:text-white/85",
+                                            children: "Profile picture"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 373,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Input, {
+                                            id: "profile-image",
+                                            type: "file",
+                                            accept: "image/*",
+                                            onChange: handleProfileImageChange,
+                                            className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 374,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "mt-2 text-xs text-slate-500 dark:text-white/55",
+                                            children: "Upload a photo or logo to make your profile easier to recognize."
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 381,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 372,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                            lineNumber: 324,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                        lineNumber: 323,
+                        columnNumber: 9
+                    }, this),
+                    !editing ? /*#__PURE__*/ _jsxDEV(Card, {
+                        className: "dark:bg-[#3E444A] dark:border-gray-700",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(CardHeader, {
+                                children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                                    className: "flex items-center gap-2 text-[#343A40] dark:text-white",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(School, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 393,
+                                            columnNumber: 17
+                                        }, this),
+                                        "Profile Details"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 392,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 391,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(CardContent, {
+                                className: "grid gap-4 md:grid-cols-2",
+                                children: [
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "Full name",
+                                        value: profile.display_name
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 398,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "Student type",
+                                        value: profile.institution_type === 'ur_student' ? 'University of Rwanda student' : 'Other university student'
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 399,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "University",
+                                        value: profile.institution_type === 'ur_student' ? 'University of Rwanda' : profile.university_name
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 403,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "UR student code",
+                                        value: profile.ur_student_code
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 407,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "Phone number",
+                                        value: profile.phone_number
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 408,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "College",
+                                        value: profile.college_name
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 409,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "Department",
+                                        value: profile.department_name
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 410,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                        label: "Year of study",
+                                        value: profile.year_of_study
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 411,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "md:col-span-2",
+                                        children: /*#__PURE__*/ _jsxDEV(ReadOnlyField, {
+                                            label: "Bio",
+                                            value: profile.bio,
+                                            multiline: true
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 413,
+                                            columnNumber: 17
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 412,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "md:col-span-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-[#343A40] dark:text-white/75",
+                                        children: urCodeLocked ? /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex items-start gap-3",
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(ShieldCheck, {
+                                                    className: "mt-0.5 h-5 w-5 text-emerald-600"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 418,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                    children: "Your UR student code has been verified and is now locked to preserve verification integrity."
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 419,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 417,
+                                            columnNumber: 19
+                                        }, this) : /*#__PURE__*/ _jsxDEV("p", {
+                                            children: [
+                                                "Your profile is currently in view mode. Click ",
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "font-semibold",
+                                                    children: "Edit profile"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                    lineNumber: 423,
+                                                    columnNumber: 67
+                                                }, this),
+                                                " to update your details."
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 422,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 415,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 397,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                        lineNumber: 390,
+                        columnNumber: 11
+                    }, this) : /*#__PURE__*/ _jsxDEV(Card, {
+                        className: "dark:bg-[#3E444A] dark:border-gray-700",
+                        children: [
+                            /*#__PURE__*/ _jsxDEV(CardHeader, {
+                                children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                                    className: "flex items-center gap-2 text-[#343A40] dark:text-white",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Camera, {
+                                            className: "h-5 w-5 text-[#F08A5D]"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 433,
+                                            columnNumber: 17
+                                        }, this),
+                                        "Edit Profile"
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                    lineNumber: 432,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 431,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ _jsxDEV(CardContent, {
+                                className: "grid gap-4 md:grid-cols-2",
+                                children: [
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "display_name",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Full Name"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 439,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "display_name",
+                                                value: profileForm.display_name,
+                                                onChange: (event)=>updateField('display_name', event.target.value),
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 440,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 438,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Student type"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 449,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Select, {
+                                                value: profileForm.institution_type,
+                                                onValueChange: (value)=>updateField('institution_type', value),
+                                                disabled: urCodeLocked,
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                        className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white disabled:opacity-80",
+                                                        children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                            placeholder: "Choose your institution type"
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                            lineNumber: 456,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                        lineNumber: 455,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                        children: institutionTypeOptions.map((option)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                value: option.value,
+                                                                children: option.label
+                                                            }, option.value, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                                lineNumber: 460,
+                                                                columnNumber: 23
+                                                            }, this))
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                        lineNumber: 458,
+                                                        columnNumber: 19
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 450,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 448,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "university_name",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "University"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 469,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "university_name",
+                                                value: profileForm.institution_type === 'ur_student' ? 'University of Rwanda' : profileForm.university_name,
+                                                onChange: (event)=>updateField('university_name', event.target.value),
+                                                disabled: profileForm.institution_type === 'ur_student' || urCodeLocked,
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white disabled:opacity-80"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 470,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 468,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "ur_student_code",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "UR Student Code"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 480,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "ur_student_code",
+                                                value: profileForm.ur_student_code,
+                                                onChange: (event)=>updateField('ur_student_code', event.target.value),
+                                                disabled: profileForm.institution_type !== 'ur_student' || urCodeLocked,
+                                                placeholder: urCodeLocked ? 'Verified code is locked' : 'Required for UR verification',
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white disabled:opacity-80"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 481,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 479,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "phone_number",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Phone Number"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 492,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "phone_number",
+                                                value: profileForm.phone_number,
+                                                onChange: (event)=>updateField('phone_number', event.target.value),
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 493,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 491,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "college_name",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "College"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 502,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "college_name",
+                                                value: profileForm.college_name,
+                                                onChange: (event)=>updateField('college_name', event.target.value),
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 503,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 501,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "department_name",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Department"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 512,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Input, {
+                                                id: "department_name",
+                                                value: profileForm.department_name,
+                                                onChange: (event)=>updateField('department_name', event.target.value),
+                                                className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 513,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 511,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Year of study"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 522,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Select, {
+                                                value: profileForm.year_of_study,
+                                                onValueChange: (value)=>updateField('year_of_study', value),
+                                                children: [
+                                                    /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                        className: "mt-2 h-11 rounded-xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white",
+                                                        children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                            placeholder: "Select your current year"
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                            lineNumber: 525,
+                                                            columnNumber: 21
+                                                        }, this)
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                        lineNumber: 524,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                        children: yearOfStudyOptions.map((option)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                value: option,
+                                                                children: option
+                                                            }, option, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                                lineNumber: 529,
+                                                                columnNumber: 23
+                                                            }, this))
+                                                    }, void 0, false, {
+                                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                        lineNumber: 527,
+                                                        columnNumber: 19
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 523,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 521,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "md:col-span-2",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Label, {
+                                                htmlFor: "bio",
+                                                className: "text-slate-700 dark:text-white/85",
+                                                children: "Short Bio"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 538,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Textarea, {
+                                                id: "bio",
+                                                value: profileForm.bio,
+                                                onChange: (event)=>updateField('bio', event.target.value),
+                                                className: "mt-2 min-h-[120px] rounded-2xl border-slate-200 bg-white dark:border-white/10 dark:bg-[#0f172a] dark:text-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 539,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 537,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "md:col-span-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-[#343A40] dark:text-white/75",
+                                        children: urCodeLocked ? /*#__PURE__*/ _jsxDEV("p", {
+                                            children: "Your UR student code has been verified. The code, institution type, and university are now locked."
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 549,
+                                            columnNumber: 19
+                                        }, this) : /*#__PURE__*/ _jsxDEV("p", {
+                                            children: "If you use a UR student code, your verification status will stay pending until it is reviewed."
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                            lineNumber: 551,
+                                            columnNumber: 19
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 547,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "md:col-span-2 flex justify-end gap-3",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(Button, {
+                                                variant: "outline",
+                                                onClick: handleCancelEdit,
+                                                className: "dark:border-gray-600 dark:text-gray-200",
+                                                children: "Cancel"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 556,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ _jsxDEV(Button, {
+                                                onClick: handleSaveProfile,
+                                                disabled: saving,
+                                                className: "bg-[#F08A5D] text-white hover:bg-[#e07a4d]",
+                                                children: saving ? 'Saving...' : 'Save profile'
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                                lineNumber: 559,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                        lineNumber: 555,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                                lineNumber: 437,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                        lineNumber: 430,
+                        columnNumber: 11
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 322,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("div", {
+                className: "mt-8",
+                children: /*#__PURE__*/ _jsxDEV(Button, {
+                    variant: "outline",
+                    onClick: ()=>navigate('/dashboard'),
+                    className: "dark:border-gray-600 dark:text-gray-200",
+                    children: "Back to dashboard"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                    lineNumber: 569,
+                    columnNumber: 9
+                }, this)
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 568,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+        lineNumber: 295,
+        columnNumber: 5
+    }, this);
+}
+_s(ProfilePage, "G4t5PF6/OYTGjsYroHI7+G5oGPY=", false, function() {
+    return [
+        useNavigate,
+        useAuth
+    ];
+});
+_c1 = ProfilePage;
+function ReadOnlyField({ label, value, multiline = false }) {
+    return /*#__PURE__*/ _jsxDEV("div", {
+        className: "rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-gray-700 dark:bg-[#343A40]",
+        children: [
+            /*#__PURE__*/ _jsxDEV("p", {
+                className: "text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-white/45",
+                children: label
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 588,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV("p", {
+                className: `mt-2 text-sm text-[#343A40] dark:text-white ${multiline ? 'whitespace-pre-wrap leading-6' : ''}`,
+                children: value || 'Not provided yet'
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+                lineNumber: 589,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx",
+        lineNumber: 587,
+        columnNumber: 5
+    }, this);
+}
+_c2 = ReadOnlyField;
+var _c, _c1, _c2;
+$RefreshReg$(_c, "URVerificationBadge");
+$RefreshReg$(_c1, "ProfilePage");
+$RefreshReg$(_c2, "ReadOnlyField");
+
+
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Profile.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIlByb2ZpbGUudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IENoYW5nZUV2ZW50LCB1c2VFZmZlY3QsIHVzZVN0YXRlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgdXNlTmF2aWdhdGUgfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJztcbmltcG9ydCB7XG4gIGZldGNoVXNlclByb2ZpbGUsXG4gIGdldFN0b3JhZ2VEb3dubG9hZFVybCxcbiAgdXBkYXRlVXNlclByb2ZpbGUsXG4gIHVwbG9hZEZpbGVPYmplY3QsXG4gIHR5cGUgVXNlclByb2ZpbGUsXG59IGZyb20gJy4uL2xpYi9jbGllbnQnO1xuaW1wb3J0IHsgYXV0aEFwaSB9IGZyb20gJy4uL2xpYi9hdXRoJztcbmltcG9ydCB7IHVzZUF1dGggfSBmcm9tICcuLi9jb250ZXh0cy9BdXRoQ29udGV4dCc7XG5pbXBvcnQgeyBCdXR0b24gfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYnV0dG9uJztcbmltcG9ydCB7IEJhZGdlIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2JhZGdlJztcbmltcG9ydCB7IENhcmQsIENhcmRDb250ZW50LCBDYXJkSGVhZGVyLCBDYXJkVGl0bGUgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvY2FyZCc7XG5pbXBvcnQgeyBJbnB1dCB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9pbnB1dCc7XG5pbXBvcnQgeyBMYWJlbCB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9sYWJlbCc7XG5pbXBvcnQgeyBTZWxlY3QsIFNlbGVjdENvbnRlbnQsIFNlbGVjdEl0ZW0sIFNlbGVjdFRyaWdnZXIsIFNlbGVjdFZhbHVlIH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL3NlbGVjdCc7XG5pbXBvcnQgeyBUZXh0YXJlYSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS90ZXh0YXJlYSc7XG5pbXBvcnQgeyBCYWRnZUNoZWNrLCBDYW1lcmEsIFBlbmNpbCwgU2Nob29sLCBTaGllbGRDaGVjayB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5pbXBvcnQgeyB0b2FzdCB9IGZyb20gJ3Nvbm5lcic7XG5pbXBvcnQge1xuICBidWlsZFByb2ZpbGVQaWN0dXJlT2JqZWN0S2V5LFxuICBjcmVhdGVFbXB0eVByb2ZpbGVGb3JtLFxuICBpbnN0aXR1dGlvblR5cGVPcHRpb25zLFxuICBub3JtYWxpemVPcHRpb25hbEZpZWxkLFxuICB5ZWFyT2ZTdHVkeU9wdGlvbnMsXG4gIHR5cGUgUHJvZmlsZUZvcm1WYWx1ZXMsXG59IGZyb20gJy4uL2xpYi9wcm9maWxlLWZvcm0nO1xuXG5mdW5jdGlvbiBkaXNwbGF5TmFtZUluaXRpYWxzKG5hbWU6IHN0cmluZykge1xuICBjb25zdCBwYXJ0cyA9IG5hbWVcbiAgICAuc3BsaXQoJyAnKVxuICAgIC5tYXAoKHBhcnQpID0+IHBhcnQudHJpbSgpKVxuICAgIC5maWx0ZXIoQm9vbGVhbilcbiAgICAuc2xpY2UoMCwgMik7XG5cbiAgaWYgKHBhcnRzLmxlbmd0aCA9PT0gMCkge1xuICAgIHJldHVybiAnVVInO1xuICB9XG5cbiAgcmV0dXJuIHBhcnRzLm1hcCgocGFydCkgPT4gcGFydFswXT8udG9VcHBlckNhc2UoKSB8fCAnJykuam9pbignJyk7XG59XG5cbmZ1bmN0aW9uIFVSVmVyaWZpY2F0aW9uQmFkZ2UoeyBzdGF0dXMgfTogeyBzdGF0dXM/OiBzdHJpbmcgfCBudWxsIH0pIHtcbiAgaWYgKHN0YXR1cyA9PT0gJ3ZlcmlmaWVkJykge1xuICAgIHJldHVybiAoXG4gICAgICA8QmFkZ2UgY2xhc3NOYW1lPVwiYmctZW1lcmFsZC0xMDAgdGV4dC1lbWVyYWxkLTcwMCBob3ZlcjpiZy1lbWVyYWxkLTEwMFwiPlxuICAgICAgICA8QmFkZ2VDaGVjayBjbGFzc05hbWU9XCJtci0xIGgtMyB3LTNcIiAvPlxuICAgICAgICBVUiB2ZXJpZmllZFxuICAgICAgPC9CYWRnZT5cbiAgICApO1xuICB9XG4gIGlmIChzdGF0dXMgPT09ICdwZW5kaW5nJykge1xuICAgIHJldHVybiA8QmFkZ2UgY2xhc3NOYW1lPVwiYmctYW1iZXItMTAwIHRleHQtYW1iZXItNzAwIGhvdmVyOmJnLWFtYmVyLTEwMFwiPlVSIHJldmlldyBwZW5kaW5nPC9CYWRnZT47XG4gIH1cbiAgaWYgKHN0YXR1cyA9PT0gJ3JlamVjdGVkJykge1xuICAgIHJldHVybiA8QmFkZ2UgY2xhc3NOYW1lPVwiYmctcmVkLTEwMCB0ZXh0LXJlZC03MDAgaG92ZXI6YmctcmVkLTEwMFwiPlVSIHZlcmlmaWNhdGlvbiByZWplY3RlZDwvQmFkZ2U+O1xuICB9XG4gIHJldHVybiA8QmFkZ2UgY2xhc3NOYW1lPVwiYmctc2xhdGUtMTAwIHRleHQtc2xhdGUtNzAwIGhvdmVyOmJnLXNsYXRlLTEwMFwiPk5vIFVSIHZlcmlmaWNhdGlvbjwvQmFkZ2U+O1xufVxuXG5mdW5jdGlvbiBwcm9maWxlRm9ybUZyb21Qcm9maWxlKHByb2ZpbGU6IFVzZXJQcm9maWxlLCBmYWxsYmFja05hbWU6IHN0cmluZyk6IFByb2ZpbGVGb3JtVmFsdWVzIHtcbiAgY29uc3QgaW5mZXJyZWRJbnN0aXR1dGlvblR5cGUgPVxuICAgIHByb2ZpbGUuaW5zdGl0dXRpb25fdHlwZSB8fCAocHJvZmlsZS51cl9zdHVkZW50X2NvZGUgPyAndXJfc3R1ZGVudCcgOiAnb3RoZXJfdW5pdmVyc2l0eScpO1xuXG4gIHJldHVybiB7XG4gICAgZGlzcGxheV9uYW1lOiBwcm9maWxlLmRpc3BsYXlfbmFtZSB8fCBmYWxsYmFja05hbWUsXG4gICAgaW5zdGl0dXRpb25fdHlwZTogaW5mZXJyZWRJbnN0aXR1dGlvblR5cGUsXG4gICAgdW5pdmVyc2l0eV9uYW1lOlxuICAgICAgaW5mZXJyZWRJbnN0aXR1dGlvblR5cGUgPT09ICd1cl9zdHVkZW50J1xuICAgICAgICA/ICdVbml2ZXJzaXR5IG9mIFJ3YW5kYSdcbiAgICAgICAgOiBwcm9maWxlLnVuaXZlcnNpdHlfbmFtZSB8fCAnJyxcbiAgICB1cl9zdHVkZW50X2NvZGU6IHByb2ZpbGUudXJfc3R1ZGVudF9jb2RlIHx8ICcnLFxuICAgIHBob25lX251bWJlcjogcHJvZmlsZS5waG9uZV9udW1iZXIgfHwgJycsXG4gICAgY29sbGVnZV9uYW1lOiBwcm9maWxlLmNvbGxlZ2VfbmFtZSB8fCAnJyxcbiAgICBkZXBhcnRtZW50X25hbWU6IHByb2ZpbGUuZGVwYXJ0bWVudF9uYW1lIHx8ICcnLFxuICAgIHllYXJfb2Zfc3R1ZHk6IHByb2ZpbGUueWVhcl9vZl9zdHVkeSB8fCAnJyxcbiAgICBiaW86IHByb2ZpbGUuYmlvIHx8ICcnLFxuICB9O1xufVxuXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBQcm9maWxlUGFnZSgpIHtcbiAgY29uc3QgbmF2aWdhdGUgPSB1c2VOYXZpZ2F0ZSgpO1xuICBjb25zdCB7IHVzZXIsIGxvYWRpbmc6IGF1dGhMb2FkaW5nLCByZWZldGNoIH0gPSB1c2VBdXRoKCk7XG4gIGNvbnN0IFtwcm9maWxlLCBzZXRQcm9maWxlXSA9IHVzZVN0YXRlPFVzZXJQcm9maWxlIHwgbnVsbD4obnVsbCk7XG4gIGNvbnN0IFtwcm9maWxlRm9ybSwgc2V0UHJvZmlsZUZvcm1dID0gdXNlU3RhdGU8UHJvZmlsZUZvcm1WYWx1ZXM+KGNyZWF0ZUVtcHR5UHJvZmlsZUZvcm0oKSk7XG4gIGNvbnN0IFtsb2FkaW5nLCBzZXRMb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTtcbiAgY29uc3QgW2VkaXRpbmcsIHNldEVkaXRpbmddID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBbc2F2aW5nLCBzZXRTYXZpbmddID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBbcHJvZmlsZUltYWdlVXJsLCBzZXRQcm9maWxlSW1hZ2VVcmxdID0gdXNlU3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCk7XG4gIGNvbnN0IFtwcm9maWxlSW1hZ2VGaWxlLCBzZXRQcm9maWxlSW1hZ2VGaWxlXSA9IHVzZVN0YXRlPEZpbGUgfCBudWxsPihudWxsKTtcbiAgY29uc3QgW3Byb2ZpbGVJbWFnZVByZXZpZXcsIHNldFByb2ZpbGVJbWFnZVByZXZpZXddID0gdXNlU3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCk7XG5cbiAgdXNlRWZmZWN0KCgpID0+IHtcbiAgICBpZiAoIXVzZXIpIHtcbiAgICAgIHNldFByb2ZpbGUobnVsbCk7XG4gICAgICBzZXRMb2FkaW5nKGZhbHNlKTtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICB2b2lkIGxvYWRQcm9maWxlKCk7XG4gIH0sIFt1c2VyXSk7XG5cbiAgdXNlRWZmZWN0KCgpID0+IHtcbiAgICBsZXQgY2FuY2VsbGVkID0gZmFsc2U7XG5cbiAgICBpZiAoIXByb2ZpbGU/LnByb2ZpbGVfcGljdHVyZV9rZXkpIHtcbiAgICAgIHNldFByb2ZpbGVJbWFnZVVybChudWxsKTtcbiAgICAgIHJldHVybiAoKSA9PiB7XG4gICAgICAgIGNhbmNlbGxlZCA9IHRydWU7XG4gICAgICB9O1xuICAgIH1cblxuICAgIHZvaWQgZ2V0U3RvcmFnZURvd25sb2FkVXJsKCdwcm9maWxlcycsIHByb2ZpbGUucHJvZmlsZV9waWN0dXJlX2tleSlcbiAgICAgIC50aGVuKCh1cmwpID0+IHtcbiAgICAgICAgaWYgKCFjYW5jZWxsZWQpIHtcbiAgICAgICAgICBzZXRQcm9maWxlSW1hZ2VVcmwodXJsKTtcbiAgICAgICAgfVxuICAgICAgfSlcbiAgICAgIC5jYXRjaCgoKSA9PiB7XG4gICAgICAgIGlmICghY2FuY2VsbGVkKSB7XG4gICAgICAgICAgc2V0UHJvZmlsZUltYWdlVXJsKG51bGwpO1xuICAgICAgICB9XG4gICAgICB9KTtcblxuICAgIHJldHVybiAoKSA9PiB7XG4gICAgICBjYW5jZWxsZWQgPSB0cnVlO1xuICAgIH07XG4gIH0sIFtwcm9maWxlPy5wcm9maWxlX3BpY3R1cmVfa2V5XSk7XG5cbiAgY29uc3QgbG9hZFByb2ZpbGUgPSBhc3luYyAoKSA9PiB7XG4gICAgdHJ5IHtcbiAgICAgIHNldExvYWRpbmcodHJ1ZSk7XG4gICAgICBjb25zdCBjdXJyZW50UHJvZmlsZSA9IGF3YWl0IGZldGNoVXNlclByb2ZpbGUoKTtcbiAgICAgIGlmIChjdXJyZW50UHJvZmlsZSkge1xuICAgICAgICBzZXRQcm9maWxlKGN1cnJlbnRQcm9maWxlKTtcbiAgICAgICAgc2V0UHJvZmlsZUZvcm0ocHJvZmlsZUZvcm1Gcm9tUHJvZmlsZShjdXJyZW50UHJvZmlsZSwgdXNlcj8ubmFtZSB8fCAnJykpO1xuICAgICAgfVxuICAgIH0gY2F0Y2ggKGVycikge1xuICAgICAgY29uc29sZS5lcnJvcignRmFpbGVkIHRvIGxvYWQgcHJvZmlsZTonLCBlcnIpO1xuICAgICAgdG9hc3QuZXJyb3IoJ0ZhaWxlZCB0byBsb2FkIHlvdXIgcHJvZmlsZScpO1xuICAgIH0gZmluYWxseSB7XG4gICAgICBzZXRMb2FkaW5nKGZhbHNlKTtcbiAgICB9XG4gIH07XG5cbiAgY29uc3QgdXBkYXRlRmllbGQgPSA8SyBleHRlbmRzIGtleW9mIFByb2ZpbGVGb3JtVmFsdWVzPihmaWVsZDogSywgdmFsdWU6IFByb2ZpbGVGb3JtVmFsdWVzW0tdKSA9PiB7XG4gICAgc2V0UHJvZmlsZUZvcm0oKHByZXYpID0+IHtcbiAgICAgIGNvbnN0IG5leHQgPSB7IC4uLnByZXYsIFtmaWVsZF06IHZhbHVlIH07XG4gICAgICBpZiAoZmllbGQgPT09ICdpbnN0aXR1dGlvbl90eXBlJykge1xuICAgICAgICBpZiAodmFsdWUgPT09ICd1cl9zdHVkZW50Jykge1xuICAgICAgICAgIG5leHQudW5pdmVyc2l0eV9uYW1lID0gJ1VuaXZlcnNpdHkgb2YgUndhbmRhJztcbiAgICAgICAgfSBlbHNlIGlmIChwcmV2LnVuaXZlcnNpdHlfbmFtZSA9PT0gJ1VuaXZlcnNpdHkgb2YgUndhbmRhJykge1xuICAgICAgICAgIG5leHQudW5pdmVyc2l0eV9uYW1lID0gJyc7XG4gICAgICAgIH1cbiAgICAgIH1cbiAgICAgIHJldHVybiBuZXh0O1xuICAgIH0pO1xuICB9O1xuXG4gIGNvbnN0IGhhbmRsZVByb2ZpbGVJbWFnZUNoYW5nZSA9IChldmVudDogQ2hhbmdlRXZlbnQ8SFRNTElucHV0RWxlbWVudD4pID0+IHtcbiAgICBjb25zdCBmaWxlID0gZXZlbnQudGFyZ2V0LmZpbGVzPy5bMF0gfHwgbnVsbDtcbiAgICBzZXRQcm9maWxlSW1hZ2VGaWxlKGZpbGUpO1xuXG4gICAgaWYgKHByb2ZpbGVJbWFnZVByZXZpZXc/LnN0YXJ0c1dpdGgoJ2Jsb2I6JykpIHtcbiAgICAgIFVSTC5yZXZva2VPYmplY3RVUkwocHJvZmlsZUltYWdlUHJldmlldyk7XG4gICAgfVxuXG4gICAgaWYgKCFmaWxlKSB7XG4gICAgICBzZXRQcm9maWxlSW1hZ2VQcmV2aWV3KG51bGwpO1xuICAgICAgcmV0dXJuO1xuICAgIH1cblxuICAgIHNldFByb2ZpbGVJbWFnZVByZXZpZXcoVVJMLmNyZWF0ZU9iamVjdFVSTChmaWxlKSk7XG4gIH07XG5cbiAgY29uc3QgaGFuZGxlQ2FuY2VsRWRpdCA9ICgpID0+IHtcbiAgICBpZiAocHJvZmlsZSkge1xuICAgICAgc2V0UHJvZmlsZUZvcm0ocHJvZmlsZUZvcm1Gcm9tUHJvZmlsZShwcm9maWxlLCB1c2VyPy5uYW1lIHx8ICcnKSk7XG4gICAgfVxuICAgIGlmIChwcm9maWxlSW1hZ2VQcmV2aWV3Py5zdGFydHNXaXRoKCdibG9iOicpKSB7XG4gICAgICBVUkwucmV2b2tlT2JqZWN0VVJMKHByb2ZpbGVJbWFnZVByZXZpZXcpO1xuICAgIH1cbiAgICBzZXRQcm9maWxlSW1hZ2VQcmV2aWV3KG51bGwpO1xuICAgIHNldFByb2ZpbGVJbWFnZUZpbGUobnVsbCk7XG4gICAgc2V0RWRpdGluZyhmYWxzZSk7XG4gIH07XG5cbiAgY29uc3QgaGFuZGxlU2F2ZVByb2ZpbGUgPSBhc3luYyAoKSA9PiB7XG4gICAgaWYgKCF1c2VyIHx8ICFwcm9maWxlKSByZXR1cm47XG5cbiAgICBjb25zdCBkaXNwbGF5TmFtZSA9IHByb2ZpbGVGb3JtLmRpc3BsYXlfbmFtZS50cmltKCk7XG4gICAgY29uc3QgaXNVclN0dWRlbnQgPSBwcm9maWxlRm9ybS5pbnN0aXR1dGlvbl90eXBlID09PSAndXJfc3R1ZGVudCc7XG4gICAgY29uc3QgdXJDb2RlTG9ja2VkID0gcHJvZmlsZS51cl92ZXJpZmljYXRpb25fc3RhdHVzID09PSAndmVyaWZpZWQnO1xuXG4gICAgaWYgKCFkaXNwbGF5TmFtZSkge1xuICAgICAgdG9hc3QuZXJyb3IoJ0Z1bGwgbmFtZSBpcyByZXF1aXJlZC4nKTtcbiAgICAgIHJldHVybjtcbiAgICB9XG5cbiAgICBpZiAoaXNVclN0dWRlbnQgJiYgIXVyQ29kZUxvY2tlZCAmJiAhcHJvZmlsZUZvcm0udXJfc3R1ZGVudF9jb2RlLnRyaW0oKSkge1xuICAgICAgdG9hc3QuZXJyb3IoJ1VSIHN0dWRlbnQgY29kZSBpcyByZXF1aXJlZCBmb3IgVVIgdmVyaWZpY2F0aW9uLicpO1xuICAgICAgcmV0dXJuO1xuICAgIH1cblxuICAgIGlmICghaXNVclN0dWRlbnQgJiYgIXVyQ29kZUxvY2tlZCAmJiAhcHJvZmlsZUZvcm0udW5pdmVyc2l0eV9uYW1lLnRyaW0oKSkge1xuICAgICAgdG9hc3QuZXJyb3IoJ1VuaXZlcnNpdHkgbmFtZSBpcyByZXF1aXJlZCB3aGVuIHNlbGVjdGluZyBhbm90aGVyIHVuaXZlcnNpdHkuJyk7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgc2V0U2F2aW5nKHRydWUpO1xuICAgIHRyeSB7XG4gICAgICBjb25zdCB1cGRhdGVQYXlsb2FkOiBQYXJhbWV0ZXJzPHR5cGVvZiB1cGRhdGVVc2VyUHJvZmlsZT5bMF0gPSB7XG4gICAgICAgIGRpc3BsYXlfbmFtZTogZGlzcGxheU5hbWUsXG4gICAgICAgIHBob25lX251bWJlcjogbm9ybWFsaXplT3B0aW9uYWxGaWVsZChwcm9maWxlRm9ybS5waG9uZV9udW1iZXIpLFxuICAgICAgICBjb2xsZWdlX25hbWU6IG5vcm1hbGl6ZU9wdGlvbmFsRmllbGQocHJvZmlsZUZvcm0uY29sbGVnZV9uYW1lKSxcbiAgICAgICAgZGVwYXJ0bWVudF9uYW1lOiBub3JtYWxpemVPcHRpb25hbEZpZWxkKHByb2ZpbGVGb3JtLmRlcGFydG1lbnRfbmFtZSksXG4gICAgICAgIHllYXJfb2Zfc3R1ZHk6IG5vcm1hbGl6ZU9wdGlvbmFsRmllbGQocHJvZmlsZUZvcm0ueWVhcl9vZl9zdHVkeSksXG4gICAgICAgIGJpbzogbm9ybWFsaXplT3B0aW9uYWxGaWVsZChwcm9maWxlRm9ybS5iaW8pLFxuICAgICAgfTtcblxuICAgICAgaWYgKCF1ckNvZGVMb2NrZWQpIHtcbiAgICAgICAgdXBkYXRlUGF5bG9hZC5pbnN0aXR1dGlvbl90eXBlID0gcHJvZmlsZUZvcm0uaW5zdGl0dXRpb25fdHlwZTtcbiAgICAgICAgdXBkYXRlUGF5bG9hZC51bml2ZXJzaXR5X25hbWUgPVxuICAgICAgICAgIGlzVXJTdHVkZW50ID8gJ1VuaXZlcnNpdHkgb2YgUndhbmRhJyA6IG5vcm1hbGl6ZU9wdGlvbmFsRmllbGQocHJvZmlsZUZvcm0udW5pdmVyc2l0eV9uYW1lKTtcbiAgICAgICAgdXBkYXRlUGF5bG9hZC51cl9zdHVkZW50X2NvZGUgPVxuICAgICAgICAgIGlzVXJTdHVkZW50ID8gbm9ybWFsaXplT3B0aW9uYWxGaWVsZChwcm9maWxlRm9ybS51cl9zdHVkZW50X2NvZGUpIDogdW5kZWZpbmVkO1xuICAgICAgfVxuXG4gICAgICBpZiAocHJvZmlsZUltYWdlRmlsZSkge1xuICAgICAgICBjb25zdCBvYmplY3RLZXkgPSBidWlsZFByb2ZpbGVQaWN0dXJlT2JqZWN0S2V5KHVzZXIuaWQsIHByb2ZpbGVJbWFnZUZpbGUubmFtZSk7XG4gICAgICAgIHVwZGF0ZVBheWxvYWQucHJvZmlsZV9waWN0dXJlX2tleSA9IGF3YWl0IHVwbG9hZEZpbGVPYmplY3QoJ3Byb2ZpbGVzJywgb2JqZWN0S2V5LCBwcm9maWxlSW1hZ2VGaWxlKTtcbiAgICAgIH1cblxuICAgICAgY29uc3QgdXBkYXRlZFByb2ZpbGUgPSBhd2FpdCB1cGRhdGVVc2VyUHJvZmlsZSh1cGRhdGVQYXlsb2FkKTtcbiAgICAgIHNldFByb2ZpbGUodXBkYXRlZFByb2ZpbGUpO1xuICAgICAgc2V0UHJvZmlsZUZvcm0ocHJvZmlsZUZvcm1Gcm9tUHJvZmlsZSh1cGRhdGVkUHJvZmlsZSwgZGlzcGxheU5hbWUpKTtcbiAgICAgIGlmIChwcm9maWxlSW1hZ2VQcmV2aWV3Py5zdGFydHNXaXRoKCdibG9iOicpKSB7XG4gICAgICAgIFVSTC5yZXZva2VPYmplY3RVUkwocHJvZmlsZUltYWdlUHJldmlldyk7XG4gICAgICB9XG4gICAgICBzZXRQcm9maWxlSW1hZ2VQcmV2aWV3KG51bGwpO1xuICAgICAgc2V0UHJvZmlsZUltYWdlRmlsZShudWxsKTtcbiAgICAgIHNldEVkaXRpbmcoZmFsc2UpO1xuICAgICAgYXdhaXQgcmVmZXRjaCgpO1xuICAgICAgdG9hc3Quc3VjY2VzcygnUHJvZmlsZSB1cGRhdGVkJyk7XG4gICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICBjb25zdCBtZXNzYWdlID0gZXJyIGluc3RhbmNlb2YgRXJyb3IgPyBlcnIubWVzc2FnZSA6ICdGYWlsZWQgdG8gdXBkYXRlIHByb2ZpbGUnO1xuICAgICAgdG9hc3QuZXJyb3IobWVzc2FnZSk7XG4gICAgfSBmaW5hbGx5IHtcbiAgICAgIHNldFNhdmluZyhmYWxzZSk7XG4gICAgfVxuICB9O1xuXG4gIGlmIChhdXRoTG9hZGluZyB8fCBsb2FkaW5nKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBtaW4taC1zY3JlZW4gaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyXCI+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaC04IHctOCBhbmltYXRlLXNwaW4gcm91bmRlZC1mdWxsIGJvcmRlci1iLTIgYm9yZGVyLVsjRjA4QTVEXVwiIC8+XG4gICAgICA8L2Rpdj5cbiAgICApO1xuICB9XG5cbiAgaWYgKCF1c2VyKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwibXgtYXV0byBtYXgtdy0yeGwgcHgtNCBweS0xNiB0ZXh0LWNlbnRlclwiPlxuICAgICAgICA8aDIgY2xhc3NOYW1lPVwibWItNCB0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlXCI+U2lnbiBJbiBSZXF1aXJlZDwvaDI+XG4gICAgICAgIDxwIGNsYXNzTmFtZT1cIm1iLTYgdGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDBcIj5cbiAgICAgICAgICBTaWduIGluIHRvIHZpZXcgYW5kIG1hbmFnZSB5b3VyIHByb2ZpbGUuXG4gICAgICAgIDwvcD5cbiAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBhdXRoQXBpLmxvZ2luKCcvcHJvZmlsZScpfSBjbGFzc05hbWU9XCJiZy1bI0YwOEE1RF0gdGV4dC13aGl0ZSBob3ZlcjpiZy1bI2UwN2E0ZF1cIj5cbiAgICAgICAgICBTaWduIEluXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgPC9kaXY+XG4gICAgKTtcbiAgfVxuXG4gIGlmICghcHJvZmlsZSkge1xuICAgIHJldHVybiAoXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cIm14LWF1dG8gbWF4LXctM3hsIHB4LTQgcHktMTZcIj5cbiAgICAgICAgPENhcmQgY2xhc3NOYW1lPVwiZGFyazpiZy1bIzNFNDQ0QV0gZGFyazpib3JkZXItZ3JheS03MDBcIj5cbiAgICAgICAgICA8Q2FyZENvbnRlbnQgY2xhc3NOYW1lPVwicC0xMCB0ZXh0LWNlbnRlclwiPlxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDBcIj5XZSBjb3VsZCBub3QgbG9hZCB5b3VyIHByb2ZpbGUgcmlnaHQgbm93LjwvcD5cbiAgICAgICAgICAgIDxCdXR0b24gb25DbGljaz17KCkgPT4gdm9pZCBsb2FkUHJvZmlsZSgpfSBjbGFzc05hbWU9XCJtdC00IGJnLVsjRjA4QTVEXSB0ZXh0LXdoaXRlIGhvdmVyOmJnLVsjZTA3YTRkXVwiPlxuICAgICAgICAgICAgICBUcnkgYWdhaW5cbiAgICAgICAgICAgIDwvQnV0dG9uPlxuICAgICAgICAgIDwvQ2FyZENvbnRlbnQ+XG4gICAgICAgIDwvQ2FyZD5cbiAgICAgIDwvZGl2PlxuICAgICk7XG4gIH1cblxuICBjb25zdCB1ckNvZGVMb2NrZWQgPSBwcm9maWxlLnVyX3ZlcmlmaWNhdGlvbl9zdGF0dXMgPT09ICd2ZXJpZmllZCc7XG4gIGNvbnN0IHByZXZpZXdJbWFnZSA9IHByb2ZpbGVJbWFnZVByZXZpZXcgfHwgcHJvZmlsZUltYWdlVXJsO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9XCJteC1hdXRvIG1heC13LTZ4bCBweC00IHB5LTggc206cHgtNiBsZzpweC04XCI+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1iLTggZmxleCBmbGV4LWNvbCBnYXAtNCBsZzpmbGV4LXJvdyBsZzppdGVtcy1jZW50ZXIgbGc6anVzdGlmeS1iZXR3ZWVuXCI+XG4gICAgICAgIDxkaXY+XG4gICAgICAgICAgPGgxIGNsYXNzTmFtZT1cInRleHQtM3hsIGZvbnQtYm9sZCB0ZXh0LVsjMzQzQTQwXSBkYXJrOnRleHQtd2hpdGVcIj5NeSBQcm9maWxlPC9oMT5cbiAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtdC0xIHRleHQtZ3JheS01MDAgZGFyazp0ZXh0LWdyYXktNDAwXCI+XG4gICAgICAgICAgICBWaWV3IHlvdXIgYWNhZGVtaWMgaWRlbnRpdHksIGNvbW11bml0eSBkZXRhaWxzLCBhbmQgdmVyaWZpY2F0aW9uIHN0YXR1cyBpbiBvbmUgcGxhY2UuXG4gICAgICAgICAgPC9wPlxuICAgICAgICA8L2Rpdj5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGZsZXgtd3JhcCBnYXAtMlwiPlxuICAgICAgICAgIDxCYWRnZSB2YXJpYW50PVwic2Vjb25kYXJ5XCI+e3Byb2ZpbGUucm9sZSB8fCAnbm9ybWFsJ308L0JhZGdlPlxuICAgICAgICAgIDxVUlZlcmlmaWNhdGlvbkJhZGdlIHN0YXR1cz17cHJvZmlsZS51cl92ZXJpZmljYXRpb25fc3RhdHVzfSAvPlxuICAgICAgICAgIDxCYWRnZSB2YXJpYW50PVwib3V0bGluZVwiIGNsYXNzTmFtZT1cImRhcms6Ym9yZGVyLWdyYXktNjAwIGRhcms6dGV4dC1ncmF5LTIwMFwiPlxuICAgICAgICAgICAge3Byb2ZpbGUuYWNjb3VudF9zdGF0dXMgfHwgJ2FjdGl2ZSd9XG4gICAgICAgICAgPC9CYWRnZT5cbiAgICAgICAgICB7IWVkaXRpbmcgPyAoXG4gICAgICAgICAgICA8QnV0dG9uIG9uQ2xpY2s9eygpID0+IHNldEVkaXRpbmcodHJ1ZSl9IGNsYXNzTmFtZT1cImJnLVsjRjA4QTVEXSB0ZXh0LXdoaXRlIGhvdmVyOmJnLVsjZTA3YTRkXVwiPlxuICAgICAgICAgICAgICA8UGVuY2lsIGNsYXNzTmFtZT1cIm1yLTIgaC00IHctNFwiIC8+XG4gICAgICAgICAgICAgIEVkaXQgcHJvZmlsZVxuICAgICAgICAgICAgPC9CdXR0b24+XG4gICAgICAgICAgKSA6IChcbiAgICAgICAgICAgIDxCdXR0b24gdmFyaWFudD1cIm91dGxpbmVcIiBvbkNsaWNrPXtoYW5kbGVDYW5jZWxFZGl0fSBjbGFzc05hbWU9XCJkYXJrOmJvcmRlci1ncmF5LTYwMCBkYXJrOnRleHQtZ3JheS0yMDBcIj5cbiAgICAgICAgICAgICAgQ2FuY2VsXG4gICAgICAgICAgICA8L0J1dHRvbj5cbiAgICAgICAgICApfVxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ2FwLTYgbGc6Z3JpZC1jb2xzLVszMjBweF9taW5tYXgoMCwxZnIpXVwiPlxuICAgICAgICA8Q2FyZCBjbGFzc05hbWU9XCJkYXJrOmJnLVsjM0U0NDRBXSBkYXJrOmJvcmRlci1ncmF5LTcwMFwiPlxuICAgICAgICAgIDxDYXJkQ29udGVudCBjbGFzc05hbWU9XCJwLTZcIj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibXgtYXV0byBmbGV4IGgtMzYgdy0zNiBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgb3ZlcmZsb3ctaGlkZGVuIHJvdW5kZWQtWzJyZW1dIGJnLVsjRkZGNEVDXSB0ZXh0LTR4bCBmb250LXNlbWlib2xkIHRleHQtWyM5YTVmNDNdIGRhcms6YmctWyMyZTI3MjNdIGRhcms6dGV4dC13aGl0ZS84NVwiPlxuICAgICAgICAgICAgICB7cHJldmlld0ltYWdlID8gKFxuICAgICAgICAgICAgICAgIDxpbWcgc3JjPXtwcmV2aWV3SW1hZ2V9IGFsdD1cIlByb2ZpbGVcIiBjbGFzc05hbWU9XCJoLWZ1bGwgdy1mdWxsIG9iamVjdC1jb3ZlclwiIC8+XG4gICAgICAgICAgICAgICkgOiAoXG4gICAgICAgICAgICAgICAgZGlzcGxheU5hbWVJbml0aWFscyhwcm9maWxlLmRpc3BsYXlfbmFtZSlcbiAgICAgICAgICAgICAgKX1cbiAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTUgdGV4dC1jZW50ZXJcIj5cbiAgICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlXCI+e3Byb2ZpbGUuZGlzcGxheV9uYW1lfTwvaDI+XG4gICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cIm10LTEgdGV4dC1zbSB0ZXh0LWdyYXktNTAwIGRhcms6dGV4dC1ncmF5LTQwMFwiPnt1c2VyLmVtYWlsfTwvcD5cbiAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTUgc3BhY2UteS0zIHJvdW5kZWQtMnhsIGJnLWdyYXktNTAgcC00IHRleHQtc20gZGFyazpiZy1bIzM0M0E0MF1cIj5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTNcIj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNTAwIGRhcms6dGV4dC1ncmF5LTQwMFwiPkluc3RpdHV0aW9uPC9zcGFuPlxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtcmlnaHQgZm9udC1tZWRpdW0gdGV4dC1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlXCI+XG4gICAgICAgICAgICAgICAgICB7cHJvZmlsZS5pbnN0aXR1dGlvbl90eXBlID09PSAndXJfc3R1ZGVudCcgPyAnVW5pdmVyc2l0eSBvZiBSd2FuZGEnIDogcHJvZmlsZS51bml2ZXJzaXR5X25hbWUgfHwgJ05vdCBzZXQnfVxuICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC0zXCI+XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDBcIj5VUiBzdGF0dXM8L3NwYW4+XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1yaWdodCBmb250LW1lZGl1bSB0ZXh0LVsjMzQzQTQwXSBkYXJrOnRleHQtd2hpdGVcIj5cbiAgICAgICAgICAgICAgICAgIHtwcm9maWxlLnVyX3ZlcmlmaWNhdGlvbl9zdGF0dXMgfHwgJ25vdF9yZXF1ZXN0ZWQnfVxuICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIGdhcC0zXCI+XG4gICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDBcIj5UcnVzdCBzY29yZTwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXJpZ2h0IGZvbnQtbWVkaXVtIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgICAgICAge3Byb2ZpbGUudHJ1c3Rfc2NvcmUgfHwgMH1cbiAgICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktYmV0d2VlbiBnYXAtM1wiPlxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtZ3JheS01MDAgZGFyazp0ZXh0LWdyYXktNDAwXCI+VXBsb2Fkczwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXJpZ2h0IGZvbnQtbWVkaXVtIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgICAgICAge3Byb2ZpbGUudXBsb2FkX2NvdW50IHx8IDB9XG4gICAgICAgICAgICAgICAgPC9zcGFuPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gZ2FwLTNcIj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNTAwIGRhcms6dGV4dC1ncmF5LTQwMFwiPkRvd25sb2Fkczwvc3Bhbj5cbiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXJpZ2h0IGZvbnQtbWVkaXVtIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgICAgICAge3Byb2ZpbGUuZG93bmxvYWRfY291bnQgfHwgMH1cbiAgICAgICAgICAgICAgICA8L3NwYW4+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgIHtlZGl0aW5nICYmIChcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtdC01XCI+XG4gICAgICAgICAgICAgICAgPExhYmVsIGh0bWxGb3I9XCJwcm9maWxlLWltYWdlXCIgY2xhc3NOYW1lPVwidGV4dC1zbGF0ZS03MDAgZGFyazp0ZXh0LXdoaXRlLzg1XCI+UHJvZmlsZSBwaWN0dXJlPC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8SW5wdXRcbiAgICAgICAgICAgICAgICAgIGlkPVwicHJvZmlsZS1pbWFnZVwiXG4gICAgICAgICAgICAgICAgICB0eXBlPVwiZmlsZVwiXG4gICAgICAgICAgICAgICAgICBhY2NlcHQ9XCJpbWFnZS8qXCJcbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXtoYW5kbGVQcm9maWxlSW1hZ2VDaGFuZ2V9XG4gICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtdC0yIGgtMTEgcm91bmRlZC14bCBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIGRhcms6Ym9yZGVyLXdoaXRlLzEwIGRhcms6YmctWyMwZjE3MmFdIGRhcms6dGV4dC13aGl0ZVwiXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJtdC0yIHRleHQteHMgdGV4dC1zbGF0ZS01MDAgZGFyazp0ZXh0LXdoaXRlLzU1XCI+XG4gICAgICAgICAgICAgICAgICBVcGxvYWQgYSBwaG90byBvciBsb2dvIHRvIG1ha2UgeW91ciBwcm9maWxlIGVhc2llciB0byByZWNvZ25pemUuXG4gICAgICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICl9XG4gICAgICAgICAgPC9DYXJkQ29udGVudD5cbiAgICAgICAgPC9DYXJkPlxuXG4gICAgICAgIHshZWRpdGluZyA/IChcbiAgICAgICAgICA8Q2FyZCBjbGFzc05hbWU9XCJkYXJrOmJnLVsjM0U0NDRBXSBkYXJrOmJvcmRlci1ncmF5LTcwMFwiPlxuICAgICAgICAgICAgPENhcmRIZWFkZXI+XG4gICAgICAgICAgICAgIDxDYXJkVGl0bGUgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlXCI+XG4gICAgICAgICAgICAgICAgPFNjaG9vbCBjbGFzc05hbWU9XCJoLTUgdy01IHRleHQtWyNGMDhBNURdXCIgLz5cbiAgICAgICAgICAgICAgICBQcm9maWxlIERldGFpbHNcbiAgICAgICAgICAgICAgPC9DYXJkVGl0bGU+XG4gICAgICAgICAgICA8L0NhcmRIZWFkZXI+XG4gICAgICAgICAgICA8Q2FyZENvbnRlbnQgY2xhc3NOYW1lPVwiZ3JpZCBnYXAtNCBtZDpncmlkLWNvbHMtMlwiPlxuICAgICAgICAgICAgICA8UmVhZE9ubHlGaWVsZCBsYWJlbD1cIkZ1bGwgbmFtZVwiIHZhbHVlPXtwcm9maWxlLmRpc3BsYXlfbmFtZX0gLz5cbiAgICAgICAgICAgICAgPFJlYWRPbmx5RmllbGRcbiAgICAgICAgICAgICAgICBsYWJlbD1cIlN0dWRlbnQgdHlwZVwiXG4gICAgICAgICAgICAgICAgdmFsdWU9e3Byb2ZpbGUuaW5zdGl0dXRpb25fdHlwZSA9PT0gJ3VyX3N0dWRlbnQnID8gJ1VuaXZlcnNpdHkgb2YgUndhbmRhIHN0dWRlbnQnIDogJ090aGVyIHVuaXZlcnNpdHkgc3R1ZGVudCd9XG4gICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgIDxSZWFkT25seUZpZWxkXG4gICAgICAgICAgICAgICAgbGFiZWw9XCJVbml2ZXJzaXR5XCJcbiAgICAgICAgICAgICAgICB2YWx1ZT17cHJvZmlsZS5pbnN0aXR1dGlvbl90eXBlID09PSAndXJfc3R1ZGVudCcgPyAnVW5pdmVyc2l0eSBvZiBSd2FuZGEnIDogcHJvZmlsZS51bml2ZXJzaXR5X25hbWV9XG4gICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgIDxSZWFkT25seUZpZWxkIGxhYmVsPVwiVVIgc3R1ZGVudCBjb2RlXCIgdmFsdWU9e3Byb2ZpbGUudXJfc3R1ZGVudF9jb2RlfSAvPlxuICAgICAgICAgICAgICA8UmVhZE9ubHlGaWVsZCBsYWJlbD1cIlBob25lIG51bWJlclwiIHZhbHVlPXtwcm9maWxlLnBob25lX251bWJlcn0gLz5cbiAgICAgICAgICAgICAgPFJlYWRPbmx5RmllbGQgbGFiZWw9XCJDb2xsZWdlXCIgdmFsdWU9e3Byb2ZpbGUuY29sbGVnZV9uYW1lfSAvPlxuICAgICAgICAgICAgICA8UmVhZE9ubHlGaWVsZCBsYWJlbD1cIkRlcGFydG1lbnRcIiB2YWx1ZT17cHJvZmlsZS5kZXBhcnRtZW50X25hbWV9IC8+XG4gICAgICAgICAgICAgIDxSZWFkT25seUZpZWxkIGxhYmVsPVwiWWVhciBvZiBzdHVkeVwiIHZhbHVlPXtwcm9maWxlLnllYXJfb2Zfc3R1ZHl9IC8+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWQ6Y29sLXNwYW4tMlwiPlxuICAgICAgICAgICAgICAgIDxSZWFkT25seUZpZWxkIGxhYmVsPVwiQmlvXCIgdmFsdWU9e3Byb2ZpbGUuYmlvfSBtdWx0aWxpbmUgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWQ6Y29sLXNwYW4tMiByb3VuZGVkLTJ4bCBiZy1zbGF0ZS01MCBwLTQgdGV4dC1zbSB0ZXh0LXNsYXRlLTYwMCBkYXJrOmJnLVsjMzQzQTQwXSBkYXJrOnRleHQtd2hpdGUvNzVcIj5cbiAgICAgICAgICAgICAgICB7dXJDb2RlTG9ja2VkID8gKFxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLXN0YXJ0IGdhcC0zXCI+XG4gICAgICAgICAgICAgICAgICAgIDxTaGllbGRDaGVjayBjbGFzc05hbWU9XCJtdC0wLjUgaC01IHctNSB0ZXh0LWVtZXJhbGQtNjAwXCIgLz5cbiAgICAgICAgICAgICAgICAgICAgPHA+WW91ciBVUiBzdHVkZW50IGNvZGUgaGFzIGJlZW4gdmVyaWZpZWQgYW5kIGlzIG5vdyBsb2NrZWQgdG8gcHJlc2VydmUgdmVyaWZpY2F0aW9uIGludGVncml0eS48L3A+XG4gICAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgICApIDogKFxuICAgICAgICAgICAgICAgICAgPHA+XG4gICAgICAgICAgICAgICAgICAgIFlvdXIgcHJvZmlsZSBpcyBjdXJyZW50bHkgaW4gdmlldyBtb2RlLiBDbGljayA8c3BhbiBjbGFzc05hbWU9XCJmb250LXNlbWlib2xkXCI+RWRpdCBwcm9maWxlPC9zcGFuPiB0byB1cGRhdGUgeW91ciBkZXRhaWxzLlxuICAgICAgICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgICAgICl9XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9DYXJkQ29udGVudD5cbiAgICAgICAgICA8L0NhcmQ+XG4gICAgICAgICkgOiAoXG4gICAgICAgICAgPENhcmQgY2xhc3NOYW1lPVwiZGFyazpiZy1bIzNFNDQ0QV0gZGFyazpib3JkZXItZ3JheS03MDBcIj5cbiAgICAgICAgICAgIDxDYXJkSGVhZGVyPlxuICAgICAgICAgICAgICA8Q2FyZFRpdGxlIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgICAgIDxDYW1lcmEgY2xhc3NOYW1lPVwiaC01IHctNSB0ZXh0LVsjRjA4QTVEXVwiIC8+XG4gICAgICAgICAgICAgICAgRWRpdCBQcm9maWxlXG4gICAgICAgICAgICAgIDwvQ2FyZFRpdGxlPlxuICAgICAgICAgICAgPC9DYXJkSGVhZGVyPlxuICAgICAgICAgICAgPENhcmRDb250ZW50IGNsYXNzTmFtZT1cImdyaWQgZ2FwLTQgbWQ6Z3JpZC1jb2xzLTJcIj5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cImRpc3BsYXlfbmFtZVwiIGNsYXNzTmFtZT1cInRleHQtc2xhdGUtNzAwIGRhcms6dGV4dC13aGl0ZS84NVwiPkZ1bGwgTmFtZTwvTGFiZWw+XG4gICAgICAgICAgICAgICAgPElucHV0XG4gICAgICAgICAgICAgICAgICBpZD1cImRpc3BsYXlfbmFtZVwiXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17cHJvZmlsZUZvcm0uZGlzcGxheV9uYW1lfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhldmVudCkgPT4gdXBkYXRlRmllbGQoJ2Rpc3BsYXlfbmFtZScsIGV2ZW50LnRhcmdldC52YWx1ZSl9XG4gICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtdC0yIGgtMTEgcm91bmRlZC14bCBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIGRhcms6Ym9yZGVyLXdoaXRlLzEwIGRhcms6YmctWyMwZjE3MmFdIGRhcms6dGV4dC13aGl0ZVwiXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgY2xhc3NOYW1lPVwidGV4dC1zbGF0ZS03MDAgZGFyazp0ZXh0LXdoaXRlLzg1XCI+U3R1ZGVudCB0eXBlPC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8U2VsZWN0XG4gICAgICAgICAgICAgICAgICB2YWx1ZT17cHJvZmlsZUZvcm0uaW5zdGl0dXRpb25fdHlwZX1cbiAgICAgICAgICAgICAgICAgIG9uVmFsdWVDaGFuZ2U9eyh2YWx1ZSkgPT4gdXBkYXRlRmllbGQoJ2luc3RpdHV0aW9uX3R5cGUnLCB2YWx1ZSBhcyBQcm9maWxlRm9ybVZhbHVlc1snaW5zdGl0dXRpb25fdHlwZSddKX1cbiAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXt1ckNvZGVMb2NrZWR9XG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgPFNlbGVjdFRyaWdnZXIgY2xhc3NOYW1lPVwibXQtMiBoLTExIHJvdW5kZWQteGwgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSBkYXJrOmJvcmRlci13aGl0ZS8xMCBkYXJrOmJnLVsjMGYxNzJhXSBkYXJrOnRleHQtd2hpdGUgZGlzYWJsZWQ6b3BhY2l0eS04MFwiPlxuICAgICAgICAgICAgICAgICAgICA8U2VsZWN0VmFsdWUgcGxhY2Vob2xkZXI9XCJDaG9vc2UgeW91ciBpbnN0aXR1dGlvbiB0eXBlXCIgLz5cbiAgICAgICAgICAgICAgICAgIDwvU2VsZWN0VHJpZ2dlcj5cbiAgICAgICAgICAgICAgICAgIDxTZWxlY3RDb250ZW50PlxuICAgICAgICAgICAgICAgICAgICB7aW5zdGl0dXRpb25UeXBlT3B0aW9ucy5tYXAoKG9wdGlvbikgPT4gKFxuICAgICAgICAgICAgICAgICAgICAgIDxTZWxlY3RJdGVtIGtleT17b3B0aW9uLnZhbHVlfSB2YWx1ZT17b3B0aW9uLnZhbHVlfT5cbiAgICAgICAgICAgICAgICAgICAgICAgIHtvcHRpb24ubGFiZWx9XG4gICAgICAgICAgICAgICAgICAgICAgPC9TZWxlY3RJdGVtPlxuICAgICAgICAgICAgICAgICAgICApKX1cbiAgICAgICAgICAgICAgICAgIDwvU2VsZWN0Q29udGVudD5cbiAgICAgICAgICAgICAgICA8L1NlbGVjdD5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cInVuaXZlcnNpdHlfbmFtZVwiIGNsYXNzTmFtZT1cInRleHQtc2xhdGUtNzAwIGRhcms6dGV4dC13aGl0ZS84NVwiPlVuaXZlcnNpdHk8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxJbnB1dFxuICAgICAgICAgICAgICAgICAgaWQ9XCJ1bml2ZXJzaXR5X25hbWVcIlxuICAgICAgICAgICAgICAgICAgdmFsdWU9e3Byb2ZpbGVGb3JtLmluc3RpdHV0aW9uX3R5cGUgPT09ICd1cl9zdHVkZW50JyA/ICdVbml2ZXJzaXR5IG9mIFJ3YW5kYScgOiBwcm9maWxlRm9ybS51bml2ZXJzaXR5X25hbWV9XG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGV2ZW50KSA9PiB1cGRhdGVGaWVsZCgndW5pdmVyc2l0eV9uYW1lJywgZXZlbnQudGFyZ2V0LnZhbHVlKX1cbiAgICAgICAgICAgICAgICAgIGRpc2FibGVkPXtwcm9maWxlRm9ybS5pbnN0aXR1dGlvbl90eXBlID09PSAndXJfc3R1ZGVudCcgfHwgdXJDb2RlTG9ja2VkfVxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMiBoLTExIHJvdW5kZWQteGwgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSBkYXJrOmJvcmRlci13aGl0ZS8xMCBkYXJrOmJnLVsjMGYxNzJhXSBkYXJrOnRleHQtd2hpdGUgZGlzYWJsZWQ6b3BhY2l0eS04MFwiXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cInVyX3N0dWRlbnRfY29kZVwiIGNsYXNzTmFtZT1cInRleHQtc2xhdGUtNzAwIGRhcms6dGV4dC13aGl0ZS84NVwiPlVSIFN0dWRlbnQgQ29kZTwvTGFiZWw+XG4gICAgICAgICAgICAgICAgPElucHV0XG4gICAgICAgICAgICAgICAgICBpZD1cInVyX3N0dWRlbnRfY29kZVwiXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17cHJvZmlsZUZvcm0udXJfc3R1ZGVudF9jb2RlfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhldmVudCkgPT4gdXBkYXRlRmllbGQoJ3VyX3N0dWRlbnRfY29kZScsIGV2ZW50LnRhcmdldC52YWx1ZSl9XG4gICAgICAgICAgICAgICAgICBkaXNhYmxlZD17cHJvZmlsZUZvcm0uaW5zdGl0dXRpb25fdHlwZSAhPT0gJ3VyX3N0dWRlbnQnIHx8IHVyQ29kZUxvY2tlZH1cbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPXt1ckNvZGVMb2NrZWQgPyAnVmVyaWZpZWQgY29kZSBpcyBsb2NrZWQnIDogJ1JlcXVpcmVkIGZvciBVUiB2ZXJpZmljYXRpb24nfVxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMiBoLTExIHJvdW5kZWQteGwgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSBkYXJrOmJvcmRlci13aGl0ZS8xMCBkYXJrOmJnLVsjMGYxNzJhXSBkYXJrOnRleHQtd2hpdGUgZGlzYWJsZWQ6b3BhY2l0eS04MFwiXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cInBob25lX251bWJlclwiIGNsYXNzTmFtZT1cInRleHQtc2xhdGUtNzAwIGRhcms6dGV4dC13aGl0ZS84NVwiPlBob25lIE51bWJlcjwvTGFiZWw+XG4gICAgICAgICAgICAgICAgPElucHV0XG4gICAgICAgICAgICAgICAgICBpZD1cInBob25lX251bWJlclwiXG4gICAgICAgICAgICAgICAgICB2YWx1ZT17cHJvZmlsZUZvcm0ucGhvbmVfbnVtYmVyfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhldmVudCkgPT4gdXBkYXRlRmllbGQoJ3Bob25lX251bWJlcicsIGV2ZW50LnRhcmdldC52YWx1ZSl9XG4gICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtdC0yIGgtMTEgcm91bmRlZC14bCBib3JkZXItc2xhdGUtMjAwIGJnLXdoaXRlIGRhcms6Ym9yZGVyLXdoaXRlLzEwIGRhcms6YmctWyMwZjE3MmFdIGRhcms6dGV4dC13aGl0ZVwiXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cImNvbGxlZ2VfbmFtZVwiIGNsYXNzTmFtZT1cInRleHQtc2xhdGUtNzAwIGRhcms6dGV4dC13aGl0ZS84NVwiPkNvbGxlZ2U8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxJbnB1dFxuICAgICAgICAgICAgICAgICAgaWQ9XCJjb2xsZWdlX25hbWVcIlxuICAgICAgICAgICAgICAgICAgdmFsdWU9e3Byb2ZpbGVGb3JtLmNvbGxlZ2VfbmFtZX1cbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZXZlbnQpID0+IHVwZGF0ZUZpZWxkKCdjb2xsZWdlX25hbWUnLCBldmVudC50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMiBoLTExIHJvdW5kZWQteGwgYm9yZGVyLXNsYXRlLTIwMCBiZy13aGl0ZSBkYXJrOmJvcmRlci13aGl0ZS8xMCBkYXJrOmJnLVsjMGYxNzJhXSBkYXJrOnRleHQtd2hpdGVcIlxuICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgPExhYmVsIGh0bWxGb3I9XCJkZXBhcnRtZW50X25hbWVcIiBjbGFzc05hbWU9XCJ0ZXh0LXNsYXRlLTcwMCBkYXJrOnRleHQtd2hpdGUvODVcIj5EZXBhcnRtZW50PC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8SW5wdXRcbiAgICAgICAgICAgICAgICAgIGlkPVwiZGVwYXJ0bWVudF9uYW1lXCJcbiAgICAgICAgICAgICAgICAgIHZhbHVlPXtwcm9maWxlRm9ybS5kZXBhcnRtZW50X25hbWV9XG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGV2ZW50KSA9PiB1cGRhdGVGaWVsZCgnZGVwYXJ0bWVudF9uYW1lJywgZXZlbnQudGFyZ2V0LnZhbHVlKX1cbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm10LTIgaC0xMSByb3VuZGVkLXhsIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgZGFyazpib3JkZXItd2hpdGUvMTAgZGFyazpiZy1bIzBmMTcyYV0gZGFyazp0ZXh0LXdoaXRlXCJcbiAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBjbGFzc05hbWU9XCJ0ZXh0LXNsYXRlLTcwMCBkYXJrOnRleHQtd2hpdGUvODVcIj5ZZWFyIG9mIHN0dWR5PC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8U2VsZWN0IHZhbHVlPXtwcm9maWxlRm9ybS55ZWFyX29mX3N0dWR5fSBvblZhbHVlQ2hhbmdlPXsodmFsdWUpID0+IHVwZGF0ZUZpZWxkKCd5ZWFyX29mX3N0dWR5JywgdmFsdWUpfT5cbiAgICAgICAgICAgICAgICAgIDxTZWxlY3RUcmlnZ2VyIGNsYXNzTmFtZT1cIm10LTIgaC0xMSByb3VuZGVkLXhsIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgZGFyazpib3JkZXItd2hpdGUvMTAgZGFyazpiZy1bIzBmMTcyYV0gZGFyazp0ZXh0LXdoaXRlXCI+XG4gICAgICAgICAgICAgICAgICAgIDxTZWxlY3RWYWx1ZSBwbGFjZWhvbGRlcj1cIlNlbGVjdCB5b3VyIGN1cnJlbnQgeWVhclwiIC8+XG4gICAgICAgICAgICAgICAgICA8L1NlbGVjdFRyaWdnZXI+XG4gICAgICAgICAgICAgICAgICA8U2VsZWN0Q29udGVudD5cbiAgICAgICAgICAgICAgICAgICAge3llYXJPZlN0dWR5T3B0aW9ucy5tYXAoKG9wdGlvbikgPT4gKFxuICAgICAgICAgICAgICAgICAgICAgIDxTZWxlY3RJdGVtIGtleT17b3B0aW9ufSB2YWx1ZT17b3B0aW9ufT5cbiAgICAgICAgICAgICAgICAgICAgICAgIHtvcHRpb259XG4gICAgICAgICAgICAgICAgICAgICAgPC9TZWxlY3RJdGVtPlxuICAgICAgICAgICAgICAgICAgICApKX1cbiAgICAgICAgICAgICAgICAgIDwvU2VsZWN0Q29udGVudD5cbiAgICAgICAgICAgICAgICA8L1NlbGVjdD5cbiAgICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJtZDpjb2wtc3Bhbi0yXCI+XG4gICAgICAgICAgICAgICAgPExhYmVsIGh0bWxGb3I9XCJiaW9cIiBjbGFzc05hbWU9XCJ0ZXh0LXNsYXRlLTcwMCBkYXJrOnRleHQtd2hpdGUvODVcIj5TaG9ydCBCaW88L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxUZXh0YXJlYVxuICAgICAgICAgICAgICAgICAgaWQ9XCJiaW9cIlxuICAgICAgICAgICAgICAgICAgdmFsdWU9e3Byb2ZpbGVGb3JtLmJpb31cbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZXZlbnQpID0+IHVwZGF0ZUZpZWxkKCdiaW8nLCBldmVudC50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMiBtaW4taC1bMTIwcHhdIHJvdW5kZWQtMnhsIGJvcmRlci1zbGF0ZS0yMDAgYmctd2hpdGUgZGFyazpib3JkZXItd2hpdGUvMTAgZGFyazpiZy1bIzBmMTcyYV0gZGFyazp0ZXh0LXdoaXRlXCJcbiAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm1kOmNvbC1zcGFuLTIgcm91bmRlZC0yeGwgYmctc2xhdGUtNTAgcC00IHRleHQtc20gdGV4dC1zbGF0ZS02MDAgZGFyazpiZy1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlLzc1XCI+XG4gICAgICAgICAgICAgICAge3VyQ29kZUxvY2tlZCA/IChcbiAgICAgICAgICAgICAgICAgIDxwPllvdXIgVVIgc3R1ZGVudCBjb2RlIGhhcyBiZWVuIHZlcmlmaWVkLiBUaGUgY29kZSwgaW5zdGl0dXRpb24gdHlwZSwgYW5kIHVuaXZlcnNpdHkgYXJlIG5vdyBsb2NrZWQuPC9wPlxuICAgICAgICAgICAgICAgICkgOiAoXG4gICAgICAgICAgICAgICAgICA8cD5JZiB5b3UgdXNlIGEgVVIgc3R1ZGVudCBjb2RlLCB5b3VyIHZlcmlmaWNhdGlvbiBzdGF0dXMgd2lsbCBzdGF5IHBlbmRpbmcgdW50aWwgaXQgaXMgcmV2aWV3ZWQuPC9wPlxuICAgICAgICAgICAgICAgICl9XG4gICAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWQ6Y29sLXNwYW4tMiBmbGV4IGp1c3RpZnktZW5kIGdhcC0zXCI+XG4gICAgICAgICAgICAgICAgPEJ1dHRvbiB2YXJpYW50PVwib3V0bGluZVwiIG9uQ2xpY2s9e2hhbmRsZUNhbmNlbEVkaXR9IGNsYXNzTmFtZT1cImRhcms6Ym9yZGVyLWdyYXktNjAwIGRhcms6dGV4dC1ncmF5LTIwMFwiPlxuICAgICAgICAgICAgICAgICAgQ2FuY2VsXG4gICAgICAgICAgICAgICAgPC9CdXR0b24+XG4gICAgICAgICAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXtoYW5kbGVTYXZlUHJvZmlsZX0gZGlzYWJsZWQ9e3NhdmluZ30gY2xhc3NOYW1lPVwiYmctWyNGMDhBNURdIHRleHQtd2hpdGUgaG92ZXI6YmctWyNlMDdhNGRdXCI+XG4gICAgICAgICAgICAgICAgICB7c2F2aW5nID8gJ1NhdmluZy4uLicgOiAnU2F2ZSBwcm9maWxlJ31cbiAgICAgICAgICAgICAgICA8L0J1dHRvbj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8L0NhcmRDb250ZW50PlxuICAgICAgICAgIDwvQ2FyZD5cbiAgICAgICAgKX1cbiAgICAgIDwvZGl2PlxuXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LThcIj5cbiAgICAgICAgPEJ1dHRvbiB2YXJpYW50PVwib3V0bGluZVwiIG9uQ2xpY2s9eygpID0+IG5hdmlnYXRlKCcvZGFzaGJvYXJkJyl9IGNsYXNzTmFtZT1cImRhcms6Ym9yZGVyLWdyYXktNjAwIGRhcms6dGV4dC1ncmF5LTIwMFwiPlxuICAgICAgICAgIEJhY2sgdG8gZGFzaGJvYXJkXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gICk7XG59XG5cbmZ1bmN0aW9uIFJlYWRPbmx5RmllbGQoe1xuICBsYWJlbCxcbiAgdmFsdWUsXG4gIG11bHRpbGluZSA9IGZhbHNlLFxufToge1xuICBsYWJlbDogc3RyaW5nO1xuICB2YWx1ZT86IHN0cmluZyB8IG51bGw7XG4gIG11bHRpbGluZT86IGJvb2xlYW47XG59KSB7XG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9XCJyb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLXNsYXRlLTIwMC84MCBiZy1zbGF0ZS01MC84MCBwLTQgZGFyazpib3JkZXItZ3JheS03MDAgZGFyazpiZy1bIzM0M0E0MF1cIj5cbiAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQteHMgZm9udC1zZW1pYm9sZCB1cHBlcmNhc2UgdHJhY2tpbmctWzAuMmVtXSB0ZXh0LXNsYXRlLTUwMCBkYXJrOnRleHQtd2hpdGUvNDVcIj57bGFiZWx9PC9wPlxuICAgICAgPHAgY2xhc3NOYW1lPXtgbXQtMiB0ZXh0LXNtIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZSAke211bHRpbGluZSA/ICd3aGl0ZXNwYWNlLXByZS13cmFwIGxlYWRpbmctNicgOiAnJ31gfT5cbiAgICAgICAge3ZhbHVlIHx8ICdOb3QgcHJvdmlkZWQgeWV0J31cbiAgICAgIDwvcD5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJuYW1lcyI6WyJ1c2VFZmZlY3QiLCJ1c2VTdGF0ZSIsInVzZU5hdmlnYXRlIiwiZmV0Y2hVc2VyUHJvZmlsZSIsImdldFN0b3JhZ2VEb3dubG9hZFVybCIsInVwZGF0ZVVzZXJQcm9maWxlIiwidXBsb2FkRmlsZU9iamVjdCIsImF1dGhBcGkiLCJ1c2VBdXRoIiwiQnV0dG9uIiwiQmFkZ2UiLCJDYXJkIiwiQ2FyZENvbnRlbnQiLCJDYXJkSGVhZGVyIiwiQ2FyZFRpdGxlIiwiSW5wdXQiLCJMYWJlbCIsIlNlbGVjdCIsIlNlbGVjdENvbnRlbnQiLCJTZWxlY3RJdGVtIiwiU2VsZWN0VHJpZ2dlciIsIlNlbGVjdFZhbHVlIiwiVGV4dGFyZWEiLCJCYWRnZUNoZWNrIiwiQ2FtZXJhIiwiUGVuY2lsIiwiU2Nob29sIiwiU2hpZWxkQ2hlY2siLCJ0b2FzdCIsImJ1aWxkUHJvZmlsZVBpY3R1cmVPYmplY3RLZXkiLCJjcmVhdGVFbXB0eVByb2ZpbGVGb3JtIiwiaW5zdGl0dXRpb25UeXBlT3B0aW9ucyIsIm5vcm1hbGl6ZU9wdGlvbmFsRmllbGQiLCJ5ZWFyT2ZTdHVkeU9wdGlvbnMiLCJkaXNwbGF5TmFtZUluaXRpYWxzIiwibmFtZSIsInBhcnRzIiwic3BsaXQiLCJtYXAiLCJwYXJ0IiwidHJpbSIsImZpbHRlciIsIkJvb2xlYW4iLCJzbGljZSIsImxlbmd0aCIsInRvVXBwZXJDYXNlIiwiam9pbiIsIlVSVmVyaWZpY2F0aW9uQmFkZ2UiLCJzdGF0dXMiLCJjbGFzc05hbWUiLCJwcm9maWxlRm9ybUZyb21Qcm9maWxlIiwicHJvZmlsZSIsImZhbGxiYWNrTmFtZSIsImluZmVycmVkSW5zdGl0dXRpb25UeXBlIiwiaW5zdGl0dXRpb25fdHlwZSIsInVyX3N0dWRlbnRfY29kZSIsImRpc3BsYXlfbmFtZSIsInVuaXZlcnNpdHlfbmFtZSIsInBob25lX251bWJlciIsImNvbGxlZ2VfbmFtZSIsImRlcGFydG1lbnRfbmFtZSIsInllYXJfb2Zfc3R1ZHkiLCJiaW8iLCJQcm9maWxlUGFnZSIsIm5hdmlnYXRlIiwidXNlciIsImxvYWRpbmciLCJhdXRoTG9hZGluZyIsInJlZmV0Y2giLCJzZXRQcm9maWxlIiwicHJvZmlsZUZvcm0iLCJzZXRQcm9maWxlRm9ybSIsInNldExvYWRpbmciLCJlZGl0aW5nIiwic2V0RWRpdGluZyIsInNhdmluZyIsInNldFNhdmluZyIsInByb2ZpbGVJbWFnZVVybCIsInNldFByb2ZpbGVJbWFnZVVybCIsInByb2ZpbGVJbWFnZUZpbGUiLCJzZXRQcm9maWxlSW1hZ2VGaWxlIiwicHJvZmlsZUltYWdlUHJldmlldyIsInNldFByb2ZpbGVJbWFnZVByZXZpZXciLCJsb2FkUHJvZmlsZSIsImNhbmNlbGxlZCIsInByb2ZpbGVfcGljdHVyZV9rZXkiLCJ0aGVuIiwidXJsIiwiY2F0Y2giLCJjdXJyZW50UHJvZmlsZSIsImVyciIsImNvbnNvbGUiLCJlcnJvciIsInVwZGF0ZUZpZWxkIiwiZmllbGQiLCJ2YWx1ZSIsInByZXYiLCJuZXh0IiwiaGFuZGxlUHJvZmlsZUltYWdlQ2hhbmdlIiwiZXZlbnQiLCJmaWxlIiwidGFyZ2V0IiwiZmlsZXMiLCJzdGFydHNXaXRoIiwiVVJMIiwicmV2b2tlT2JqZWN0VVJMIiwiY3JlYXRlT2JqZWN0VVJMIiwiaGFuZGxlQ2FuY2VsRWRpdCIsImhhbmRsZVNhdmVQcm9maWxlIiwiZGlzcGxheU5hbWUiLCJpc1VyU3R1ZGVudCIsInVyQ29kZUxvY2tlZCIsInVyX3ZlcmlmaWNhdGlvbl9zdGF0dXMiLCJ1cGRhdGVQYXlsb2FkIiwidW5kZWZpbmVkIiwib2JqZWN0S2V5IiwiaWQiLCJ1cGRhdGVkUHJvZmlsZSIsInN1Y2Nlc3MiLCJtZXNzYWdlIiwiRXJyb3IiLCJkaXYiLCJoMiIsInAiLCJvbkNsaWNrIiwibG9naW4iLCJwcmV2aWV3SW1hZ2UiLCJoMSIsInZhcmlhbnQiLCJyb2xlIiwiYWNjb3VudF9zdGF0dXMiLCJpbWciLCJzcmMiLCJhbHQiLCJlbWFpbCIsInNwYW4iLCJ0cnVzdF9zY29yZSIsInVwbG9hZF9jb3VudCIsImRvd25sb2FkX2NvdW50IiwiaHRtbEZvciIsInR5cGUiLCJhY2NlcHQiLCJvbkNoYW5nZSIsIlJlYWRPbmx5RmllbGQiLCJsYWJlbCIsIm11bHRpbGluZSIsIm9uVmFsdWVDaGFuZ2UiLCJkaXNhYmxlZCIsInBsYWNlaG9sZGVyIiwib3B0aW9uIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFBQSxTQUFzQkEsU0FBUyxFQUFFQyxRQUFRLFFBQVEsUUFBUTtBQUN6RCxTQUFTQyxXQUFXLFFBQVEsbUJBQW1CO0FBQy9DLFNBQ0VDLGdCQUFnQixFQUNoQkMscUJBQXFCLEVBQ3JCQyxpQkFBaUIsRUFDakJDLGdCQUFnQixRQUVYLGdCQUFnQjtBQUN2QixTQUFTQyxPQUFPLFFBQVEsY0FBYztBQUN0QyxTQUFTQyxPQUFPLFFBQVEsMEJBQTBCO0FBQ2xELFNBQVNDLE1BQU0sUUFBUSx5QkFBeUI7QUFDaEQsU0FBU0MsS0FBSyxRQUFRLHdCQUF3QjtBQUM5QyxTQUFTQyxJQUFJLEVBQUVDLFdBQVcsRUFBRUMsVUFBVSxFQUFFQyxTQUFTLFFBQVEsdUJBQXVCO0FBQ2hGLFNBQVNDLEtBQUssUUFBUSx3QkFBd0I7QUFDOUMsU0FBU0MsS0FBSyxRQUFRLHdCQUF3QjtBQUM5QyxTQUFTQyxNQUFNLEVBQUVDLGFBQWEsRUFBRUMsVUFBVSxFQUFFQyxhQUFhLEVBQUVDLFdBQVcsUUFBUSx5QkFBeUI7QUFDdkcsU0FBU0MsUUFBUSxRQUFRLDJCQUEyQjtBQUNwRCxTQUFTQyxVQUFVLEVBQUVDLE1BQU0sRUFBRUMsTUFBTSxFQUFFQyxNQUFNLEVBQUVDLFdBQVcsUUFBUSxlQUFlO0FBQy9FLFNBQVNDLEtBQUssUUFBUSxTQUFTO0FBQy9CLFNBQ0VDLDRCQUE0QixFQUM1QkMsc0JBQXNCLEVBQ3RCQyxzQkFBc0IsRUFDdEJDLHNCQUFzQixFQUN0QkMsa0JBQWtCLFFBRWIsc0JBQXNCO0FBRTdCLFNBQVNDLG9CQUFvQkMsSUFBWTtJQUN2QyxNQUFNQyxRQUFRRCxLQUNYRSxLQUFLLENBQUMsS0FDTkMsR0FBRyxDQUFDLENBQUNDLE9BQVNBLEtBQUtDLElBQUksSUFDdkJDLE1BQU0sQ0FBQ0MsU0FDUEMsS0FBSyxDQUFDLEdBQUc7SUFFWixJQUFJUCxNQUFNUSxNQUFNLEtBQUssR0FBRztRQUN0QixPQUFPO0lBQ1Q7SUFFQSxPQUFPUixNQUFNRSxHQUFHLENBQUMsQ0FBQ0MsT0FBU0EsSUFBSSxDQUFDLEVBQUUsRUFBRU0saUJBQWlCLElBQUlDLElBQUksQ0FBQztBQUNoRTtBQUVBLFNBQVNDLG9CQUFvQixFQUFFQyxNQUFNLEVBQThCO0lBQ2pFLElBQUlBLFdBQVcsWUFBWTtRQUN6QixxQkFDRSxRQUFDdEM7WUFBTXVDLFdBQVU7OzhCQUNmLFFBQUMxQjtvQkFBVzBCLFdBQVU7Ozs7OztnQkFBaUI7Ozs7Ozs7SUFJN0M7SUFDQSxJQUFJRCxXQUFXLFdBQVc7UUFDeEIscUJBQU8sUUFBQ3RDO1lBQU11QyxXQUFVO3NCQUFpRDs7Ozs7O0lBQzNFO0lBQ0EsSUFBSUQsV0FBVyxZQUFZO1FBQ3pCLHFCQUFPLFFBQUN0QztZQUFNdUMsV0FBVTtzQkFBMkM7Ozs7OztJQUNyRTtJQUNBLHFCQUFPLFFBQUN2QztRQUFNdUMsV0FBVTtrQkFBaUQ7Ozs7OztBQUMzRTtLQWhCU0Y7QUFrQlQsU0FBU0csdUJBQXVCQyxPQUFvQixFQUFFQyxZQUFvQjtJQUN4RSxNQUFNQywwQkFDSkYsUUFBUUcsZ0JBQWdCLElBQUtILENBQUFBLFFBQVFJLGVBQWUsR0FBRyxlQUFlLGtCQUFpQjtJQUV6RixPQUFPO1FBQ0xDLGNBQWNMLFFBQVFLLFlBQVksSUFBSUo7UUFDdENFLGtCQUFrQkQ7UUFDbEJJLGlCQUNFSiw0QkFBNEIsZUFDeEIseUJBQ0FGLFFBQVFNLGVBQWUsSUFBSTtRQUNqQ0YsaUJBQWlCSixRQUFRSSxlQUFlLElBQUk7UUFDNUNHLGNBQWNQLFFBQVFPLFlBQVksSUFBSTtRQUN0Q0MsY0FBY1IsUUFBUVEsWUFBWSxJQUFJO1FBQ3RDQyxpQkFBaUJULFFBQVFTLGVBQWUsSUFBSTtRQUM1Q0MsZUFBZVYsUUFBUVUsYUFBYSxJQUFJO1FBQ3hDQyxLQUFLWCxRQUFRVyxHQUFHLElBQUk7SUFDdEI7QUFDRjtBQUVBLGVBQWUsU0FBU0M7O0lBQ3RCLE1BQU1DLFdBQVc5RDtJQUNqQixNQUFNLEVBQUUrRCxJQUFJLEVBQUVDLFNBQVNDLFdBQVcsRUFBRUMsT0FBTyxFQUFFLEdBQUc1RDtJQUNoRCxNQUFNLENBQUMyQyxTQUFTa0IsV0FBVyxHQUFHcEUsU0FBNkI7SUFDM0QsTUFBTSxDQUFDcUUsYUFBYUMsZUFBZSxHQUFHdEUsU0FBNEI2QjtJQUNsRSxNQUFNLENBQUNvQyxTQUFTTSxXQUFXLEdBQUd2RSxTQUFTO0lBQ3ZDLE1BQU0sQ0FBQ3dFLFNBQVNDLFdBQVcsR0FBR3pFLFNBQVM7SUFDdkMsTUFBTSxDQUFDMEUsUUFBUUMsVUFBVSxHQUFHM0UsU0FBUztJQUNyQyxNQUFNLENBQUM0RSxpQkFBaUJDLG1CQUFtQixHQUFHN0UsU0FBd0I7SUFDdEUsTUFBTSxDQUFDOEUsa0JBQWtCQyxvQkFBb0IsR0FBRy9FLFNBQXNCO0lBQ3RFLE1BQU0sQ0FBQ2dGLHFCQUFxQkMsdUJBQXVCLEdBQUdqRixTQUF3QjtJQUU5RUQsVUFBVTtRQUNSLElBQUksQ0FBQ2lFLE1BQU07WUFDVEksV0FBVztZQUNYRyxXQUFXO1lBQ1g7UUFDRjtRQUVBLEtBQUtXO0lBQ1AsR0FBRztRQUFDbEI7S0FBSztJQUVUakUsVUFBVTtRQUNSLElBQUlvRixZQUFZO1FBRWhCLElBQUksQ0FBQ2pDLFNBQVNrQyxxQkFBcUI7WUFDakNQLG1CQUFtQjtZQUNuQixPQUFPO2dCQUNMTSxZQUFZO1lBQ2Q7UUFDRjtRQUVBLEtBQUtoRixzQkFBc0IsWUFBWStDLFFBQVFrQyxtQkFBbUIsRUFDL0RDLElBQUksQ0FBQyxDQUFDQztZQUNMLElBQUksQ0FBQ0gsV0FBVztnQkFDZE4sbUJBQW1CUztZQUNyQjtRQUNGLEdBQ0NDLEtBQUssQ0FBQztZQUNMLElBQUksQ0FBQ0osV0FBVztnQkFDZE4sbUJBQW1CO1lBQ3JCO1FBQ0Y7UUFFRixPQUFPO1lBQ0xNLFlBQVk7UUFDZDtJQUNGLEdBQUc7UUFBQ2pDLFNBQVNrQztLQUFvQjtJQUVqQyxNQUFNRixjQUFjO1FBQ2xCLElBQUk7WUFDRlgsV0FBVztZQUNYLE1BQU1pQixpQkFBaUIsTUFBTXRGO1lBQzdCLElBQUlzRixnQkFBZ0I7Z0JBQ2xCcEIsV0FBV29CO2dCQUNYbEIsZUFBZXJCLHVCQUF1QnVDLGdCQUFnQnhCLE1BQU05QixRQUFRO1lBQ3RFO1FBQ0YsRUFBRSxPQUFPdUQsS0FBSztZQUNaQyxRQUFRQyxLQUFLLENBQUMsMkJBQTJCRjtZQUN6QzlELE1BQU1nRSxLQUFLLENBQUM7UUFDZCxTQUFVO1lBQ1JwQixXQUFXO1FBQ2I7SUFDRjtJQUVBLE1BQU1xQixjQUFjLENBQW9DQyxPQUFVQztRQUNoRXhCLGVBQWUsQ0FBQ3lCO1lBQ2QsTUFBTUMsT0FBTztnQkFBRSxHQUFHRCxJQUFJO2dCQUFFLENBQUNGLE1BQU0sRUFBRUM7WUFBTTtZQUN2QyxJQUFJRCxVQUFVLG9CQUFvQjtnQkFDaEMsSUFBSUMsVUFBVSxjQUFjO29CQUMxQkUsS0FBS3hDLGVBQWUsR0FBRztnQkFDekIsT0FBTyxJQUFJdUMsS0FBS3ZDLGVBQWUsS0FBSyx3QkFBd0I7b0JBQzFEd0MsS0FBS3hDLGVBQWUsR0FBRztnQkFDekI7WUFDRjtZQUNBLE9BQU93QztRQUNUO0lBQ0Y7SUFFQSxNQUFNQywyQkFBMkIsQ0FBQ0M7UUFDaEMsTUFBTUMsT0FBT0QsTUFBTUUsTUFBTSxDQUFDQyxLQUFLLEVBQUUsQ0FBQyxFQUFFLElBQUk7UUFDeEN0QixvQkFBb0JvQjtRQUVwQixJQUFJbkIscUJBQXFCc0IsV0FBVyxVQUFVO1lBQzVDQyxJQUFJQyxlQUFlLENBQUN4QjtRQUN0QjtRQUVBLElBQUksQ0FBQ21CLE1BQU07WUFDVGxCLHVCQUF1QjtZQUN2QjtRQUNGO1FBRUFBLHVCQUF1QnNCLElBQUlFLGVBQWUsQ0FBQ047SUFDN0M7SUFFQSxNQUFNTyxtQkFBbUI7UUFDdkIsSUFBSXhELFNBQVM7WUFDWG9CLGVBQWVyQix1QkFBdUJDLFNBQVNjLE1BQU05QixRQUFRO1FBQy9EO1FBQ0EsSUFBSThDLHFCQUFxQnNCLFdBQVcsVUFBVTtZQUM1Q0MsSUFBSUMsZUFBZSxDQUFDeEI7UUFDdEI7UUFDQUMsdUJBQXVCO1FBQ3ZCRixvQkFBb0I7UUFDcEJOLFdBQVc7SUFDYjtJQUVBLE1BQU1rQyxvQkFBb0I7UUFDeEIsSUFBSSxDQUFDM0MsUUFBUSxDQUFDZCxTQUFTO1FBRXZCLE1BQU0wRCxjQUFjdkMsWUFBWWQsWUFBWSxDQUFDaEIsSUFBSTtRQUNqRCxNQUFNc0UsY0FBY3hDLFlBQVloQixnQkFBZ0IsS0FBSztRQUNyRCxNQUFNeUQsZUFBZTVELFFBQVE2RCxzQkFBc0IsS0FBSztRQUV4RCxJQUFJLENBQUNILGFBQWE7WUFDaEJqRixNQUFNZ0UsS0FBSyxDQUFDO1lBQ1o7UUFDRjtRQUVBLElBQUlrQixlQUFlLENBQUNDLGdCQUFnQixDQUFDekMsWUFBWWYsZUFBZSxDQUFDZixJQUFJLElBQUk7WUFDdkVaLE1BQU1nRSxLQUFLLENBQUM7WUFDWjtRQUNGO1FBRUEsSUFBSSxDQUFDa0IsZUFBZSxDQUFDQyxnQkFBZ0IsQ0FBQ3pDLFlBQVliLGVBQWUsQ0FBQ2pCLElBQUksSUFBSTtZQUN4RVosTUFBTWdFLEtBQUssQ0FBQztZQUNaO1FBQ0Y7UUFFQWhCLFVBQVU7UUFDVixJQUFJO1lBQ0YsTUFBTXFDLGdCQUF5RDtnQkFDN0R6RCxjQUFjcUQ7Z0JBQ2RuRCxjQUFjMUIsdUJBQXVCc0MsWUFBWVosWUFBWTtnQkFDN0RDLGNBQWMzQix1QkFBdUJzQyxZQUFZWCxZQUFZO2dCQUM3REMsaUJBQWlCNUIsdUJBQXVCc0MsWUFBWVYsZUFBZTtnQkFDbkVDLGVBQWU3Qix1QkFBdUJzQyxZQUFZVCxhQUFhO2dCQUMvREMsS0FBSzlCLHVCQUF1QnNDLFlBQVlSLEdBQUc7WUFDN0M7WUFFQSxJQUFJLENBQUNpRCxjQUFjO2dCQUNqQkUsY0FBYzNELGdCQUFnQixHQUFHZ0IsWUFBWWhCLGdCQUFnQjtnQkFDN0QyRCxjQUFjeEQsZUFBZSxHQUMzQnFELGNBQWMseUJBQXlCOUUsdUJBQXVCc0MsWUFBWWIsZUFBZTtnQkFDM0Z3RCxjQUFjMUQsZUFBZSxHQUMzQnVELGNBQWM5RSx1QkFBdUJzQyxZQUFZZixlQUFlLElBQUkyRDtZQUN4RTtZQUVBLElBQUluQyxrQkFBa0I7Z0JBQ3BCLE1BQU1vQyxZQUFZdEYsNkJBQTZCb0MsS0FBS21ELEVBQUUsRUFBRXJDLGlCQUFpQjVDLElBQUk7Z0JBQzdFOEUsY0FBYzVCLG1CQUFtQixHQUFHLE1BQU0vRSxpQkFBaUIsWUFBWTZHLFdBQVdwQztZQUNwRjtZQUVBLE1BQU1zQyxpQkFBaUIsTUFBTWhILGtCQUFrQjRHO1lBQy9DNUMsV0FBV2dEO1lBQ1g5QyxlQUFlckIsdUJBQXVCbUUsZ0JBQWdCUjtZQUN0RCxJQUFJNUIscUJBQXFCc0IsV0FBVyxVQUFVO2dCQUM1Q0MsSUFBSUMsZUFBZSxDQUFDeEI7WUFDdEI7WUFDQUMsdUJBQXVCO1lBQ3ZCRixvQkFBb0I7WUFDcEJOLFdBQVc7WUFDWCxNQUFNTjtZQUNOeEMsTUFBTTBGLE9BQU8sQ0FBQztRQUNoQixFQUFFLE9BQU81QixLQUFLO1lBQ1osTUFBTTZCLFVBQVU3QixlQUFlOEIsUUFBUTlCLElBQUk2QixPQUFPLEdBQUc7WUFDckQzRixNQUFNZ0UsS0FBSyxDQUFDMkI7UUFDZCxTQUFVO1lBQ1IzQyxVQUFVO1FBQ1o7SUFDRjtJQUVBLElBQUlULGVBQWVELFNBQVM7UUFDMUIscUJBQ0UsUUFBQ3VEO1lBQUl4RSxXQUFVO3NCQUNiLGNBQUEsUUFBQ3dFO2dCQUFJeEUsV0FBVTs7Ozs7Ozs7Ozs7SUFHckI7SUFFQSxJQUFJLENBQUNnQixNQUFNO1FBQ1QscUJBQ0UsUUFBQ3dEO1lBQUl4RSxXQUFVOzs4QkFDYixRQUFDeUU7b0JBQUd6RSxXQUFVOzhCQUF5RDs7Ozs7OzhCQUN2RSxRQUFDMEU7b0JBQUUxRSxXQUFVOzhCQUF3Qzs7Ozs7OzhCQUdyRCxRQUFDeEM7b0JBQU9tSCxTQUFTLElBQU1ySCxRQUFRc0gsS0FBSyxDQUFDO29CQUFhNUUsV0FBVTs4QkFBNkM7Ozs7Ozs7Ozs7OztJQUsvRztJQUVBLElBQUksQ0FBQ0UsU0FBUztRQUNaLHFCQUNFLFFBQUNzRTtZQUFJeEUsV0FBVTtzQkFDYixjQUFBLFFBQUN0QztnQkFBS3NDLFdBQVU7MEJBQ2QsY0FBQSxRQUFDckM7b0JBQVlxQyxXQUFVOztzQ0FDckIsUUFBQzBFOzRCQUFFMUUsV0FBVTtzQ0FBbUM7Ozs7OztzQ0FDaEQsUUFBQ3hDOzRCQUFPbUgsU0FBUyxJQUFNLEtBQUt6Qzs0QkFBZWxDLFdBQVU7c0NBQWtEOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBT2pIO0lBRUEsTUFBTThELGVBQWU1RCxRQUFRNkQsc0JBQXNCLEtBQUs7SUFDeEQsTUFBTWMsZUFBZTdDLHVCQUF1Qko7SUFFNUMscUJBQ0UsUUFBQzRDO1FBQUl4RSxXQUFVOzswQkFDYixRQUFDd0U7Z0JBQUl4RSxXQUFVOztrQ0FDYixRQUFDd0U7OzBDQUNDLFFBQUNNO2dDQUFHOUUsV0FBVTswQ0FBb0Q7Ozs7OzswQ0FDbEUsUUFBQzBFO2dDQUFFMUUsV0FBVTswQ0FBd0M7Ozs7Ozs7Ozs7OztrQ0FJdkQsUUFBQ3dFO3dCQUFJeEUsV0FBVTs7MENBQ2IsUUFBQ3ZDO2dDQUFNc0gsU0FBUTswQ0FBYTdFLFFBQVE4RSxJQUFJLElBQUk7Ozs7OzswQ0FDNUMsUUFBQ2xGO2dDQUFvQkMsUUFBUUcsUUFBUTZELHNCQUFzQjs7Ozs7OzBDQUMzRCxRQUFDdEc7Z0NBQU1zSCxTQUFRO2dDQUFVL0UsV0FBVTswQ0FDaENFLFFBQVErRSxjQUFjLElBQUk7Ozs7Ozs0QkFFNUIsQ0FBQ3pELHdCQUNBLFFBQUNoRTtnQ0FBT21ILFNBQVMsSUFBTWxELFdBQVc7Z0NBQU96QixXQUFVOztrREFDakQsUUFBQ3hCO3dDQUFPd0IsV0FBVTs7Ozs7O29DQUFpQjs7Ozs7O3FEQUlyQyxRQUFDeEM7Z0NBQU91SCxTQUFRO2dDQUFVSixTQUFTakI7Z0NBQWtCMUQsV0FBVTswQ0FBMEM7Ozs7Ozs7Ozs7Ozs7Ozs7OzswQkFPL0csUUFBQ3dFO2dCQUFJeEUsV0FBVTs7a0NBQ2IsUUFBQ3RDO3dCQUFLc0MsV0FBVTtrQ0FDZCxjQUFBLFFBQUNyQzs0QkFBWXFDLFdBQVU7OzhDQUNyQixRQUFDd0U7b0NBQUl4RSxXQUFVOzhDQUNaNkUsNkJBQ0MsUUFBQ0s7d0NBQUlDLEtBQUtOO3dDQUFjTyxLQUFJO3dDQUFVcEYsV0FBVTs7Ozs7K0NBRWhEZixvQkFBb0JpQixRQUFRSyxZQUFZOzs7Ozs7OENBSTVDLFFBQUNpRTtvQ0FBSXhFLFdBQVU7O3NEQUNiLFFBQUN5RTs0Q0FBR3pFLFdBQVU7c0RBQXlERSxRQUFRSyxZQUFZOzs7Ozs7c0RBQzNGLFFBQUNtRTs0Q0FBRTFFLFdBQVU7c0RBQWlEZ0IsS0FBS3FFLEtBQUs7Ozs7Ozs7Ozs7Ozs4Q0FHMUUsUUFBQ2I7b0NBQUl4RSxXQUFVOztzREFDYixRQUFDd0U7NENBQUl4RSxXQUFVOzs4REFDYixRQUFDc0Y7b0RBQUt0RixXQUFVOzhEQUFtQzs7Ozs7OzhEQUNuRCxRQUFDc0Y7b0RBQUt0RixXQUFVOzhEQUNiRSxRQUFRRyxnQkFBZ0IsS0FBSyxlQUFlLHlCQUF5QkgsUUFBUU0sZUFBZSxJQUFJOzs7Ozs7Ozs7Ozs7c0RBR3JHLFFBQUNnRTs0Q0FBSXhFLFdBQVU7OzhEQUNiLFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQW1DOzs7Ozs7OERBQ25ELFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQ2JFLFFBQVE2RCxzQkFBc0IsSUFBSTs7Ozs7Ozs7Ozs7O3NEQUd2QyxRQUFDUzs0Q0FBSXhFLFdBQVU7OzhEQUNiLFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQW1DOzs7Ozs7OERBQ25ELFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQ2JFLFFBQVFxRixXQUFXLElBQUk7Ozs7Ozs7Ozs7OztzREFHNUIsUUFBQ2Y7NENBQUl4RSxXQUFVOzs4REFDYixRQUFDc0Y7b0RBQUt0RixXQUFVOzhEQUFtQzs7Ozs7OzhEQUNuRCxRQUFDc0Y7b0RBQUt0RixXQUFVOzhEQUNiRSxRQUFRc0YsWUFBWSxJQUFJOzs7Ozs7Ozs7Ozs7c0RBRzdCLFFBQUNoQjs0Q0FBSXhFLFdBQVU7OzhEQUNiLFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQW1DOzs7Ozs7OERBQ25ELFFBQUNzRjtvREFBS3RGLFdBQVU7OERBQ2JFLFFBQVF1RixjQUFjLElBQUk7Ozs7Ozs7Ozs7Ozs7Ozs7OztnQ0FLaENqRSx5QkFDQyxRQUFDZ0Q7b0NBQUl4RSxXQUFVOztzREFDYixRQUFDakM7NENBQU0ySCxTQUFROzRDQUFnQjFGLFdBQVU7c0RBQW9DOzs7Ozs7c0RBQzdFLFFBQUNsQzs0Q0FDQ3FHLElBQUc7NENBQ0h3QixNQUFLOzRDQUNMQyxRQUFPOzRDQUNQQyxVQUFVNUM7NENBQ1ZqRCxXQUFVOzs7Ozs7c0RBRVosUUFBQzBFOzRDQUFFMUUsV0FBVTtzREFBaUQ7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O29CQVFyRSxDQUFDd0Isd0JBQ0EsUUFBQzlEO3dCQUFLc0MsV0FBVTs7MENBQ2QsUUFBQ3BDOzBDQUNDLGNBQUEsUUFBQ0M7b0NBQVVtQyxXQUFVOztzREFDbkIsUUFBQ3ZCOzRDQUFPdUIsV0FBVTs7Ozs7O3dDQUEyQjs7Ozs7Ozs7Ozs7OzBDQUlqRCxRQUFDckM7Z0NBQVlxQyxXQUFVOztrREFDckIsUUFBQzhGO3dDQUFjQyxPQUFNO3dDQUFZakQsT0FBTzVDLFFBQVFLLFlBQVk7Ozs7OztrREFDNUQsUUFBQ3VGO3dDQUNDQyxPQUFNO3dDQUNOakQsT0FBTzVDLFFBQVFHLGdCQUFnQixLQUFLLGVBQWUsaUNBQWlDOzs7Ozs7a0RBRXRGLFFBQUN5Rjt3Q0FDQ0MsT0FBTTt3Q0FDTmpELE9BQU81QyxRQUFRRyxnQkFBZ0IsS0FBSyxlQUFlLHlCQUF5QkgsUUFBUU0sZUFBZTs7Ozs7O2tEQUVyRyxRQUFDc0Y7d0NBQWNDLE9BQU07d0NBQWtCakQsT0FBTzVDLFFBQVFJLGVBQWU7Ozs7OztrREFDckUsUUFBQ3dGO3dDQUFjQyxPQUFNO3dDQUFlakQsT0FBTzVDLFFBQVFPLFlBQVk7Ozs7OztrREFDL0QsUUFBQ3FGO3dDQUFjQyxPQUFNO3dDQUFVakQsT0FBTzVDLFFBQVFRLFlBQVk7Ozs7OztrREFDMUQsUUFBQ29GO3dDQUFjQyxPQUFNO3dDQUFhakQsT0FBTzVDLFFBQVFTLGVBQWU7Ozs7OztrREFDaEUsUUFBQ21GO3dDQUFjQyxPQUFNO3dDQUFnQmpELE9BQU81QyxRQUFRVSxhQUFhOzs7Ozs7a0RBQ2pFLFFBQUM0RDt3Q0FBSXhFLFdBQVU7a0RBQ2IsY0FBQSxRQUFDOEY7NENBQWNDLE9BQU07NENBQU1qRCxPQUFPNUMsUUFBUVcsR0FBRzs0Q0FBRW1GLFNBQVM7Ozs7Ozs7Ozs7O2tEQUUxRCxRQUFDeEI7d0NBQUl4RSxXQUFVO2tEQUNaOEQsNkJBQ0MsUUFBQ1U7NENBQUl4RSxXQUFVOzs4REFDYixRQUFDdEI7b0RBQVlzQixXQUFVOzs7Ozs7OERBQ3ZCLFFBQUMwRTs4REFBRTs7Ozs7Ozs7Ozs7aUVBR0wsUUFBQ0E7O2dEQUFFOzhEQUM2QyxRQUFDWTtvREFBS3RGLFdBQVU7OERBQWdCOzs7Ozs7Z0RBQW1COzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs2Q0FPM0csUUFBQ3RDO3dCQUFLc0MsV0FBVTs7MENBQ2QsUUFBQ3BDOzBDQUNDLGNBQUEsUUFBQ0M7b0NBQVVtQyxXQUFVOztzREFDbkIsUUFBQ3pCOzRDQUFPeUIsV0FBVTs7Ozs7O3dDQUEyQjs7Ozs7Ozs7Ozs7OzBDQUlqRCxRQUFDckM7Z0NBQVlxQyxXQUFVOztrREFDckIsUUFBQ3dFOzswREFDQyxRQUFDekc7Z0RBQU0ySCxTQUFRO2dEQUFlMUYsV0FBVTswREFBb0M7Ozs7OzswREFDNUUsUUFBQ2xDO2dEQUNDcUcsSUFBRztnREFDSHJCLE9BQU96QixZQUFZZCxZQUFZO2dEQUMvQnNGLFVBQVUsQ0FBQzNDLFFBQVVOLFlBQVksZ0JBQWdCTSxNQUFNRSxNQUFNLENBQUNOLEtBQUs7Z0RBQ25FOUMsV0FBVTs7Ozs7Ozs7Ozs7O2tEQUlkLFFBQUN3RTs7MERBQ0MsUUFBQ3pHO2dEQUFNaUMsV0FBVTswREFBb0M7Ozs7OzswREFDckQsUUFBQ2hDO2dEQUNDOEUsT0FBT3pCLFlBQVloQixnQkFBZ0I7Z0RBQ25DNEYsZUFBZSxDQUFDbkQsUUFBVUYsWUFBWSxvQkFBb0JFO2dEQUMxRG9ELFVBQVVwQzs7a0VBRVYsUUFBQzNGO3dEQUFjNkIsV0FBVTtrRUFDdkIsY0FBQSxRQUFDNUI7NERBQVkrSCxhQUFZOzs7Ozs7Ozs7OztrRUFFM0IsUUFBQ2xJO2tFQUNFYSx1QkFBdUJPLEdBQUcsQ0FBQyxDQUFDK0csdUJBQzNCLFFBQUNsSTtnRUFBOEI0RSxPQUFPc0QsT0FBT3RELEtBQUs7MEVBQy9Dc0QsT0FBT0wsS0FBSzsrREFERUssT0FBT3RELEtBQUs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7a0RBUXJDLFFBQUMwQjs7MERBQ0MsUUFBQ3pHO2dEQUFNMkgsU0FBUTtnREFBa0IxRixXQUFVOzBEQUFvQzs7Ozs7OzBEQUMvRSxRQUFDbEM7Z0RBQ0NxRyxJQUFHO2dEQUNIckIsT0FBT3pCLFlBQVloQixnQkFBZ0IsS0FBSyxlQUFlLHlCQUF5QmdCLFlBQVliLGVBQWU7Z0RBQzNHcUYsVUFBVSxDQUFDM0MsUUFBVU4sWUFBWSxtQkFBbUJNLE1BQU1FLE1BQU0sQ0FBQ04sS0FBSztnREFDdEVvRCxVQUFVN0UsWUFBWWhCLGdCQUFnQixLQUFLLGdCQUFnQnlEO2dEQUMzRDlELFdBQVU7Ozs7Ozs7Ozs7OztrREFJZCxRQUFDd0U7OzBEQUNDLFFBQUN6RztnREFBTTJILFNBQVE7Z0RBQWtCMUYsV0FBVTswREFBb0M7Ozs7OzswREFDL0UsUUFBQ2xDO2dEQUNDcUcsSUFBRztnREFDSHJCLE9BQU96QixZQUFZZixlQUFlO2dEQUNsQ3VGLFVBQVUsQ0FBQzNDLFFBQVVOLFlBQVksbUJBQW1CTSxNQUFNRSxNQUFNLENBQUNOLEtBQUs7Z0RBQ3RFb0QsVUFBVTdFLFlBQVloQixnQkFBZ0IsS0FBSyxnQkFBZ0J5RDtnREFDM0RxQyxhQUFhckMsZUFBZSw0QkFBNEI7Z0RBQ3hEOUQsV0FBVTs7Ozs7Ozs7Ozs7O2tEQUlkLFFBQUN3RTs7MERBQ0MsUUFBQ3pHO2dEQUFNMkgsU0FBUTtnREFBZTFGLFdBQVU7MERBQW9DOzs7Ozs7MERBQzVFLFFBQUNsQztnREFDQ3FHLElBQUc7Z0RBQ0hyQixPQUFPekIsWUFBWVosWUFBWTtnREFDL0JvRixVQUFVLENBQUMzQyxRQUFVTixZQUFZLGdCQUFnQk0sTUFBTUUsTUFBTSxDQUFDTixLQUFLO2dEQUNuRTlDLFdBQVU7Ozs7Ozs7Ozs7OztrREFJZCxRQUFDd0U7OzBEQUNDLFFBQUN6RztnREFBTTJILFNBQVE7Z0RBQWUxRixXQUFVOzBEQUFvQzs7Ozs7OzBEQUM1RSxRQUFDbEM7Z0RBQ0NxRyxJQUFHO2dEQUNIckIsT0FBT3pCLFlBQVlYLFlBQVk7Z0RBQy9CbUYsVUFBVSxDQUFDM0MsUUFBVU4sWUFBWSxnQkFBZ0JNLE1BQU1FLE1BQU0sQ0FBQ04sS0FBSztnREFDbkU5QyxXQUFVOzs7Ozs7Ozs7Ozs7a0RBSWQsUUFBQ3dFOzswREFDQyxRQUFDekc7Z0RBQU0ySCxTQUFRO2dEQUFrQjFGLFdBQVU7MERBQW9DOzs7Ozs7MERBQy9FLFFBQUNsQztnREFDQ3FHLElBQUc7Z0RBQ0hyQixPQUFPekIsWUFBWVYsZUFBZTtnREFDbENrRixVQUFVLENBQUMzQyxRQUFVTixZQUFZLG1CQUFtQk0sTUFBTUUsTUFBTSxDQUFDTixLQUFLO2dEQUN0RTlDLFdBQVU7Ozs7Ozs7Ozs7OztrREFJZCxRQUFDd0U7OzBEQUNDLFFBQUN6RztnREFBTWlDLFdBQVU7MERBQW9DOzs7Ozs7MERBQ3JELFFBQUNoQztnREFBTzhFLE9BQU96QixZQUFZVCxhQUFhO2dEQUFFcUYsZUFBZSxDQUFDbkQsUUFBVUYsWUFBWSxpQkFBaUJFOztrRUFDL0YsUUFBQzNFO3dEQUFjNkIsV0FBVTtrRUFDdkIsY0FBQSxRQUFDNUI7NERBQVkrSCxhQUFZOzs7Ozs7Ozs7OztrRUFFM0IsUUFBQ2xJO2tFQUNFZSxtQkFBbUJLLEdBQUcsQ0FBQyxDQUFDK0csdUJBQ3ZCLFFBQUNsSTtnRUFBd0I0RSxPQUFPc0Q7MEVBQzdCQTsrREFEY0E7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7a0RBUXpCLFFBQUM1Qjt3Q0FBSXhFLFdBQVU7OzBEQUNiLFFBQUNqQztnREFBTTJILFNBQVE7Z0RBQU0xRixXQUFVOzBEQUFvQzs7Ozs7OzBEQUNuRSxRQUFDM0I7Z0RBQ0M4RixJQUFHO2dEQUNIckIsT0FBT3pCLFlBQVlSLEdBQUc7Z0RBQ3RCZ0YsVUFBVSxDQUFDM0MsUUFBVU4sWUFBWSxPQUFPTSxNQUFNRSxNQUFNLENBQUNOLEtBQUs7Z0RBQzFEOUMsV0FBVTs7Ozs7Ozs7Ozs7O2tEQUlkLFFBQUN3RTt3Q0FBSXhFLFdBQVU7a0RBQ1o4RCw2QkFDQyxRQUFDWTtzREFBRTs7Ozs7aUVBRUgsUUFBQ0E7c0RBQUU7Ozs7Ozs7Ozs7O2tEQUlQLFFBQUNGO3dDQUFJeEUsV0FBVTs7MERBQ2IsUUFBQ3hDO2dEQUFPdUgsU0FBUTtnREFBVUosU0FBU2pCO2dEQUFrQjFELFdBQVU7MERBQTBDOzs7Ozs7MERBR3pHLFFBQUN4QztnREFBT21ILFNBQVNoQjtnREFBbUJ1QyxVQUFVeEU7Z0RBQVExQixXQUFVOzBEQUM3RDBCLFNBQVMsY0FBYzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OzBCQVFwQyxRQUFDOEM7Z0JBQUl4RSxXQUFVOzBCQUNiLGNBQUEsUUFBQ3hDO29CQUFPdUgsU0FBUTtvQkFBVUosU0FBUyxJQUFNNUQsU0FBUztvQkFBZWYsV0FBVTs4QkFBMEM7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBTTdIO0dBN2V3QmM7O1FBQ0w3RDtRQUMrQk07OztNQUYxQnVEO0FBK2V4QixTQUFTZ0YsY0FBYyxFQUNyQkMsS0FBSyxFQUNMakQsS0FBSyxFQUNMa0QsWUFBWSxLQUFLLEVBS2xCO0lBQ0MscUJBQ0UsUUFBQ3hCO1FBQUl4RSxXQUFVOzswQkFDYixRQUFDMEU7Z0JBQUUxRSxXQUFVOzBCQUFzRitGOzs7Ozs7MEJBQ25HLFFBQUNyQjtnQkFBRTFFLFdBQVcsQ0FBQyw0Q0FBNEMsRUFBRWdHLFlBQVksa0NBQWtDLElBQUk7MEJBQzVHbEQsU0FBUzs7Ozs7Ozs7Ozs7O0FBSWxCO01BakJTZ0QifQ==

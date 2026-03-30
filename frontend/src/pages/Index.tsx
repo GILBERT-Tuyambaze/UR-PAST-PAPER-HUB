@@ -37,7 +37,7 @@ const PAPER_TYPES = ['Exam', 'CAT', 'Assignment', 'GroupWork'];
 function VerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
     return (
-      <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100">
+      <Badge className="theme-status-badge--verified hover:bg-inherit">
         <CheckCircle className="h-3 w-3 mr-1" />
         Verified
       </Badge>
@@ -45,7 +45,7 @@ function VerificationBadge({ status }: { status: string }) {
   }
   if (status === 'community') {
     return (
-      <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 hover:bg-yellow-100">
+      <Badge className="theme-status-badge--community hover:bg-inherit">
         <Users className="h-3 w-3 mr-1" />
         Community
       </Badge>
@@ -90,7 +90,7 @@ function PaperCard({ paper, onClick }: { paper: Paper; onClick: () => void }) {
             {paper.download_count || 0} downloads
           </span>
           {paper.solution_key && (
-            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs hover:bg-blue-100">
+            <Badge className="theme-status-badge--solution text-xs hover:bg-inherit">
               <Star className="h-3 w-3 mr-1" />
               Has Solution
             </Badge>
@@ -159,33 +159,33 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="theme-header relative overflow-hidden">
+      <section className="theme-header theme-hero-section relative overflow-hidden">
         <div
-          className="absolute inset-0 opacity-20"
+          className="theme-hero-media absolute inset-0"
           style={{
             backgroundImage: `url(${HERO_IMAGE})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--surface-strong))] via-[hsl(var(--surface-strong)/0.9)] to-[hsl(var(--surface-strong)/0.7)]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 md:py-28">
+        <div className="theme-hero-overlay absolute inset-0 pointer-events-none" />
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 md:py-28"> 
           <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
             <div className="max-w-2xl">
               <h1 className="text-4xl font-bold leading-tight md:text-5xl">
                 UR Academic
                 <span className="theme-accent"> Resource Hub</span>
               </h1>
-              <p className="mb-4 mt-4 text-lg text-white/75">
+              <p className="theme-hero-copy mb-4 mt-4 text-lg">
                 Access past papers, trusted solutions, and study support that helps University of Rwanda learners prepare faster and study smarter.
               </p>
-              <p className="mb-8 max-w-xl text-sm leading-6 text-white/65">
+              <p className="theme-hero-copy mb-8 max-w-xl text-sm leading-6">
                 Search the most downloaded papers, discover lecturer-linked material, and learn from a growing community that keeps useful content visible.
               </p>
 
               <form onSubmit={handleSearch} className="mb-8 flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-white/60" />
+                  <Search className="theme-muted absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -205,64 +205,64 @@ export default function HomePage() {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate(`/search?type=${type}`)}
-                    className="border-white/30 bg-transparent text-xs text-white hover:bg-white/10 hover:text-white"
+                    className="theme-hero-filter text-xs"
                   >
                     {type}
                   </Button>
                 ))}
               </div>
 
-              <div className="grid gap-3 text-sm text-white/80 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                  <p className="font-semibold text-white">Fast revision</p>
-                  <p className="mt-1 text-white/65">Find common exam patterns and prepare with less guesswork.</p>
+              <div className="grid gap-3 text-sm sm:grid-cols-3">
+                <div className="theme-hero-feature rounded-2xl px-4 py-3">
+                  <p className="font-semibold">Fast revision</p>
+                  <p className="theme-hero-feature-copy mt-1">Find common exam patterns and prepare with less guesswork.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                  <p className="font-semibold text-white">Trusted by peers</p>
-                  <p className="mt-1 text-white/65">Verified community uploads help strong material stand out.</p>
+                <div className="theme-hero-feature rounded-2xl px-4 py-3">
+                  <p className="font-semibold">Trusted by peers</p>
+                  <p className="theme-hero-feature-copy mt-1">Verified community uploads help strong material stand out.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur">
-                  <p className="font-semibold text-white">Study together</p>
-                  <p className="mt-1 text-white/65">Discussion, solutions, and AI support stay close to each paper.</p>
+                <div className="theme-hero-feature rounded-2xl px-4 py-3">
+                  <p className="font-semibold">Study together</p>
+                  <p className="theme-hero-feature-copy mt-1">Discussion, solutions, and AI support stay close to each paper.</p>
                 </div>
               </div>
             </div>
 
             <div className="lg:justify-self-end">
-              <div className="rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-2xl backdrop-blur-xl">
+              <div className="theme-highlight-shell rounded-[2rem] p-6 backdrop-blur-xl">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#F08A5D]">Highlighted Papers</p>
-                    <h2 className="mt-2 text-2xl font-bold text-white">See what students are opening most</h2>
+                    <h2 className="mt-2 text-2xl font-bold">See what students are opening most</h2>
                   </div>
-                  <Badge className="bg-white/10 text-white hover:bg-white/10">
+                  <Badge className="theme-highlight-stat hover:bg-transparent">
                     Live picks
                   </Badge>
                 </div>
 
                 {activeFeaturedPaper ? (
-                  <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/35 p-5">
+                  <div className="theme-highlight-card rounded-[1.6rem] p-5">
                     <div className="mb-3 flex flex-wrap items-center gap-2">
-                      <Badge className="bg-[#F08A5D] text-white hover:bg-[#F08A5D]">
+                      <Badge className="theme-highlight-badge">
                         {featuredIndex === 0 ? 'Most downloaded' : featuredIndex === 1 ? 'Highlighted' : featuredIndex === 2 ? 'Popular with solutions' : 'Fresh attention'}
                       </Badge>
                       <VerificationBadge status={activeFeaturedPaper.verification_status} />
                     </div>
-                    <h3 className="text-xl font-semibold text-white">{activeFeaturedPaper.title}</h3>
-                    <p className="mt-3 text-sm text-white/70">
+                    <h3 className="text-xl font-semibold">{activeFeaturedPaper.title}</h3>
+                    <p className="theme-highlight-muted mt-3 text-sm">
                       {activeFeaturedPaper.course_code} • {activeFeaturedPaper.course_name}
                     </p>
-                    <p className="mt-2 text-sm text-white/65">
+                    <p className="theme-highlight-muted mt-2 text-sm">
                       {activeFeaturedPaper.department} • {activeFeaturedPaper.year} • {activeFeaturedPaper.paper_type}
                     </p>
                     <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-white/80">
-                        <p className="text-xs uppercase tracking-[0.2em] text-white/45">Downloads</p>
-                        <p className="mt-2 text-lg font-semibold text-white">{activeFeaturedPaper.download_count || 0}</p>
+                      <div className="theme-highlight-stat rounded-2xl px-4 py-3 text-sm">
+                        <p className="theme-highlight-stat-label text-xs uppercase tracking-[0.2em]">Downloads</p>
+                        <p className="mt-2 text-lg font-semibold">{activeFeaturedPaper.download_count || 0}</p>
                       </div>
-                      <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-white/80">
-                        <p className="text-xs uppercase tracking-[0.2em] text-white/45">Extra value</p>
-                        <p className="mt-2 text-lg font-semibold text-white">
+                      <div className="theme-highlight-stat rounded-2xl px-4 py-3 text-sm">
+                        <p className="theme-highlight-stat-label text-xs uppercase tracking-[0.2em]">Extra value</p>
+                        <p className="mt-2 text-lg font-semibold">
                           {activeFeaturedPaper.solution_key ? 'Has solution' : 'Paper only'}
                         </p>
                       </div>
@@ -275,8 +275,8 @@ export default function HomePage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="rounded-[1.6rem] border border-white/10 bg-slate-950/35 p-5">
-                    <p className="text-sm text-white/70">Highlighted papers will appear here as soon as the library loads.</p>
+                  <div className="theme-highlight-card rounded-[1.6rem] p-5">
+                    <p className="theme-highlight-muted text-sm">Highlighted papers will appear here as soon as the library loads.</p>
                   </div>
                 )}
 
@@ -287,7 +287,7 @@ export default function HomePage() {
                         key={paper.id}
                         type="button"
                         onClick={() => setFeaturedIndex(index)}
-                        className={`h-2.5 rounded-full transition-all ${index === featuredIndex ? 'w-8 bg-[#F08A5D]' : 'w-2.5 bg-white/30'}`}
+                        className={`theme-home-indicator h-2.5 rounded-full transition-all ${index === featuredIndex ? 'theme-home-indicator--active w-8' : 'w-2.5'}`}
                         aria-label={`Show featured paper ${index + 1}`}
                       />
                     ))}
@@ -300,7 +300,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="border-b bg-card shadow-sm">
+      <section className="theme-section-band shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {showOfflineBanner && (
             <OfflineDataBanner message="You are seeing cached homepage stats and paper lists while live data is unavailable." />
@@ -403,19 +403,19 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="theme-header relative mt-8 overflow-hidden">
+      <section className="theme-header theme-cta-section relative mt-8 overflow-hidden">
         <div
-          className="absolute inset-0 opacity-15"
+          className="theme-cta-media absolute inset-0"
           style={{
             backgroundImage: `url(${COLLAB_IMAGE})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--surface-strong))] to-[hsl(var(--surface-strong)/0.8)]" />
+        <div className="theme-cta-overlay absolute inset-0 pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h2 className="text-3xl font-bold mb-4">Contribute to the Community</h2>
-          <p className="mx-auto mb-8 max-w-xl text-white/75">
+          <p className="theme-cta-copy mx-auto mb-8 max-w-xl">
             Share your past papers and solutions to help fellow students. Every contribution makes a difference.
           </p>
           <Button

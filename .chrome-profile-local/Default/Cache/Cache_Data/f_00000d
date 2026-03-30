@@ -1,0 +1,1145 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/frontend/src/pages/Upload.tsx");import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
+
+let prevRefreshReg;
+let prevRefreshSig;
+
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react-swc can't detect preamble. Something is wrong."
+    );
+  }
+
+  prevRefreshReg = window.$RefreshReg$;
+  prevRefreshSig = window.$RefreshSig$;
+  window.$RefreshReg$ = RefreshRuntime.getRefreshReg("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx");
+  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+}
+
+import __vite__cjsImport2_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=97a10951"; const _jsxDEV = __vite__cjsImport2_react_jsxDevRuntime["jsxDEV"]; const _Fragment = __vite__cjsImport2_react_jsxDevRuntime["Fragment"];
+var _s = $RefreshSig$();
+import __vite__cjsImport3_react from "/node_modules/.vite/deps/react.js?v=97a10951"; const useState = __vite__cjsImport3_react["useState"]; const useEffect = __vite__cjsImport3_react["useEffect"];
+import { useNavigate } from "/node_modules/.vite/deps/react-router-dom.js?v=97a10951";
+import { createPaper, fetchAllPapers, fetchUserProfile, uploadFileObject } from "/frontend/src/lib/client.ts";
+import { authApi } from "/frontend/src/lib/auth.ts";
+import { useAuth } from "/frontend/src/contexts/AuthContext.tsx";
+import { Button } from "/frontend/src/components/ui/button.tsx";
+import { Input } from "/frontend/src/components/ui/input.tsx";
+import { Textarea } from "/frontend/src/components/ui/textarea.tsx";
+import { Card, CardContent, CardHeader, CardTitle } from "/frontend/src/components/ui/card.tsx";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "/frontend/src/components/ui/select.tsx";
+import { Label } from "/frontend/src/components/ui/label.tsx";
+import { Upload as UploadIcon, FileText, ArrowLeft, CheckCircle } from "/node_modules/.vite/deps/lucide-react.js?v=97a10951";
+import { toast } from "/node_modules/.vite/deps/sonner.js?v=97a10951";
+const COLLEGES = [
+    'College of Science and Technology',
+    'College of Arts and Social Sciences',
+    'College of Business and Economics',
+    'College of Medicine and Health Sciences',
+    'College of Agriculture and Veterinary Medicine',
+    'College of Education'
+];
+const PAPER_TYPES = [
+    'Exam',
+    'CAT',
+    'Assignment',
+    'GroupWork'
+];
+const DEPARTMENTS = {
+    'College of Science and Technology': [
+        'Computer Science',
+        'Mathematics',
+        'Physics',
+        'Civil Engineering',
+        'Electrical Engineering',
+        'Mechanical Engineering'
+    ],
+    'College of Arts and Social Sciences': [
+        'Political Science',
+        'History',
+        'Journalism',
+        'Social Work',
+        'Law'
+    ],
+    'College of Business and Economics': [
+        'Accounting',
+        'Finance',
+        'Marketing',
+        'Economics',
+        'Management'
+    ],
+    'College of Medicine and Health Sciences': [
+        'Medicine',
+        'Pharmacy',
+        'Nursing',
+        'Public Health',
+        'Dentistry'
+    ],
+    'College of Agriculture and Veterinary Medicine': [
+        'Agriculture',
+        'Veterinary Medicine',
+        'Food Science',
+        'Forestry'
+    ],
+    'College of Education': [
+        'Educational Psychology',
+        'Curriculum Studies',
+        'Early Childhood Education',
+        'Science Education'
+    ]
+};
+const YEARS = [
+    2026,
+    2025,
+    2024,
+    2023,
+    2022,
+    2021,
+    2020,
+    2019,
+    2018
+];
+export default function UploadPage() {
+    _s();
+    const navigate = useNavigate();
+    const { user, loading } = useAuth();
+    const [profile, setProfile] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [paperCatalog, setPaperCatalog] = useState([]);
+    const [title, setTitle] = useState('');
+    const [courseCode, setCourseCode] = useState('');
+    const [courseName, setCourseName] = useState('');
+    const [college, setCollege] = useState('');
+    const [department, setDepartment] = useState('');
+    const [year, setYear] = useState('');
+    const [paperType, setPaperType] = useState('');
+    const [lecturer, setLecturer] = useState('');
+    const [description, setDescription] = useState('');
+    const [paperFile, setPaperFile] = useState(null);
+    const [solutionFile, setSolutionFile] = useState(null);
+    const [paperDragActive, setPaperDragActive] = useState(false);
+    const [solutionDragActive, setSolutionDragActive] = useState(false);
+    const handleDragOver = (event, setActive)=>{
+        event.preventDefault();
+        event.stopPropagation();
+        setActive(true);
+    };
+    const handleDragLeave = (event, setActive)=>{
+        event.preventDefault();
+        event.stopPropagation();
+        setActive(false);
+    };
+    const handleDropFile = (event, setFile, setActive)=>{
+        event.preventDefault();
+        event.stopPropagation();
+        setActive(false);
+        const file = event.dataTransfer.files?.[0];
+        if (file) {
+            setFile(file);
+        }
+    };
+    useEffect(()=>{
+        if (!user) return;
+        void loadProfileAndSuggestions();
+    }, [
+        user
+    ]);
+    const loadProfileAndSuggestions = async ()=>{
+        try {
+            const [profileData, paperData] = await Promise.all([
+                fetchUserProfile(),
+                fetchAllPapers({
+                    sort: '-created_at',
+                    limit: 200
+                })
+            ]);
+            setProfile(profileData);
+            setPaperCatalog(paperData.items);
+        } catch (error) {
+            console.error('Failed to load upload helpers:', error);
+        }
+    };
+    const inferVerificationStatus = ()=>{
+        if (!profile) return 'unverified';
+        if ([
+            'admin',
+            'content_manager',
+            'cp',
+            'lecturer'
+        ].includes(profile.role)) {
+            return 'verified';
+        }
+        if (profile.role === 'verified_contributor' || (profile.trust_score || 0) >= 50) {
+            return 'community';
+        }
+        return 'unverified';
+    };
+    const matchingSuggestions = paperCatalog.filter((paper)=>!courseCode || paper.course_code.toLowerCase().includes(courseCode.toLowerCase()) || paper.course_name.toLowerCase().includes(courseCode.toLowerCase())).slice(0, 8);
+    const applySuggestion = (paper)=>{
+        setCourseCode(paper.course_code);
+        setCourseName(paper.course_name);
+        setCollege(paper.college);
+        setDepartment(paper.department);
+        setPaperType(paper.paper_type);
+        setLecturer(paper.lecturer || '');
+    };
+    const handleUpload = async (e)=>{
+        e.preventDefault();
+        if (!user) return;
+        if (!title || !courseCode || !courseName || !college || !department || !year || !paperType) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+        try {
+            setSubmitting(true);
+            let fileKey = '';
+            let solutionKey = '';
+            // Upload paper file
+            if (paperFile) {
+                const objectKey = `${courseCode}_${paperType}_${year}_${Date.now()}.pdf`;
+                try {
+                    await uploadFileObject('papers', objectKey, paperFile);
+                    fileKey = objectKey;
+                } catch (err) {
+                    console.error('File upload failed:', err);
+                    toast.error('File upload failed');
+                    return;
+                }
+            }
+            // Upload solution file
+            if (solutionFile) {
+                const solKey = `solutions/${courseCode}_${paperType}_${year}_sol_${Date.now()}.pdf`;
+                try {
+                    await uploadFileObject('papers', solKey, solutionFile);
+                    solutionKey = solKey;
+                } catch (err) {
+                    console.error('Solution upload failed:', err);
+                }
+            }
+            // Create paper record
+            await createPaper({
+                title,
+                course_code: courseCode.toUpperCase(),
+                course_name: courseName,
+                college,
+                department,
+                year: parseInt(year),
+                paper_type: paperType,
+                lecturer: lecturer || undefined,
+                description: description || undefined,
+                file_key: fileKey || undefined,
+                solution_key: solutionKey || undefined,
+                verification_status: inferVerificationStatus(),
+                download_count: 0,
+                report_count: 0,
+                is_hidden: false
+            });
+            setSuccess(true);
+            toast.success('Paper uploaded successfully!');
+        } catch (err) {
+            console.error('Upload failed:', err);
+            toast.error('Failed to upload paper');
+        } finally{
+            setSubmitting(false);
+        }
+    };
+    if (loading) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "min-h-screen flex items-center justify-center",
+            children: /*#__PURE__*/ _jsxDEV("div", {
+                className: "animate-spin rounded-full h-8 w-8 border-b-2 border-[#F08A5D]"
+            }, void 0, false, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                lineNumber: 213,
+                columnNumber: 9
+            }, this)
+        }, void 0, false, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+            lineNumber: 212,
+            columnNumber: 7
+        }, this);
+    }
+    if (!user) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "max-w-2xl mx-auto px-4 py-16 text-center",
+            children: [
+                /*#__PURE__*/ _jsxDEV("img", {
+                    src: "/upload-placeholder.svg",
+                    alt: "Upload",
+                    className: "w-48 h-48 mx-auto mb-6 rounded-lg opacity-80"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 221,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("h2", {
+                    className: "text-2xl font-bold text-[#343A40] dark:text-white mb-4",
+                    children: "Sign In Required"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 226,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("p", {
+                    className: "text-gray-500 dark:text-gray-400 mb-6",
+                    children: "You need to sign in to upload papers and contribute to the community."
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 227,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV(Button, {
+                    onClick: ()=>authApi.login('/upload'),
+                    className: "bg-[#F08A5D] hover:bg-[#e07a4d] text-white",
+                    children: "Sign In to Upload"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 230,
+                    columnNumber: 9
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+            lineNumber: 220,
+            columnNumber: 7
+        }, this);
+    }
+    if (success) {
+        return /*#__PURE__*/ _jsxDEV("div", {
+            className: "max-w-2xl mx-auto px-4 py-16 text-center",
+            children: [
+                /*#__PURE__*/ _jsxDEV("div", {
+                    className: "w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6",
+                    children: /*#__PURE__*/ _jsxDEV(CheckCircle, {
+                        className: "h-10 w-10 text-green-600"
+                    }, void 0, false, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                        lineNumber: 244,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 243,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("h2", {
+                    className: "text-2xl font-bold text-[#343A40] dark:text-white mb-4",
+                    children: "Upload Successful!"
+                }, void 0, false, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 246,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("p", {
+                    className: "text-gray-500 dark:text-gray-400 mb-6",
+                    children: [
+                        "Your paper has been submitted with a ",
+                        inferVerificationStatus(),
+                        " verification status. Thank you for contributing!"
+                    ]
+                }, void 0, true, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 247,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ _jsxDEV("div", {
+                    className: "flex gap-3 justify-center",
+                    children: [
+                        /*#__PURE__*/ _jsxDEV(Button, {
+                            onClick: ()=>{
+                                setSuccess(false);
+                                setTitle('');
+                                setCourseCode('');
+                                setCourseName('');
+                                setCollege('');
+                                setDepartment('');
+                                setYear('');
+                                setPaperType('');
+                                setLecturer('');
+                                setDescription('');
+                                setPaperFile(null);
+                                setSolutionFile(null);
+                            },
+                            variant: "outline",
+                            className: "dark:border-gray-600 dark:text-gray-300",
+                            children: "Upload Another"
+                        }, void 0, false, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                            lineNumber: 251,
+                            columnNumber: 11
+                        }, this),
+                        /*#__PURE__*/ _jsxDEV(Button, {
+                            onClick: ()=>navigate('/dashboard'),
+                            className: "bg-[#F08A5D] hover:bg-[#e07a4d] text-white",
+                            children: "Go to Dashboard"
+                        }, void 0, false, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                            lineNumber: 254,
+                            columnNumber: 11
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                    lineNumber: 250,
+                    columnNumber: 9
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+            lineNumber: 242,
+            columnNumber: 7
+        }, this);
+    }
+    return /*#__PURE__*/ _jsxDEV("div", {
+        className: "max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8",
+        children: [
+            /*#__PURE__*/ _jsxDEV(Button, {
+                variant: "ghost",
+                onClick: ()=>navigate(-1),
+                className: "mb-6 text-gray-500 hover:text-[#F08A5D]",
+                children: [
+                    /*#__PURE__*/ _jsxDEV(ArrowLeft, {
+                        className: "h-4 w-4 mr-2"
+                    }, void 0, false, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                        lineNumber: 265,
+                        columnNumber: 9
+                    }, this),
+                    "Back"
+                ]
+            }, void 0, true, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                lineNumber: 264,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ _jsxDEV(Card, {
+                className: "dark:bg-[#3E444A] dark:border-gray-700",
+                children: [
+                    /*#__PURE__*/ _jsxDEV(CardHeader, {
+                        children: /*#__PURE__*/ _jsxDEV(CardTitle, {
+                            className: "flex items-center gap-2 text-[#343A40] dark:text-white",
+                            children: [
+                                /*#__PURE__*/ _jsxDEV(UploadIcon, {
+                                    className: "h-6 w-6 text-[#F08A5D]"
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 272,
+                                    columnNumber: 13
+                                }, this),
+                                "Upload Past Paper"
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                            lineNumber: 271,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                        lineNumber: 270,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ _jsxDEV(CardContent, {
+                        children: /*#__PURE__*/ _jsxDEV("form", {
+                            onSubmit: handleUpload,
+                            className: "space-y-6",
+                            children: [
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Label, {
+                                            htmlFor: "title",
+                                            className: "dark:text-gray-300",
+                                            children: "Paper Title *"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 280,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Input, {
+                                            id: "title",
+                                            value: title,
+                                            onChange: (e)=>setTitle(e.target.value),
+                                            placeholder: "e.g., Data Structures - Final Exam 2024",
+                                            className: "mt-1 dark:bg-[#343A40] dark:border-gray-600",
+                                            required: true
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 281,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 279,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    htmlFor: "courseCode",
+                                                    className: "dark:text-gray-300",
+                                                    children: "Course Code *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 294,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Input, {
+                                                    id: "courseCode",
+                                                    value: courseCode,
+                                                    onChange: (e)=>setCourseCode(e.target.value),
+                                                    placeholder: "e.g., CSC2101",
+                                                    className: "mt-1 dark:bg-[#343A40] dark:border-gray-600",
+                                                    required: true
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 295,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 293,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    htmlFor: "courseName",
+                                                    className: "dark:text-gray-300",
+                                                    children: "Course Name *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 305,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Input, {
+                                                    id: "courseName",
+                                                    value: courseName,
+                                                    onChange: (e)=>setCourseName(e.target.value),
+                                                    placeholder: "e.g., Data Structures and Algorithms",
+                                                    className: "mt-1 dark:bg-[#343A40] dark:border-gray-600",
+                                                    required: true
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 306,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 304,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 292,
+                                    columnNumber: 13
+                                }, this),
+                                matchingSuggestions.length > 0 && /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-[#343A40]",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "mb-3 text-sm font-medium text-[#343A40] dark:text-white",
+                                            children: "Auto-suggested course details"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 319,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            className: "flex flex-wrap gap-2",
+                                            children: matchingSuggestions.map((paper)=>/*#__PURE__*/ _jsxDEV("button", {
+                                                    type: "button",
+                                                    onClick: ()=>applySuggestion(paper),
+                                                    className: "rounded-full border border-[#F08A5D]/40 px-3 py-1 text-xs text-[#343A40] transition-colors hover:bg-[#F08A5D] hover:text-white dark:text-white",
+                                                    children: [
+                                                        paper.course_code,
+                                                        " · ",
+                                                        paper.course_name
+                                                    ]
+                                                }, paper.id, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 322,
+                                                    columnNumber: 21
+                                                }, this))
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 320,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 318,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "College *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 338,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Select, {
+                                                    value: college,
+                                                    onValueChange: (val)=>{
+                                                        setCollege(val);
+                                                        setDepartment('');
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                            className: "mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600",
+                                                            children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                                placeholder: "Select College"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                lineNumber: 341,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 340,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                            className: "bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white",
+                                                            children: COLLEGES.map((c)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                    value: c,
+                                                                    children: c.replace('College of ', '')
+                                                                }, c, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 345,
+                                                                    columnNumber: 23
+                                                                }, this))
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 343,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 339,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 337,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "Department *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 351,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Select, {
+                                                    value: department,
+                                                    onValueChange: setDepartment,
+                                                    disabled: !college,
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                            className: "mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600",
+                                                            children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                                placeholder: "Select Department"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                lineNumber: 354,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 353,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                            className: "bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white",
+                                                            children: (DEPARTMENTS[college] || []).map((d)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                    value: d,
+                                                                    children: d
+                                                                }, d, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 358,
+                                                                    columnNumber: 23
+                                                                }, this))
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 356,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 352,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 350,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 336,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "Academic Year *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 368,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Select, {
+                                                    value: year,
+                                                    onValueChange: setYear,
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                            className: "mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600",
+                                                            children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                                placeholder: "Select Year"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                lineNumber: 371,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 370,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                            className: "bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white",
+                                                            children: YEARS.map((y)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                    value: String(y),
+                                                                    children: y
+                                                                }, y, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 375,
+                                                                    columnNumber: 23
+                                                                }, this))
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 373,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 369,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 367,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "Paper Type *"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 381,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV(Select, {
+                                                    value: paperType,
+                                                    onValueChange: setPaperType,
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV(SelectTrigger, {
+                                                            className: "mt-1 bg-white dark:bg-[#343A40] dark:border-gray-600",
+                                                            children: /*#__PURE__*/ _jsxDEV(SelectValue, {
+                                                                placeholder: "Select Type"
+                                                            }, void 0, false, {
+                                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                lineNumber: 384,
+                                                                columnNumber: 21
+                                                            }, this)
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 383,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV(SelectContent, {
+                                                            className: "bg-white text-[#343A40] dark:bg-[#343A40] dark:border-gray-600 dark:text-white",
+                                                            children: PAPER_TYPES.map((t)=>/*#__PURE__*/ _jsxDEV(SelectItem, {
+                                                                    value: t,
+                                                                    children: t
+                                                                }, t, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 388,
+                                                                    columnNumber: 23
+                                                                }, this))
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 386,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 382,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 380,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 366,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Label, {
+                                            htmlFor: "lecturer",
+                                            className: "dark:text-gray-300",
+                                            children: "Lecturer (Optional)"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 397,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Input, {
+                                            id: "lecturer",
+                                            value: lecturer,
+                                            onChange: (e)=>setLecturer(e.target.value),
+                                            placeholder: "e.g., Dr. Jean Baptiste Uwimana",
+                                            className: "mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 398,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 396,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV(Label, {
+                                            htmlFor: "description",
+                                            className: "dark:text-gray-300",
+                                            children: "Description (Optional)"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 409,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV(Textarea, {
+                                            id: "description",
+                                            value: description,
+                                            onChange: (e)=>setDescription(e.target.value),
+                                            placeholder: "Brief description of the paper content...",
+                                            rows: 3,
+                                            className: "mt-1 dark:bg-[#343A40] dark:border-gray-600"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 410,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 408,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "rounded-lg border border-dashed border-[#F08A5D]/40 bg-[#FFF8F3] p-4 dark:bg-[#2f2620]",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "text-sm font-medium text-[#343A40] dark:text-white",
+                                            children: "Upload status preview"
+                                        }, void 0, false, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 421,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("p", {
+                                            className: "mt-1 text-sm text-gray-600 dark:text-gray-300",
+                                            children: [
+                                                "This upload will be marked as ",
+                                                /*#__PURE__*/ _jsxDEV("span", {
+                                                    className: "font-semibold",
+                                                    children: inferVerificationStatus()
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 423,
+                                                    columnNumber: 47
+                                                }, this),
+                                                profile ? ` based on your role "${profile.role}" and trust score ${profile.trust_score || 0}.` : '.'
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 422,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 420,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV("div", {
+                                    className: "grid grid-cols-1 sm:grid-cols-2 gap-4",
+                                    children: [
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "Paper File (PDF)"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 431,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("div", {
+                                                    className: `mt-1 border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${paperDragActive ? 'border-[#F08A5D] bg-[#FFF4E6] dark:bg-[#3b2e1f]' : 'border-gray-300 dark:border-gray-600 hover:border-[#F08A5D]'}`,
+                                                    onDragOver: (e)=>handleDragOver(e, setPaperDragActive),
+                                                    onDragEnter: (e)=>handleDragOver(e, setPaperDragActive),
+                                                    onDragLeave: (e)=>handleDragLeave(e, setPaperDragActive),
+                                                    onDrop: (e)=>handleDropFile(e, setPaperFile, setPaperDragActive),
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV("input", {
+                                                            type: "file",
+                                                            accept: ".pdf",
+                                                            onChange: (e)=>setPaperFile(e.target.files?.[0] || null),
+                                                            className: "hidden",
+                                                            id: "paperFile"
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 443,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV("label", {
+                                                            htmlFor: "paperFile",
+                                                            className: "cursor-pointer",
+                                                            children: [
+                                                                /*#__PURE__*/ _jsxDEV(FileText, {
+                                                                    className: "h-8 w-8 mx-auto mb-2 text-gray-400"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 451,
+                                                                    columnNumber: 21
+                                                                }, this),
+                                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                                    className: "text-sm text-gray-500 dark:text-gray-400",
+                                                                    children: paperFile ? paperFile.name : 'Click to upload paper'
+                                                                }, void 0, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 452,
+                                                                    columnNumber: 21
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 450,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 432,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 430,
+                                            columnNumber: 15
+                                        }, this),
+                                        /*#__PURE__*/ _jsxDEV("div", {
+                                            children: [
+                                                /*#__PURE__*/ _jsxDEV(Label, {
+                                                    className: "dark:text-gray-300",
+                                                    children: "Solution File (Optional)"
+                                                }, void 0, false, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 459,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ _jsxDEV("div", {
+                                                    className: `mt-1 border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${solutionDragActive ? 'border-[#F08A5D] bg-[#FFF4E6] dark:bg-[#3b2e1f]' : 'border-gray-300 dark:border-gray-600 hover:border-[#F08A5D]'}`,
+                                                    onDragOver: (e)=>handleDragOver(e, setSolutionDragActive),
+                                                    onDragEnter: (e)=>handleDragOver(e, setSolutionDragActive),
+                                                    onDragLeave: (e)=>handleDragLeave(e, setSolutionDragActive),
+                                                    onDrop: (e)=>handleDropFile(e, setSolutionFile, setSolutionDragActive),
+                                                    children: [
+                                                        /*#__PURE__*/ _jsxDEV("input", {
+                                                            type: "file",
+                                                            accept: ".pdf",
+                                                            onChange: (e)=>setSolutionFile(e.target.files?.[0] || null),
+                                                            className: "hidden",
+                                                            id: "solutionFile"
+                                                        }, void 0, false, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 471,
+                                                            columnNumber: 19
+                                                        }, this),
+                                                        /*#__PURE__*/ _jsxDEV("label", {
+                                                            htmlFor: "solutionFile",
+                                                            className: "cursor-pointer",
+                                                            children: [
+                                                                /*#__PURE__*/ _jsxDEV(FileText, {
+                                                                    className: "h-8 w-8 mx-auto mb-2 text-gray-400"
+                                                                }, void 0, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 479,
+                                                                    columnNumber: 21
+                                                                }, this),
+                                                                /*#__PURE__*/ _jsxDEV("p", {
+                                                                    className: "text-sm text-gray-500 dark:text-gray-400",
+                                                                    children: solutionFile ? solutionFile.name : 'Click to upload solution'
+                                                                }, void 0, false, {
+                                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                                    lineNumber: 480,
+                                                                    columnNumber: 21
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                            lineNumber: 478,
+                                                            columnNumber: 19
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                    lineNumber: 460,
+                                                    columnNumber: 17
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                            lineNumber: 458,
+                                            columnNumber: 15
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 429,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ _jsxDEV(Button, {
+                                    type: "submit",
+                                    disabled: submitting,
+                                    className: "w-full bg-[#F08A5D] hover:bg-[#e07a4d] text-white h-12 text-lg",
+                                    children: submitting ? /*#__PURE__*/ _jsxDEV("div", {
+                                        className: "flex items-center gap-2",
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV("div", {
+                                                className: "animate-spin rounded-full h-5 w-5 border-b-2 border-white"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                lineNumber: 495,
+                                                columnNumber: 19
+                                            }, this),
+                                            "Uploading..."
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                        lineNumber: 494,
+                                        columnNumber: 17
+                                    }, this) : /*#__PURE__*/ _jsxDEV(_Fragment, {
+                                        children: [
+                                            /*#__PURE__*/ _jsxDEV(UploadIcon, {
+                                                className: "h-5 w-5 mr-2"
+                                            }, void 0, false, {
+                                                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                                lineNumber: 500,
+                                                columnNumber: 19
+                                            }, this),
+                                            "Upload Paper"
+                                        ]
+                                    }, void 0, true)
+                                }, void 0, false, {
+                                    fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                                    lineNumber: 488,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                            lineNumber: 277,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                        lineNumber: 276,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+                lineNumber: 269,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx",
+        lineNumber: 263,
+        columnNumber: 5
+    }, this);
+}
+_s(UploadPage, "FryQlOQY4saWh1Cr88ElpihrjLA=", false, function() {
+    return [
+        useNavigate,
+        useAuth
+    ];
+});
+_c = UploadPage;
+var _c;
+$RefreshReg$(_c, "UploadPage");
+
+
+if (import.meta.hot && !inWebWorker) {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+
+if (import.meta.hot && !inWebWorker) {
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/GBs/Documents/Codes/Projects/UR_hud/frontend/src/pages/Upload.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIlVwbG9hZC50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCwgdHlwZSBEcmFnRXZlbnQgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyB1c2VOYXZpZ2F0ZSB9IGZyb20gJ3JlYWN0LXJvdXRlci1kb20nO1xuaW1wb3J0IHsgY3JlYXRlUGFwZXIsIGZldGNoQWxsUGFwZXJzLCBmZXRjaFVzZXJQcm9maWxlLCB1cGxvYWRGaWxlT2JqZWN0LCB0eXBlIFBhcGVyLCB0eXBlIFVzZXJQcm9maWxlIH0gZnJvbSAnLi4vbGliL2NsaWVudCc7XG5pbXBvcnQgeyBhdXRoQXBpIH0gZnJvbSAnLi4vbGliL2F1dGgnO1xuaW1wb3J0IHsgdXNlQXV0aCB9IGZyb20gJy4uL2NvbnRleHRzL0F1dGhDb250ZXh0JztcbmltcG9ydCB7IEJ1dHRvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9idXR0b24nO1xuaW1wb3J0IHsgSW5wdXQgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvaW5wdXQnO1xuaW1wb3J0IHsgVGV4dGFyZWEgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvdGV4dGFyZWEnO1xuaW1wb3J0IHsgQ2FyZCwgQ2FyZENvbnRlbnQsIENhcmRIZWFkZXIsIENhcmRUaXRsZSB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9jYXJkJztcbmltcG9ydCB7XG4gIFNlbGVjdCxcbiAgU2VsZWN0Q29udGVudCxcbiAgU2VsZWN0SXRlbSxcbiAgU2VsZWN0VHJpZ2dlcixcbiAgU2VsZWN0VmFsdWUsXG59IGZyb20gJ0AvY29tcG9uZW50cy91aS9zZWxlY3QnO1xuaW1wb3J0IHsgTGFiZWwgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvbGFiZWwnO1xuaW1wb3J0IHsgVXBsb2FkIGFzIFVwbG9hZEljb24sIEZpbGVUZXh0LCBBcnJvd0xlZnQsIENoZWNrQ2lyY2xlIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcbmltcG9ydCB7IHRvYXN0IH0gZnJvbSAnc29ubmVyJztcblxuY29uc3QgQ09MTEVHRVMgPSBbXG4gICdDb2xsZWdlIG9mIFNjaWVuY2UgYW5kIFRlY2hub2xvZ3knLFxuICAnQ29sbGVnZSBvZiBBcnRzIGFuZCBTb2NpYWwgU2NpZW5jZXMnLFxuICAnQ29sbGVnZSBvZiBCdXNpbmVzcyBhbmQgRWNvbm9taWNzJyxcbiAgJ0NvbGxlZ2Ugb2YgTWVkaWNpbmUgYW5kIEhlYWx0aCBTY2llbmNlcycsXG4gICdDb2xsZWdlIG9mIEFncmljdWx0dXJlIGFuZCBWZXRlcmluYXJ5IE1lZGljaW5lJyxcbiAgJ0NvbGxlZ2Ugb2YgRWR1Y2F0aW9uJyxcbl07XG5cbmNvbnN0IFBBUEVSX1RZUEVTID0gWydFeGFtJywgJ0NBVCcsICdBc3NpZ25tZW50JywgJ0dyb3VwV29yayddO1xuXG5jb25zdCBERVBBUlRNRU5UUzogUmVjb3JkPHN0cmluZywgc3RyaW5nW10+ID0ge1xuICAnQ29sbGVnZSBvZiBTY2llbmNlIGFuZCBUZWNobm9sb2d5JzogWydDb21wdXRlciBTY2llbmNlJywgJ01hdGhlbWF0aWNzJywgJ1BoeXNpY3MnLCAnQ2l2aWwgRW5naW5lZXJpbmcnLCAnRWxlY3RyaWNhbCBFbmdpbmVlcmluZycsICdNZWNoYW5pY2FsIEVuZ2luZWVyaW5nJ10sXG4gICdDb2xsZWdlIG9mIEFydHMgYW5kIFNvY2lhbCBTY2llbmNlcyc6IFsnUG9saXRpY2FsIFNjaWVuY2UnLCAnSGlzdG9yeScsICdKb3VybmFsaXNtJywgJ1NvY2lhbCBXb3JrJywgJ0xhdyddLFxuICAnQ29sbGVnZSBvZiBCdXNpbmVzcyBhbmQgRWNvbm9taWNzJzogWydBY2NvdW50aW5nJywgJ0ZpbmFuY2UnLCAnTWFya2V0aW5nJywgJ0Vjb25vbWljcycsICdNYW5hZ2VtZW50J10sXG4gICdDb2xsZWdlIG9mIE1lZGljaW5lIGFuZCBIZWFsdGggU2NpZW5jZXMnOiBbJ01lZGljaW5lJywgJ1BoYXJtYWN5JywgJ051cnNpbmcnLCAnUHVibGljIEhlYWx0aCcsICdEZW50aXN0cnknXSxcbiAgJ0NvbGxlZ2Ugb2YgQWdyaWN1bHR1cmUgYW5kIFZldGVyaW5hcnkgTWVkaWNpbmUnOiBbJ0FncmljdWx0dXJlJywgJ1ZldGVyaW5hcnkgTWVkaWNpbmUnLCAnRm9vZCBTY2llbmNlJywgJ0ZvcmVzdHJ5J10sXG4gICdDb2xsZWdlIG9mIEVkdWNhdGlvbic6IFsnRWR1Y2F0aW9uYWwgUHN5Y2hvbG9neScsICdDdXJyaWN1bHVtIFN0dWRpZXMnLCAnRWFybHkgQ2hpbGRob29kIEVkdWNhdGlvbicsICdTY2llbmNlIEVkdWNhdGlvbiddLFxufTtcblxuY29uc3QgWUVBUlMgPSBbMjAyNiwgMjAyNSwgMjAyNCwgMjAyMywgMjAyMiwgMjAyMSwgMjAyMCwgMjAxOSwgMjAxOF07XG5cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFVwbG9hZFBhZ2UoKSB7XG4gIGNvbnN0IG5hdmlnYXRlID0gdXNlTmF2aWdhdGUoKTtcbiAgY29uc3QgeyB1c2VyLCBsb2FkaW5nIH0gPSB1c2VBdXRoKCk7XG4gIGNvbnN0IFtwcm9maWxlLCBzZXRQcm9maWxlXSA9IHVzZVN0YXRlPFVzZXJQcm9maWxlIHwgbnVsbD4obnVsbCk7XG4gIGNvbnN0IFtzdWJtaXR0aW5nLCBzZXRTdWJtaXR0aW5nXSA9IHVzZVN0YXRlKGZhbHNlKTtcbiAgY29uc3QgW3N1Y2Nlc3MsIHNldFN1Y2Nlc3NdID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBbcGFwZXJDYXRhbG9nLCBzZXRQYXBlckNhdGFsb2ddID0gdXNlU3RhdGU8UGFwZXJbXT4oW10pO1xuXG4gIGNvbnN0IFt0aXRsZSwgc2V0VGl0bGVdID0gdXNlU3RhdGUoJycpO1xuICBjb25zdCBbY291cnNlQ29kZSwgc2V0Q291cnNlQ29kZV0gPSB1c2VTdGF0ZSgnJyk7XG4gIGNvbnN0IFtjb3Vyc2VOYW1lLCBzZXRDb3Vyc2VOYW1lXSA9IHVzZVN0YXRlKCcnKTtcbiAgY29uc3QgW2NvbGxlZ2UsIHNldENvbGxlZ2VdID0gdXNlU3RhdGUoJycpO1xuICBjb25zdCBbZGVwYXJ0bWVudCwgc2V0RGVwYXJ0bWVudF0gPSB1c2VTdGF0ZSgnJyk7XG4gIGNvbnN0IFt5ZWFyLCBzZXRZZWFyXSA9IHVzZVN0YXRlKCcnKTtcbiAgY29uc3QgW3BhcGVyVHlwZSwgc2V0UGFwZXJUeXBlXSA9IHVzZVN0YXRlKCcnKTtcbiAgY29uc3QgW2xlY3R1cmVyLCBzZXRMZWN0dXJlcl0gPSB1c2VTdGF0ZSgnJyk7XG4gIGNvbnN0IFtkZXNjcmlwdGlvbiwgc2V0RGVzY3JpcHRpb25dID0gdXNlU3RhdGUoJycpO1xuICBjb25zdCBbcGFwZXJGaWxlLCBzZXRQYXBlckZpbGVdID0gdXNlU3RhdGU8RmlsZSB8IG51bGw+KG51bGwpO1xuICBjb25zdCBbc29sdXRpb25GaWxlLCBzZXRTb2x1dGlvbkZpbGVdID0gdXNlU3RhdGU8RmlsZSB8IG51bGw+KG51bGwpO1xuICBjb25zdCBbcGFwZXJEcmFnQWN0aXZlLCBzZXRQYXBlckRyYWdBY3RpdmVdID0gdXNlU3RhdGUoZmFsc2UpO1xuICBjb25zdCBbc29sdXRpb25EcmFnQWN0aXZlLCBzZXRTb2x1dGlvbkRyYWdBY3RpdmVdID0gdXNlU3RhdGUoZmFsc2UpO1xuXG4gIGNvbnN0IGhhbmRsZURyYWdPdmVyID0gKFxuICAgIGV2ZW50OiBEcmFnRXZlbnQ8SFRNTERpdkVsZW1lbnQ+LFxuICAgIHNldEFjdGl2ZTogUmVhY3QuRGlzcGF0Y2g8UmVhY3QuU2V0U3RhdGVBY3Rpb248Ym9vbGVhbj4+XG4gICkgPT4ge1xuICAgIGV2ZW50LnByZXZlbnREZWZhdWx0KCk7XG4gICAgZXZlbnQuc3RvcFByb3BhZ2F0aW9uKCk7XG4gICAgc2V0QWN0aXZlKHRydWUpO1xuICB9O1xuXG4gIGNvbnN0IGhhbmRsZURyYWdMZWF2ZSA9IChcbiAgICBldmVudDogRHJhZ0V2ZW50PEhUTUxEaXZFbGVtZW50PixcbiAgICBzZXRBY3RpdmU6IFJlYWN0LkRpc3BhdGNoPFJlYWN0LlNldFN0YXRlQWN0aW9uPGJvb2xlYW4+PlxuICApID0+IHtcbiAgICBldmVudC5wcmV2ZW50RGVmYXVsdCgpO1xuICAgIGV2ZW50LnN0b3BQcm9wYWdhdGlvbigpO1xuICAgIHNldEFjdGl2ZShmYWxzZSk7XG4gIH07XG5cbiAgY29uc3QgaGFuZGxlRHJvcEZpbGUgPSAoXG4gICAgZXZlbnQ6IERyYWdFdmVudDxIVE1MRGl2RWxlbWVudD4sXG4gICAgc2V0RmlsZTogUmVhY3QuRGlzcGF0Y2g8UmVhY3QuU2V0U3RhdGVBY3Rpb248RmlsZSB8IG51bGw+PixcbiAgICBzZXRBY3RpdmU6IFJlYWN0LkRpc3BhdGNoPFJlYWN0LlNldFN0YXRlQWN0aW9uPGJvb2xlYW4+PlxuICApID0+IHtcbiAgICBldmVudC5wcmV2ZW50RGVmYXVsdCgpO1xuICAgIGV2ZW50LnN0b3BQcm9wYWdhdGlvbigpO1xuICAgIHNldEFjdGl2ZShmYWxzZSk7XG4gICAgY29uc3QgZmlsZSA9IGV2ZW50LmRhdGFUcmFuc2Zlci5maWxlcz8uWzBdO1xuICAgIGlmIChmaWxlKSB7XG4gICAgICBzZXRGaWxlKGZpbGUpO1xuICAgIH1cbiAgfTtcblxuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIGlmICghdXNlcikgcmV0dXJuO1xuICAgIHZvaWQgbG9hZFByb2ZpbGVBbmRTdWdnZXN0aW9ucygpO1xuICB9LCBbdXNlcl0pO1xuXG4gIGNvbnN0IGxvYWRQcm9maWxlQW5kU3VnZ2VzdGlvbnMgPSBhc3luYyAoKSA9PiB7XG4gICAgdHJ5IHtcbiAgICAgIGNvbnN0IFtwcm9maWxlRGF0YSwgcGFwZXJEYXRhXSA9IGF3YWl0IFByb21pc2UuYWxsKFtcbiAgICAgICAgZmV0Y2hVc2VyUHJvZmlsZSgpLFxuICAgICAgICBmZXRjaEFsbFBhcGVycyh7IHNvcnQ6ICctY3JlYXRlZF9hdCcsIGxpbWl0OiAyMDAgfSksXG4gICAgICBdKTtcbiAgICAgIHNldFByb2ZpbGUocHJvZmlsZURhdGEpO1xuICAgICAgc2V0UGFwZXJDYXRhbG9nKHBhcGVyRGF0YS5pdGVtcyk7XG4gICAgfSBjYXRjaCAoZXJyb3IpIHtcbiAgICAgIGNvbnNvbGUuZXJyb3IoJ0ZhaWxlZCB0byBsb2FkIHVwbG9hZCBoZWxwZXJzOicsIGVycm9yKTtcbiAgICB9XG4gIH07XG5cbiAgY29uc3QgaW5mZXJWZXJpZmljYXRpb25TdGF0dXMgPSAoKSA9PiB7XG4gICAgaWYgKCFwcm9maWxlKSByZXR1cm4gJ3VudmVyaWZpZWQnO1xuICAgIGlmIChbJ2FkbWluJywgJ2NvbnRlbnRfbWFuYWdlcicsICdjcCcsICdsZWN0dXJlciddLmluY2x1ZGVzKHByb2ZpbGUucm9sZSkpIHtcbiAgICAgIHJldHVybiAndmVyaWZpZWQnO1xuICAgIH1cbiAgICBpZiAocHJvZmlsZS5yb2xlID09PSAndmVyaWZpZWRfY29udHJpYnV0b3InIHx8IChwcm9maWxlLnRydXN0X3Njb3JlIHx8IDApID49IDUwKSB7XG4gICAgICByZXR1cm4gJ2NvbW11bml0eSc7XG4gICAgfVxuICAgIHJldHVybiAndW52ZXJpZmllZCc7XG4gIH07XG5cbiAgY29uc3QgbWF0Y2hpbmdTdWdnZXN0aW9ucyA9IHBhcGVyQ2F0YWxvZy5maWx0ZXIoXG4gICAgKHBhcGVyKSA9PlxuICAgICAgIWNvdXJzZUNvZGUgfHxcbiAgICAgIHBhcGVyLmNvdXJzZV9jb2RlLnRvTG93ZXJDYXNlKCkuaW5jbHVkZXMoY291cnNlQ29kZS50b0xvd2VyQ2FzZSgpKSB8fFxuICAgICAgcGFwZXIuY291cnNlX25hbWUudG9Mb3dlckNhc2UoKS5pbmNsdWRlcyhjb3Vyc2VDb2RlLnRvTG93ZXJDYXNlKCkpXG4gICkuc2xpY2UoMCwgOCk7XG5cbiAgY29uc3QgYXBwbHlTdWdnZXN0aW9uID0gKHBhcGVyOiBQYXBlcikgPT4ge1xuICAgIHNldENvdXJzZUNvZGUocGFwZXIuY291cnNlX2NvZGUpO1xuICAgIHNldENvdXJzZU5hbWUocGFwZXIuY291cnNlX25hbWUpO1xuICAgIHNldENvbGxlZ2UocGFwZXIuY29sbGVnZSk7XG4gICAgc2V0RGVwYXJ0bWVudChwYXBlci5kZXBhcnRtZW50KTtcbiAgICBzZXRQYXBlclR5cGUocGFwZXIucGFwZXJfdHlwZSk7XG4gICAgc2V0TGVjdHVyZXIocGFwZXIubGVjdHVyZXIgfHwgJycpO1xuICB9O1xuXG4gIGNvbnN0IGhhbmRsZVVwbG9hZCA9IGFzeW5jIChlOiBSZWFjdC5Gb3JtRXZlbnQpID0+IHtcbiAgICBlLnByZXZlbnREZWZhdWx0KCk7XG4gICAgaWYgKCF1c2VyKSByZXR1cm47XG5cbiAgICBpZiAoIXRpdGxlIHx8ICFjb3Vyc2VDb2RlIHx8ICFjb3Vyc2VOYW1lIHx8ICFjb2xsZWdlIHx8ICFkZXBhcnRtZW50IHx8ICF5ZWFyIHx8ICFwYXBlclR5cGUpIHtcbiAgICAgIHRvYXN0LmVycm9yKCdQbGVhc2UgZmlsbCBpbiBhbGwgcmVxdWlyZWQgZmllbGRzJyk7XG4gICAgICByZXR1cm47XG4gICAgfVxuXG4gICAgdHJ5IHtcbiAgICAgIHNldFN1Ym1pdHRpbmcodHJ1ZSk7XG5cbiAgICAgIGxldCBmaWxlS2V5ID0gJyc7XG4gICAgICBsZXQgc29sdXRpb25LZXkgPSAnJztcblxuICAgICAgLy8gVXBsb2FkIHBhcGVyIGZpbGVcbiAgICAgIGlmIChwYXBlckZpbGUpIHtcbiAgICAgICAgY29uc3Qgb2JqZWN0S2V5ID0gYCR7Y291cnNlQ29kZX1fJHtwYXBlclR5cGV9XyR7eWVhcn1fJHtEYXRlLm5vdygpfS5wZGZgO1xuICAgICAgICB0cnkge1xuICAgICAgICAgIGF3YWl0IHVwbG9hZEZpbGVPYmplY3QoJ3BhcGVycycsIG9iamVjdEtleSwgcGFwZXJGaWxlKTtcbiAgICAgICAgICBmaWxlS2V5ID0gb2JqZWN0S2V5O1xuICAgICAgICB9IGNhdGNoIChlcnIpIHtcbiAgICAgICAgICBjb25zb2xlLmVycm9yKCdGaWxlIHVwbG9hZCBmYWlsZWQ6JywgZXJyKTtcbiAgICAgICAgICB0b2FzdC5lcnJvcignRmlsZSB1cGxvYWQgZmFpbGVkJyk7XG4gICAgICAgICAgcmV0dXJuO1xuICAgICAgICB9XG4gICAgICB9XG5cbiAgICAgIC8vIFVwbG9hZCBzb2x1dGlvbiBmaWxlXG4gICAgICBpZiAoc29sdXRpb25GaWxlKSB7XG4gICAgICAgIGNvbnN0IHNvbEtleSA9IGBzb2x1dGlvbnMvJHtjb3Vyc2VDb2RlfV8ke3BhcGVyVHlwZX1fJHt5ZWFyfV9zb2xfJHtEYXRlLm5vdygpfS5wZGZgO1xuICAgICAgICB0cnkge1xuICAgICAgICAgIGF3YWl0IHVwbG9hZEZpbGVPYmplY3QoJ3BhcGVycycsIHNvbEtleSwgc29sdXRpb25GaWxlKTtcbiAgICAgICAgICBzb2x1dGlvbktleSA9IHNvbEtleTtcbiAgICAgICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICAgICAgY29uc29sZS5lcnJvcignU29sdXRpb24gdXBsb2FkIGZhaWxlZDonLCBlcnIpO1xuICAgICAgICB9XG4gICAgICB9XG5cbiAgICAgIC8vIENyZWF0ZSBwYXBlciByZWNvcmRcbiAgICAgIGF3YWl0IGNyZWF0ZVBhcGVyKHtcbiAgICAgICAgdGl0bGUsXG4gICAgICAgIGNvdXJzZV9jb2RlOiBjb3Vyc2VDb2RlLnRvVXBwZXJDYXNlKCksXG4gICAgICAgIGNvdXJzZV9uYW1lOiBjb3Vyc2VOYW1lLFxuICAgICAgICBjb2xsZWdlLFxuICAgICAgICBkZXBhcnRtZW50LFxuICAgICAgICB5ZWFyOiBwYXJzZUludCh5ZWFyKSxcbiAgICAgICAgcGFwZXJfdHlwZTogcGFwZXJUeXBlLFxuICAgICAgICBsZWN0dXJlcjogbGVjdHVyZXIgfHwgdW5kZWZpbmVkLFxuICAgICAgICBkZXNjcmlwdGlvbjogZGVzY3JpcHRpb24gfHwgdW5kZWZpbmVkLFxuICAgICAgICBmaWxlX2tleTogZmlsZUtleSB8fCB1bmRlZmluZWQsXG4gICAgICAgIHNvbHV0aW9uX2tleTogc29sdXRpb25LZXkgfHwgdW5kZWZpbmVkLFxuICAgICAgICB2ZXJpZmljYXRpb25fc3RhdHVzOiBpbmZlclZlcmlmaWNhdGlvblN0YXR1cygpLFxuICAgICAgICBkb3dubG9hZF9jb3VudDogMCxcbiAgICAgICAgcmVwb3J0X2NvdW50OiAwLFxuICAgICAgICBpc19oaWRkZW46IGZhbHNlLFxuICAgICAgfSk7XG5cbiAgICAgIHNldFN1Y2Nlc3ModHJ1ZSk7XG4gICAgICB0b2FzdC5zdWNjZXNzKCdQYXBlciB1cGxvYWRlZCBzdWNjZXNzZnVsbHkhJyk7XG4gICAgfSBjYXRjaCAoZXJyKSB7XG4gICAgICBjb25zb2xlLmVycm9yKCdVcGxvYWQgZmFpbGVkOicsIGVycik7XG4gICAgICB0b2FzdC5lcnJvcignRmFpbGVkIHRvIHVwbG9hZCBwYXBlcicpO1xuICAgIH0gZmluYWxseSB7XG4gICAgICBzZXRTdWJtaXR0aW5nKGZhbHNlKTtcbiAgICB9XG4gIH07XG5cbiAgaWYgKGxvYWRpbmcpIHtcbiAgICByZXR1cm4gKFxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJtaW4taC1zY3JlZW4gZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXJcIj5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhbmltYXRlLXNwaW4gcm91bmRlZC1mdWxsIGgtOCB3LTggYm9yZGVyLWItMiBib3JkZXItWyNGMDhBNURdXCIgLz5cbiAgICAgIDwvZGl2PlxuICAgICk7XG4gIH1cblxuICBpZiAoIXVzZXIpIHtcbiAgICByZXR1cm4gKFxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJtYXgtdy0yeGwgbXgtYXV0byBweC00IHB5LTE2IHRleHQtY2VudGVyXCI+XG4gICAgICAgIDxpbWdcbiAgICAgICAgICBzcmM9XCIvdXBsb2FkLXBsYWNlaG9sZGVyLnN2Z1wiXG4gICAgICAgICAgYWx0PVwiVXBsb2FkXCJcbiAgICAgICAgICBjbGFzc05hbWU9XCJ3LTQ4IGgtNDggbXgtYXV0byBtYi02IHJvdW5kZWQtbGcgb3BhY2l0eS04MFwiXG4gICAgICAgIC8+XG4gICAgICAgIDxoMiBjbGFzc05hbWU9XCJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1bIzM0M0E0MF0gZGFyazp0ZXh0LXdoaXRlIG1iLTRcIj5TaWduIEluIFJlcXVpcmVkPC9oMj5cbiAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDAgbWItNlwiPlxuICAgICAgICAgIFlvdSBuZWVkIHRvIHNpZ24gaW4gdG8gdXBsb2FkIHBhcGVycyBhbmQgY29udHJpYnV0ZSB0byB0aGUgY29tbXVuaXR5LlxuICAgICAgICA8L3A+XG4gICAgICAgIDxCdXR0b25cbiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBhdXRoQXBpLmxvZ2luKCcvdXBsb2FkJyl9XG4gICAgICAgICAgY2xhc3NOYW1lPVwiYmctWyNGMDhBNURdIGhvdmVyOmJnLVsjZTA3YTRkXSB0ZXh0LXdoaXRlXCJcbiAgICAgICAgPlxuICAgICAgICAgIFNpZ24gSW4gdG8gVXBsb2FkXG4gICAgICAgIDwvQnV0dG9uPlxuICAgICAgPC9kaXY+XG4gICAgKTtcbiAgfVxuXG4gIGlmIChzdWNjZXNzKSB7XG4gICAgcmV0dXJuIChcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWF4LXctMnhsIG14LWF1dG8gcHgtNCBweS0xNiB0ZXh0LWNlbnRlclwiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctMjAgaC0yMCByb3VuZGVkLWZ1bGwgYmctZ3JlZW4tMTAwIGRhcms6YmctZ3JlZW4tOTAwLzMwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIG14LWF1dG8gbWItNlwiPlxuICAgICAgICAgIDxDaGVja0NpcmNsZSBjbGFzc05hbWU9XCJoLTEwIHctMTAgdGV4dC1ncmVlbi02MDBcIiAvPlxuICAgICAgICA8L2Rpdj5cbiAgICAgICAgPGgyIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LVsjMzQzQTQwXSBkYXJrOnRleHQtd2hpdGUgbWItNFwiPlVwbG9hZCBTdWNjZXNzZnVsITwvaDI+XG4gICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtZ3JheS01MDAgZGFyazp0ZXh0LWdyYXktNDAwIG1iLTZcIj5cbiAgICAgICAgICBZb3VyIHBhcGVyIGhhcyBiZWVuIHN1Ym1pdHRlZCB3aXRoIGEge2luZmVyVmVyaWZpY2F0aW9uU3RhdHVzKCl9IHZlcmlmaWNhdGlvbiBzdGF0dXMuIFRoYW5rIHlvdSBmb3IgY29udHJpYnV0aW5nIVxuICAgICAgICA8L3A+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBnYXAtMyBqdXN0aWZ5LWNlbnRlclwiPlxuICAgICAgICAgIDxCdXR0b24gb25DbGljaz17KCkgPT4geyBzZXRTdWNjZXNzKGZhbHNlKTsgc2V0VGl0bGUoJycpOyBzZXRDb3Vyc2VDb2RlKCcnKTsgc2V0Q291cnNlTmFtZSgnJyk7IHNldENvbGxlZ2UoJycpOyBzZXREZXBhcnRtZW50KCcnKTsgc2V0WWVhcignJyk7IHNldFBhcGVyVHlwZSgnJyk7IHNldExlY3R1cmVyKCcnKTsgc2V0RGVzY3JpcHRpb24oJycpOyBzZXRQYXBlckZpbGUobnVsbCk7IHNldFNvbHV0aW9uRmlsZShudWxsKTsgfX0gdmFyaWFudD1cIm91dGxpbmVcIiBjbGFzc05hbWU9XCJkYXJrOmJvcmRlci1ncmF5LTYwMCBkYXJrOnRleHQtZ3JheS0zMDBcIj5cbiAgICAgICAgICAgIFVwbG9hZCBBbm90aGVyXG4gICAgICAgICAgPC9CdXR0b24+XG4gICAgICAgICAgPEJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBuYXZpZ2F0ZSgnL2Rhc2hib2FyZCcpfSBjbGFzc05hbWU9XCJiZy1bI0YwOEE1RF0gaG92ZXI6YmctWyNlMDdhNGRdIHRleHQtd2hpdGVcIj5cbiAgICAgICAgICAgIEdvIHRvIERhc2hib2FyZFxuICAgICAgICAgIDwvQnV0dG9uPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuICAgICk7XG4gIH1cblxuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwibWF4LXctM3hsIG14LWF1dG8gcHgtNCBzbTpweC02IGxnOnB4LTggcHktOFwiPlxuICAgICAgPEJ1dHRvbiB2YXJpYW50PVwiZ2hvc3RcIiBvbkNsaWNrPXsoKSA9PiBuYXZpZ2F0ZSgtMSl9IGNsYXNzTmFtZT1cIm1iLTYgdGV4dC1ncmF5LTUwMCBob3Zlcjp0ZXh0LVsjRjA4QTVEXVwiPlxuICAgICAgICA8QXJyb3dMZWZ0IGNsYXNzTmFtZT1cImgtNCB3LTQgbXItMlwiIC8+XG4gICAgICAgIEJhY2tcbiAgICAgIDwvQnV0dG9uPlxuXG4gICAgICA8Q2FyZCBjbGFzc05hbWU9XCJkYXJrOmJnLVsjM0U0NDRBXSBkYXJrOmJvcmRlci1ncmF5LTcwMFwiPlxuICAgICAgICA8Q2FyZEhlYWRlcj5cbiAgICAgICAgICA8Q2FyZFRpdGxlIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgPFVwbG9hZEljb24gY2xhc3NOYW1lPVwiaC02IHctNiB0ZXh0LVsjRjA4QTVEXVwiIC8+XG4gICAgICAgICAgICBVcGxvYWQgUGFzdCBQYXBlclxuICAgICAgICAgIDwvQ2FyZFRpdGxlPlxuICAgICAgICA8L0NhcmRIZWFkZXI+XG4gICAgICAgIDxDYXJkQ29udGVudD5cbiAgICAgICAgICA8Zm9ybSBvblN1Ym1pdD17aGFuZGxlVXBsb2FkfSBjbGFzc05hbWU9XCJzcGFjZS15LTZcIj5cbiAgICAgICAgICAgIHsvKiBUaXRsZSAqL31cbiAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgIDxMYWJlbCBodG1sRm9yPVwidGl0bGVcIiBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5QYXBlciBUaXRsZSAqPC9MYWJlbD5cbiAgICAgICAgICAgICAgPElucHV0XG4gICAgICAgICAgICAgICAgaWQ9XCJ0aXRsZVwiXG4gICAgICAgICAgICAgICAgdmFsdWU9e3RpdGxlfVxuICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0VGl0bGUoZS50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiZS5nLiwgRGF0YSBTdHJ1Y3R1cmVzIC0gRmluYWwgRXhhbSAyMDI0XCJcbiAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtdC0xIGRhcms6YmctWyMzNDNBNDBdIGRhcms6Ym9yZGVyLWdyYXktNjAwXCJcbiAgICAgICAgICAgICAgICByZXF1aXJlZFxuICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgIHsvKiBDb3Vyc2UgSW5mbyAqL31cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMSBzbTpncmlkLWNvbHMtMiBnYXAtNFwiPlxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBodG1sRm9yPVwiY291cnNlQ29kZVwiIGNsYXNzTmFtZT1cImRhcms6dGV4dC1ncmF5LTMwMFwiPkNvdXJzZSBDb2RlICo8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxJbnB1dFxuICAgICAgICAgICAgICAgICAgaWQ9XCJjb3Vyc2VDb2RlXCJcbiAgICAgICAgICAgICAgICAgIHZhbHVlPXtjb3Vyc2VDb2RlfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRDb3Vyc2VDb2RlKGUudGFyZ2V0LnZhbHVlKX1cbiAgICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiZS5nLiwgQ1NDMjEwMVwiXG4gICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJtdC0xIGRhcms6YmctWyMzNDNBNDBdIGRhcms6Ym9yZGVyLWdyYXktNjAwXCJcbiAgICAgICAgICAgICAgICAgIHJlcXVpcmVkXG4gICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgICAgPExhYmVsIGh0bWxGb3I9XCJjb3Vyc2VOYW1lXCIgY2xhc3NOYW1lPVwiZGFyazp0ZXh0LWdyYXktMzAwXCI+Q291cnNlIE5hbWUgKjwvTGFiZWw+XG4gICAgICAgICAgICAgICAgPElucHV0XG4gICAgICAgICAgICAgICAgICBpZD1cImNvdXJzZU5hbWVcIlxuICAgICAgICAgICAgICAgICAgdmFsdWU9e2NvdXJzZU5hbWV9XG4gICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldENvdXJzZU5hbWUoZS50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9XCJlLmcuLCBEYXRhIFN0cnVjdHVyZXMgYW5kIEFsZ29yaXRobXNcIlxuICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMSBkYXJrOmJnLVsjMzQzQTQwXSBkYXJrOmJvcmRlci1ncmF5LTYwMFwiXG4gICAgICAgICAgICAgICAgICByZXF1aXJlZFxuICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgIHttYXRjaGluZ1N1Z2dlc3Rpb25zLmxlbmd0aCA+IDAgJiYgKFxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJvdW5kZWQtbGcgYm9yZGVyIGJvcmRlci1ncmF5LTIwMCBiZy1ncmF5LTUwIHAtNCBkYXJrOmJvcmRlci1ncmF5LTcwMCBkYXJrOmJnLVsjMzQzQTQwXVwiPlxuICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cIm1iLTMgdGV4dC1zbSBmb250LW1lZGl1bSB0ZXh0LVsjMzQzQTQwXSBkYXJrOnRleHQtd2hpdGVcIj5BdXRvLXN1Z2dlc3RlZCBjb3Vyc2UgZGV0YWlsczwvcD5cbiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC13cmFwIGdhcC0yXCI+XG4gICAgICAgICAgICAgICAgICB7bWF0Y2hpbmdTdWdnZXN0aW9ucy5tYXAoKHBhcGVyKSA9PiAoXG4gICAgICAgICAgICAgICAgICAgIDxidXR0b25cbiAgICAgICAgICAgICAgICAgICAgICBrZXk9e3BhcGVyLmlkfVxuICAgICAgICAgICAgICAgICAgICAgIHR5cGU9XCJidXR0b25cIlxuICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IGFwcGx5U3VnZ2VzdGlvbihwYXBlcil9XG4gICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwicm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItWyNGMDhBNURdLzQwIHB4LTMgcHktMSB0ZXh0LXhzIHRleHQtWyMzNDNBNDBdIHRyYW5zaXRpb24tY29sb3JzIGhvdmVyOmJnLVsjRjA4QTVEXSBob3Zlcjp0ZXh0LXdoaXRlIGRhcms6dGV4dC13aGl0ZVwiXG4gICAgICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgICAgICB7cGFwZXIuY291cnNlX2NvZGV9IMK3IHtwYXBlci5jb3Vyc2VfbmFtZX1cbiAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+XG4gICAgICAgICAgICAgICAgICApKX1cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICApfVxuXG4gICAgICAgICAgICB7LyogQ29sbGVnZSAmIERlcGFydG1lbnQgKi99XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTEgc206Z3JpZC1jb2xzLTIgZ2FwLTRcIj5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgY2xhc3NOYW1lPVwiZGFyazp0ZXh0LWdyYXktMzAwXCI+Q29sbGVnZSAqPC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8U2VsZWN0IHZhbHVlPXtjb2xsZWdlfSBvblZhbHVlQ2hhbmdlPXsodmFsKSA9PiB7IHNldENvbGxlZ2UodmFsKTsgc2V0RGVwYXJ0bWVudCgnJyk7IH19PlxuICAgICAgICAgICAgICAgICAgPFNlbGVjdFRyaWdnZXIgY2xhc3NOYW1lPVwibXQtMSBiZy13aGl0ZSBkYXJrOmJnLVsjMzQzQTQwXSBkYXJrOmJvcmRlci1ncmF5LTYwMFwiPlxuICAgICAgICAgICAgICAgICAgICA8U2VsZWN0VmFsdWUgcGxhY2Vob2xkZXI9XCJTZWxlY3QgQ29sbGVnZVwiIC8+XG4gICAgICAgICAgICAgICAgICA8L1NlbGVjdFRyaWdnZXI+XG4gICAgICAgICAgICAgICAgICA8U2VsZWN0Q29udGVudCBjbGFzc05hbWU9XCJiZy13aGl0ZSB0ZXh0LVsjMzQzQTQwXSBkYXJrOmJnLVsjMzQzQTQwXSBkYXJrOmJvcmRlci1ncmF5LTYwMCBkYXJrOnRleHQtd2hpdGVcIj5cbiAgICAgICAgICAgICAgICAgICAge0NPTExFR0VTLm1hcCgoYykgPT4gKFxuICAgICAgICAgICAgICAgICAgICAgIDxTZWxlY3RJdGVtIGtleT17Y30gdmFsdWU9e2N9PntjLnJlcGxhY2UoJ0NvbGxlZ2Ugb2YgJywgJycpfTwvU2VsZWN0SXRlbT5cbiAgICAgICAgICAgICAgICAgICAgKSl9XG4gICAgICAgICAgICAgICAgICA8L1NlbGVjdENvbnRlbnQ+XG4gICAgICAgICAgICAgICAgPC9TZWxlY3Q+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5EZXBhcnRtZW50ICo8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxTZWxlY3QgdmFsdWU9e2RlcGFydG1lbnR9IG9uVmFsdWVDaGFuZ2U9e3NldERlcGFydG1lbnR9IGRpc2FibGVkPXshY29sbGVnZX0+XG4gICAgICAgICAgICAgICAgICA8U2VsZWN0VHJpZ2dlciBjbGFzc05hbWU9XCJtdC0xIGJnLXdoaXRlIGRhcms6YmctWyMzNDNBNDBdIGRhcms6Ym9yZGVyLWdyYXktNjAwXCI+XG4gICAgICAgICAgICAgICAgICAgIDxTZWxlY3RWYWx1ZSBwbGFjZWhvbGRlcj1cIlNlbGVjdCBEZXBhcnRtZW50XCIgLz5cbiAgICAgICAgICAgICAgICAgIDwvU2VsZWN0VHJpZ2dlcj5cbiAgICAgICAgICAgICAgICAgIDxTZWxlY3RDb250ZW50IGNsYXNzTmFtZT1cImJnLXdoaXRlIHRleHQtWyMzNDNBNDBdIGRhcms6YmctWyMzNDNBNDBdIGRhcms6Ym9yZGVyLWdyYXktNjAwIGRhcms6dGV4dC13aGl0ZVwiPlxuICAgICAgICAgICAgICAgICAgICB7KERFUEFSVE1FTlRTW2NvbGxlZ2VdIHx8IFtdKS5tYXAoKGQpID0+IChcbiAgICAgICAgICAgICAgICAgICAgICA8U2VsZWN0SXRlbSBrZXk9e2R9IHZhbHVlPXtkfT57ZH08L1NlbGVjdEl0ZW0+XG4gICAgICAgICAgICAgICAgICAgICkpfVxuICAgICAgICAgICAgICAgICAgPC9TZWxlY3RDb250ZW50PlxuICAgICAgICAgICAgICAgIDwvU2VsZWN0PlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICB7LyogWWVhciAmIFR5cGUgKi99XG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImdyaWQgZ3JpZC1jb2xzLTEgc206Z3JpZC1jb2xzLTIgZ2FwLTRcIj5cbiAgICAgICAgICAgICAgPGRpdj5cbiAgICAgICAgICAgICAgICA8TGFiZWwgY2xhc3NOYW1lPVwiZGFyazp0ZXh0LWdyYXktMzAwXCI+QWNhZGVtaWMgWWVhciAqPC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8U2VsZWN0IHZhbHVlPXt5ZWFyfSBvblZhbHVlQ2hhbmdlPXtzZXRZZWFyfT5cbiAgICAgICAgICAgICAgICAgIDxTZWxlY3RUcmlnZ2VyIGNsYXNzTmFtZT1cIm10LTEgYmctd2hpdGUgZGFyazpiZy1bIzM0M0E0MF0gZGFyazpib3JkZXItZ3JheS02MDBcIj5cbiAgICAgICAgICAgICAgICAgICAgPFNlbGVjdFZhbHVlIHBsYWNlaG9sZGVyPVwiU2VsZWN0IFllYXJcIiAvPlxuICAgICAgICAgICAgICAgICAgPC9TZWxlY3RUcmlnZ2VyPlxuICAgICAgICAgICAgICAgICAgPFNlbGVjdENvbnRlbnQgY2xhc3NOYW1lPVwiYmctd2hpdGUgdGV4dC1bIzM0M0E0MF0gZGFyazpiZy1bIzM0M0E0MF0gZGFyazpib3JkZXItZ3JheS02MDAgZGFyazp0ZXh0LXdoaXRlXCI+XG4gICAgICAgICAgICAgICAgICAgIHtZRUFSUy5tYXAoKHkpID0+IChcbiAgICAgICAgICAgICAgICAgICAgICA8U2VsZWN0SXRlbSBrZXk9e3l9IHZhbHVlPXtTdHJpbmcoeSl9Pnt5fTwvU2VsZWN0SXRlbT5cbiAgICAgICAgICAgICAgICAgICAgKSl9XG4gICAgICAgICAgICAgICAgICA8L1NlbGVjdENvbnRlbnQ+XG4gICAgICAgICAgICAgICAgPC9TZWxlY3Q+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5QYXBlciBUeXBlICo8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxTZWxlY3QgdmFsdWU9e3BhcGVyVHlwZX0gb25WYWx1ZUNoYW5nZT17c2V0UGFwZXJUeXBlfT5cbiAgICAgICAgICAgICAgICAgIDxTZWxlY3RUcmlnZ2VyIGNsYXNzTmFtZT1cIm10LTEgYmctd2hpdGUgZGFyazpiZy1bIzM0M0E0MF0gZGFyazpib3JkZXItZ3JheS02MDBcIj5cbiAgICAgICAgICAgICAgICAgICAgPFNlbGVjdFZhbHVlIHBsYWNlaG9sZGVyPVwiU2VsZWN0IFR5cGVcIiAvPlxuICAgICAgICAgICAgICAgICAgPC9TZWxlY3RUcmlnZ2VyPlxuICAgICAgICAgICAgICAgICAgPFNlbGVjdENvbnRlbnQgY2xhc3NOYW1lPVwiYmctd2hpdGUgdGV4dC1bIzM0M0E0MF0gZGFyazpiZy1bIzM0M0E0MF0gZGFyazpib3JkZXItZ3JheS02MDAgZGFyazp0ZXh0LXdoaXRlXCI+XG4gICAgICAgICAgICAgICAgICAgIHtQQVBFUl9UWVBFUy5tYXAoKHQpID0+IChcbiAgICAgICAgICAgICAgICAgICAgICA8U2VsZWN0SXRlbSBrZXk9e3R9IHZhbHVlPXt0fT57dH08L1NlbGVjdEl0ZW0+XG4gICAgICAgICAgICAgICAgICAgICkpfVxuICAgICAgICAgICAgICAgICAgPC9TZWxlY3RDb250ZW50PlxuICAgICAgICAgICAgICAgIDwvU2VsZWN0PlxuICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDwvZGl2PlxuXG4gICAgICAgICAgICB7LyogTGVjdHVyZXIgKi99XG4gICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICA8TGFiZWwgaHRtbEZvcj1cImxlY3R1cmVyXCIgY2xhc3NOYW1lPVwiZGFyazp0ZXh0LWdyYXktMzAwXCI+TGVjdHVyZXIgKE9wdGlvbmFsKTwvTGFiZWw+XG4gICAgICAgICAgICAgIDxJbnB1dFxuICAgICAgICAgICAgICAgIGlkPVwibGVjdHVyZXJcIlxuICAgICAgICAgICAgICAgIHZhbHVlPXtsZWN0dXJlcn1cbiAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldExlY3R1cmVyKGUudGFyZ2V0LnZhbHVlKX1cbiAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj1cImUuZy4sIERyLiBKZWFuIEJhcHRpc3RlIFV3aW1hbmFcIlxuICAgICAgICAgICAgICAgIGNsYXNzTmFtZT1cIm10LTEgZGFyazpiZy1bIzM0M0E0MF0gZGFyazpib3JkZXItZ3JheS02MDBcIlxuICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICAgIHsvKiBEZXNjcmlwdGlvbiAqL31cbiAgICAgICAgICAgIDxkaXY+XG4gICAgICAgICAgICAgIDxMYWJlbCBodG1sRm9yPVwiZGVzY3JpcHRpb25cIiBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5EZXNjcmlwdGlvbiAoT3B0aW9uYWwpPC9MYWJlbD5cbiAgICAgICAgICAgICAgPFRleHRhcmVhXG4gICAgICAgICAgICAgICAgaWQ9XCJkZXNjcmlwdGlvblwiXG4gICAgICAgICAgICAgICAgdmFsdWU9e2Rlc2NyaXB0aW9ufVxuICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0RGVzY3JpcHRpb24oZS50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiQnJpZWYgZGVzY3JpcHRpb24gb2YgdGhlIHBhcGVyIGNvbnRlbnQuLi5cIlxuICAgICAgICAgICAgICAgIHJvd3M9ezN9XG4gICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwibXQtMSBkYXJrOmJnLVsjMzQzQTQwXSBkYXJrOmJvcmRlci1ncmF5LTYwMFwiXG4gICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJyb3VuZGVkLWxnIGJvcmRlciBib3JkZXItZGFzaGVkIGJvcmRlci1bI0YwOEE1RF0vNDAgYmctWyNGRkY4RjNdIHAtNCBkYXJrOmJnLVsjMmYyNjIwXVwiPlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtWyMzNDNBNDBdIGRhcms6dGV4dC13aGl0ZVwiPlVwbG9hZCBzdGF0dXMgcHJldmlldzwvcD5cbiAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPVwibXQtMSB0ZXh0LXNtIHRleHQtZ3JheS02MDAgZGFyazp0ZXh0LWdyYXktMzAwXCI+XG4gICAgICAgICAgICAgICAgVGhpcyB1cGxvYWQgd2lsbCBiZSBtYXJrZWQgYXMgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZFwiPntpbmZlclZlcmlmaWNhdGlvblN0YXR1cygpfTwvc3Bhbj5cbiAgICAgICAgICAgICAgICB7cHJvZmlsZSA/IGAgYmFzZWQgb24geW91ciByb2xlIFwiJHtwcm9maWxlLnJvbGV9XCIgYW5kIHRydXN0IHNjb3JlICR7cHJvZmlsZS50cnVzdF9zY29yZSB8fCAwfS5gIDogJy4nfVxuICAgICAgICAgICAgICA8L3A+XG4gICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgey8qIEZpbGUgVXBsb2FkcyAqL31cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZ3JpZCBncmlkLWNvbHMtMSBzbTpncmlkLWNvbHMtMiBnYXAtNFwiPlxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5QYXBlciBGaWxlIChQREYpPC9MYWJlbD5cbiAgICAgICAgICAgICAgICA8ZGl2XG4gICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BtdC0xIGJvcmRlci0yIGJvcmRlci1kYXNoZWQgcm91bmRlZC1sZyBwLTQgdGV4dC1jZW50ZXIgdHJhbnNpdGlvbi1jb2xvcnMgY3Vyc29yLXBvaW50ZXIgJHtcbiAgICAgICAgICAgICAgICAgICAgcGFwZXJEcmFnQWN0aXZlXG4gICAgICAgICAgICAgICAgICAgICAgPyAnYm9yZGVyLVsjRjA4QTVEXSBiZy1bI0ZGRjRFNl0gZGFyazpiZy1bIzNiMmUxZl0nXG4gICAgICAgICAgICAgICAgICAgICAgOiAnYm9yZGVyLWdyYXktMzAwIGRhcms6Ym9yZGVyLWdyYXktNjAwIGhvdmVyOmJvcmRlci1bI0YwOEE1RF0nXG4gICAgICAgICAgICAgICAgICB9YH1cbiAgICAgICAgICAgICAgICAgIG9uRHJhZ092ZXI9eyhlKSA9PiBoYW5kbGVEcmFnT3ZlcihlLCBzZXRQYXBlckRyYWdBY3RpdmUpfVxuICAgICAgICAgICAgICAgICAgb25EcmFnRW50ZXI9eyhlKSA9PiBoYW5kbGVEcmFnT3ZlcihlLCBzZXRQYXBlckRyYWdBY3RpdmUpfVxuICAgICAgICAgICAgICAgICAgb25EcmFnTGVhdmU9eyhlKSA9PiBoYW5kbGVEcmFnTGVhdmUoZSwgc2V0UGFwZXJEcmFnQWN0aXZlKX1cbiAgICAgICAgICAgICAgICAgIG9uRHJvcD17KGUpID0+IGhhbmRsZURyb3BGaWxlKGUsIHNldFBhcGVyRmlsZSwgc2V0UGFwZXJEcmFnQWN0aXZlKX1cbiAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICA8aW5wdXRcbiAgICAgICAgICAgICAgICAgICAgdHlwZT1cImZpbGVcIlxuICAgICAgICAgICAgICAgICAgICBhY2NlcHQ9XCIucGRmXCJcbiAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRQYXBlckZpbGUoZS50YXJnZXQuZmlsZXM/LlswXSB8fCBudWxsKX1cbiAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPVwiaGlkZGVuXCJcbiAgICAgICAgICAgICAgICAgICAgaWQ9XCJwYXBlckZpbGVcIlxuICAgICAgICAgICAgICAgICAgLz5cbiAgICAgICAgICAgICAgICAgIDxsYWJlbCBodG1sRm9yPVwicGFwZXJGaWxlXCIgY2xhc3NOYW1lPVwiY3Vyc29yLXBvaW50ZXJcIj5cbiAgICAgICAgICAgICAgICAgICAgPEZpbGVUZXh0IGNsYXNzTmFtZT1cImgtOCB3LTggbXgtYXV0byBtYi0yIHRleHQtZ3JheS00MDBcIiAvPlxuICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtZ3JheS01MDAgZGFyazp0ZXh0LWdyYXktNDAwXCI+XG4gICAgICAgICAgICAgICAgICAgICAge3BhcGVyRmlsZSA/IHBhcGVyRmlsZS5uYW1lIDogJ0NsaWNrIHRvIHVwbG9hZCBwYXBlcid9XG4gICAgICAgICAgICAgICAgICAgIDwvcD5cbiAgICAgICAgICAgICAgICAgIDwvbGFiZWw+XG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgIDwvZGl2PlxuICAgICAgICAgICAgICA8ZGl2PlxuICAgICAgICAgICAgICAgIDxMYWJlbCBjbGFzc05hbWU9XCJkYXJrOnRleHQtZ3JheS0zMDBcIj5Tb2x1dGlvbiBGaWxlIChPcHRpb25hbCk8L0xhYmVsPlxuICAgICAgICAgICAgICAgIDxkaXZcbiAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YG10LTEgYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCByb3VuZGVkLWxnIHAtNCB0ZXh0LWNlbnRlciB0cmFuc2l0aW9uLWNvbG9ycyBjdXJzb3ItcG9pbnRlciAke1xuICAgICAgICAgICAgICAgICAgICBzb2x1dGlvbkRyYWdBY3RpdmVcbiAgICAgICAgICAgICAgICAgICAgICA/ICdib3JkZXItWyNGMDhBNURdIGJnLVsjRkZGNEU2XSBkYXJrOmJnLVsjM2IyZTFmXSdcbiAgICAgICAgICAgICAgICAgICAgICA6ICdib3JkZXItZ3JheS0zMDAgZGFyazpib3JkZXItZ3JheS02MDAgaG92ZXI6Ym9yZGVyLVsjRjA4QTVEXSdcbiAgICAgICAgICAgICAgICAgIH1gfVxuICAgICAgICAgICAgICAgICAgb25EcmFnT3Zlcj17KGUpID0+IGhhbmRsZURyYWdPdmVyKGUsIHNldFNvbHV0aW9uRHJhZ0FjdGl2ZSl9XG4gICAgICAgICAgICAgICAgICBvbkRyYWdFbnRlcj17KGUpID0+IGhhbmRsZURyYWdPdmVyKGUsIHNldFNvbHV0aW9uRHJhZ0FjdGl2ZSl9XG4gICAgICAgICAgICAgICAgICBvbkRyYWdMZWF2ZT17KGUpID0+IGhhbmRsZURyYWdMZWF2ZShlLCBzZXRTb2x1dGlvbkRyYWdBY3RpdmUpfVxuICAgICAgICAgICAgICAgICAgb25Ecm9wPXsoZSkgPT4gaGFuZGxlRHJvcEZpbGUoZSwgc2V0U29sdXRpb25GaWxlLCBzZXRTb2x1dGlvbkRyYWdBY3RpdmUpfVxuICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgICAgICB0eXBlPVwiZmlsZVwiXG4gICAgICAgICAgICAgICAgICAgIGFjY2VwdD1cIi5wZGZcIlxuICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17KGUpID0+IHNldFNvbHV0aW9uRmlsZShlLnRhcmdldC5maWxlcz8uWzBdIHx8IG51bGwpfVxuICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9XCJoaWRkZW5cIlxuICAgICAgICAgICAgICAgICAgICBpZD1cInNvbHV0aW9uRmlsZVwiXG4gICAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgICAgPGxhYmVsIGh0bWxGb3I9XCJzb2x1dGlvbkZpbGVcIiBjbGFzc05hbWU9XCJjdXJzb3ItcG9pbnRlclwiPlxuICAgICAgICAgICAgICAgICAgICA8RmlsZVRleHQgY2xhc3NOYW1lPVwiaC04IHctOCBteC1hdXRvIG1iLTIgdGV4dC1ncmF5LTQwMFwiIC8+XG4gICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTUwMCBkYXJrOnRleHQtZ3JheS00MDBcIj5cbiAgICAgICAgICAgICAgICAgICAgICB7c29sdXRpb25GaWxlID8gc29sdXRpb25GaWxlLm5hbWUgOiAnQ2xpY2sgdG8gdXBsb2FkIHNvbHV0aW9uJ31cbiAgICAgICAgICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgICAgICAgPC9sYWJlbD5cbiAgICAgICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICA8L2Rpdj5cblxuICAgICAgICAgICAgPEJ1dHRvblxuICAgICAgICAgICAgICB0eXBlPVwic3VibWl0XCJcbiAgICAgICAgICAgICAgZGlzYWJsZWQ9e3N1Ym1pdHRpbmd9XG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctZnVsbCBiZy1bI0YwOEE1RF0gaG92ZXI6YmctWyNlMDdhNGRdIHRleHQtd2hpdGUgaC0xMiB0ZXh0LWxnXCJcbiAgICAgICAgICAgID5cbiAgICAgICAgICAgICAge3N1Ym1pdHRpbmcgPyAoXG4gICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMlwiPlxuICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhbmltYXRlLXNwaW4gcm91bmRlZC1mdWxsIGgtNSB3LTUgYm9yZGVyLWItMiBib3JkZXItd2hpdGVcIiAvPlxuICAgICAgICAgICAgICAgICAgVXBsb2FkaW5nLi4uXG4gICAgICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgICAgICkgOiAoXG4gICAgICAgICAgICAgICAgPD5cbiAgICAgICAgICAgICAgICAgIDxVcGxvYWRJY29uIGNsYXNzTmFtZT1cImgtNSB3LTUgbXItMlwiIC8+XG4gICAgICAgICAgICAgICAgICBVcGxvYWQgUGFwZXJcbiAgICAgICAgICAgICAgICA8Lz5cbiAgICAgICAgICAgICAgKX1cbiAgICAgICAgICAgIDwvQnV0dG9uPlxuICAgICAgICAgIDwvZm9ybT5cbiAgICAgICAgPC9DYXJkQ29udGVudD5cbiAgICAgIDwvQ2FyZD5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJuYW1lcyI6WyJ1c2VTdGF0ZSIsInVzZUVmZmVjdCIsInVzZU5hdmlnYXRlIiwiY3JlYXRlUGFwZXIiLCJmZXRjaEFsbFBhcGVycyIsImZldGNoVXNlclByb2ZpbGUiLCJ1cGxvYWRGaWxlT2JqZWN0IiwiYXV0aEFwaSIsInVzZUF1dGgiLCJCdXR0b24iLCJJbnB1dCIsIlRleHRhcmVhIiwiQ2FyZCIsIkNhcmRDb250ZW50IiwiQ2FyZEhlYWRlciIsIkNhcmRUaXRsZSIsIlNlbGVjdCIsIlNlbGVjdENvbnRlbnQiLCJTZWxlY3RJdGVtIiwiU2VsZWN0VHJpZ2dlciIsIlNlbGVjdFZhbHVlIiwiTGFiZWwiLCJVcGxvYWQiLCJVcGxvYWRJY29uIiwiRmlsZVRleHQiLCJBcnJvd0xlZnQiLCJDaGVja0NpcmNsZSIsInRvYXN0IiwiQ09MTEVHRVMiLCJQQVBFUl9UWVBFUyIsIkRFUEFSVE1FTlRTIiwiWUVBUlMiLCJVcGxvYWRQYWdlIiwibmF2aWdhdGUiLCJ1c2VyIiwibG9hZGluZyIsInByb2ZpbGUiLCJzZXRQcm9maWxlIiwic3VibWl0dGluZyIsInNldFN1Ym1pdHRpbmciLCJzdWNjZXNzIiwic2V0U3VjY2VzcyIsInBhcGVyQ2F0YWxvZyIsInNldFBhcGVyQ2F0YWxvZyIsInRpdGxlIiwic2V0VGl0bGUiLCJjb3Vyc2VDb2RlIiwic2V0Q291cnNlQ29kZSIsImNvdXJzZU5hbWUiLCJzZXRDb3Vyc2VOYW1lIiwiY29sbGVnZSIsInNldENvbGxlZ2UiLCJkZXBhcnRtZW50Iiwic2V0RGVwYXJ0bWVudCIsInllYXIiLCJzZXRZZWFyIiwicGFwZXJUeXBlIiwic2V0UGFwZXJUeXBlIiwibGVjdHVyZXIiLCJzZXRMZWN0dXJlciIsImRlc2NyaXB0aW9uIiwic2V0RGVzY3JpcHRpb24iLCJwYXBlckZpbGUiLCJzZXRQYXBlckZpbGUiLCJzb2x1dGlvbkZpbGUiLCJzZXRTb2x1dGlvbkZpbGUiLCJwYXBlckRyYWdBY3RpdmUiLCJzZXRQYXBlckRyYWdBY3RpdmUiLCJzb2x1dGlvbkRyYWdBY3RpdmUiLCJzZXRTb2x1dGlvbkRyYWdBY3RpdmUiLCJoYW5kbGVEcmFnT3ZlciIsImV2ZW50Iiwic2V0QWN0aXZlIiwicHJldmVudERlZmF1bHQiLCJzdG9wUHJvcGFnYXRpb24iLCJoYW5kbGVEcmFnTGVhdmUiLCJoYW5kbGVEcm9wRmlsZSIsInNldEZpbGUiLCJmaWxlIiwiZGF0YVRyYW5zZmVyIiwiZmlsZXMiLCJsb2FkUHJvZmlsZUFuZFN1Z2dlc3Rpb25zIiwicHJvZmlsZURhdGEiLCJwYXBlckRhdGEiLCJQcm9taXNlIiwiYWxsIiwic29ydCIsImxpbWl0IiwiaXRlbXMiLCJlcnJvciIsImNvbnNvbGUiLCJpbmZlclZlcmlmaWNhdGlvblN0YXR1cyIsImluY2x1ZGVzIiwicm9sZSIsInRydXN0X3Njb3JlIiwibWF0Y2hpbmdTdWdnZXN0aW9ucyIsImZpbHRlciIsInBhcGVyIiwiY291cnNlX2NvZGUiLCJ0b0xvd2VyQ2FzZSIsImNvdXJzZV9uYW1lIiwic2xpY2UiLCJhcHBseVN1Z2dlc3Rpb24iLCJwYXBlcl90eXBlIiwiaGFuZGxlVXBsb2FkIiwiZSIsImZpbGVLZXkiLCJzb2x1dGlvbktleSIsIm9iamVjdEtleSIsIkRhdGUiLCJub3ciLCJlcnIiLCJzb2xLZXkiLCJ0b1VwcGVyQ2FzZSIsInBhcnNlSW50IiwidW5kZWZpbmVkIiwiZmlsZV9rZXkiLCJzb2x1dGlvbl9rZXkiLCJ2ZXJpZmljYXRpb25fc3RhdHVzIiwiZG93bmxvYWRfY291bnQiLCJyZXBvcnRfY291bnQiLCJpc19oaWRkZW4iLCJkaXYiLCJjbGFzc05hbWUiLCJpbWciLCJzcmMiLCJhbHQiLCJoMiIsInAiLCJvbkNsaWNrIiwibG9naW4iLCJ2YXJpYW50IiwiZm9ybSIsIm9uU3VibWl0IiwiaHRtbEZvciIsImlkIiwidmFsdWUiLCJvbkNoYW5nZSIsInRhcmdldCIsInBsYWNlaG9sZGVyIiwicmVxdWlyZWQiLCJsZW5ndGgiLCJtYXAiLCJidXR0b24iLCJ0eXBlIiwib25WYWx1ZUNoYW5nZSIsInZhbCIsImMiLCJyZXBsYWNlIiwiZGlzYWJsZWQiLCJkIiwieSIsIlN0cmluZyIsInQiLCJyb3dzIiwic3BhbiIsIm9uRHJhZ092ZXIiLCJvbkRyYWdFbnRlciIsIm9uRHJhZ0xlYXZlIiwib25Ecm9wIiwiaW5wdXQiLCJhY2NlcHQiLCJsYWJlbCIsIm5hbWUiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFBLFNBQVNBLFFBQVEsRUFBRUMsU0FBUyxRQUF3QixRQUFRO0FBQzVELFNBQVNDLFdBQVcsUUFBUSxtQkFBbUI7QUFDL0MsU0FBU0MsV0FBVyxFQUFFQyxjQUFjLEVBQUVDLGdCQUFnQixFQUFFQyxnQkFBZ0IsUUFBc0MsZ0JBQWdCO0FBQzlILFNBQVNDLE9BQU8sUUFBUSxjQUFjO0FBQ3RDLFNBQVNDLE9BQU8sUUFBUSwwQkFBMEI7QUFDbEQsU0FBU0MsTUFBTSxRQUFRLHlCQUF5QjtBQUNoRCxTQUFTQyxLQUFLLFFBQVEsd0JBQXdCO0FBQzlDLFNBQVNDLFFBQVEsUUFBUSwyQkFBMkI7QUFDcEQsU0FBU0MsSUFBSSxFQUFFQyxXQUFXLEVBQUVDLFVBQVUsRUFBRUMsU0FBUyxRQUFRLHVCQUF1QjtBQUNoRixTQUNFQyxNQUFNLEVBQ05DLGFBQWEsRUFDYkMsVUFBVSxFQUNWQyxhQUFhLEVBQ2JDLFdBQVcsUUFDTix5QkFBeUI7QUFDaEMsU0FBU0MsS0FBSyxRQUFRLHdCQUF3QjtBQUM5QyxTQUFTQyxVQUFVQyxVQUFVLEVBQUVDLFFBQVEsRUFBRUMsU0FBUyxFQUFFQyxXQUFXLFFBQVEsZUFBZTtBQUN0RixTQUFTQyxLQUFLLFFBQVEsU0FBUztBQUUvQixNQUFNQyxXQUFXO0lB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
