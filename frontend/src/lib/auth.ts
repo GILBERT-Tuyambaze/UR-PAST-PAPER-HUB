@@ -185,6 +185,25 @@ class RPApi {
     return token;
   }
 
+  async requestPasswordReset(email: string): Promise<{ message: string; debug_reset_url?: string | null }> {
+    const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/password-reset/request`, {
+      email,
+    });
+
+    return {
+      message: response.data?.message || 'If an account matches that email, a password reset link has been prepared.',
+      debug_reset_url: response.data?.debug_reset_url || null,
+    };
+  }
+
+  async resetPassword(token: string, password: string): Promise<string> {
+    const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/password-reset/confirm`, {
+      token,
+      password,
+    });
+    return response.data?.message || 'Password updated successfully.';
+  }
+
   async completeLoginCallback(): Promise<string> {
     return '/';
   }

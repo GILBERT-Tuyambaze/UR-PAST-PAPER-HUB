@@ -12,13 +12,18 @@ from fastapi.responses import RedirectResponse
 from models.auth import User
 from schemas.auth import (
     FirebaseTokenExchangeRequest,
+    GenericMessageResponse,
     LoginRequest,
+    PasswordResetConfirmRequest,
+    PasswordResetRequest,
+    PasswordResetRequestResponse,
     PlatformTokenExchangeRequest,
     RegisterRequest,
     TokenExchangeResponse,
     UserResponse,
 )
 from services.auth import AuthService
+from services.mailer import send_password_reset_email, should_expose_password_reset_links
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
@@ -106,6 +111,39 @@ async def register_user(payload: RegisterRequest, db: AsyncSession = Depends(get
 
     app_token, _, _ = await auth_service.issue_app_token(user=user)
     return TokenExchangeResponse(token=app_token)
+
+
+@router.post("/password-reset/request", response_model=PasswordResetRequestResponse)
+async def request_password_reset(payload: PasswordResetRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    """Create a password reset token and send a reset email when possible."""
+    auth_service = AuthService(db)
+    reset_result = await auth_service.create_password_reset_token(payload.email)
+    debug_reset_url: Optional[str] = None
+
+    if reset_result:
+        user, raw_token, expires_at = reset_result
+        frontend_url = get_dynamic_frontend_url(request)
+        reset_url = f"{frontend_url}/reset-password?{urlencode({'token': raw_token})}"
+        sent = await send_password_reset_email(user.email, reset_url, expires_at)
+        if not sent and should_expose_password_reset_links():
+            debug_reset_url = reset_url
+
+    return PasswordResetRequestResponse(
+        message="If an account matches that email, a password reset link has been prepared.",
+        debug_reset_url=debug_reset_url,
+    )
+
+
+@router.post("/password-reset/confirm", response_model=GenericMessageResponse)
+async def confirm_password_reset(payload: PasswordResetConfirmRequest, db: AsyncSession = Depends(get_db)):
+    """Consume a password reset token and store a new password."""
+    auth_service = AuthService(db)
+    try:
+        await auth_service.reset_password_with_token(payload.token, payload.password)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    return GenericMessageResponse(message="Password updated successfully. You can now sign in.")
 
 
 @router.post("/token/exchange", response_model=TokenExchangeResponse)

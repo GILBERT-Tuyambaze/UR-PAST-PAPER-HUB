@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Dict
 
@@ -8,11 +9,22 @@ from schemas.auth import UserResponse
 
 router = APIRouter(prefix="/api/v1/admin/settings", tags=["admin-settings"])
 
+SENSITIVE_ENV_TOKENS = (
+    "SECRET",
+    "TOKEN",
+    "PASSWORD",
+    "KEY",
+    "PRIVATE",
+    "DATABASE_URL",
+    "SMTP",
+)
+
 
 class EnvVariable(BaseModel):
     key: str
     value: str
     description: str = ""
+    is_sensitive: bool = False
 
 
 class EnvConfig(BaseModel):
@@ -29,10 +41,9 @@ def get_env_file_path(env_type: str) -> Path:
     base_path = Path(__file__).parent.parent
     if env_type == "backend":
         return base_path / ".env"
-    elif env_type == "frontend":
+    if env_type == "frontend":
         return base_path.parent / "frontend" / ".env"
-    else:
-        raise ValueError("Invalid env_type")
+    raise ValueError("Invalid env_type")
 
 
 def read_env_file(env_type: str) -> Dict[str, str]:
@@ -54,13 +65,50 @@ def read_env_file(env_type: str) -> Dict[str, str]:
 def write_env_file(env_type: str, env_vars: Dict[str, str]):
     """Write to an environment variable file."""
     env_file = get_env_file_path(env_type)
-
-    # Ensure the directory exists
     env_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(env_file, "w", encoding="utf-8") as f:
         for key, value in env_vars.items():
             f.write(f"{key}={value}\n")
+
+
+def is_sensitive_key(key: str) -> bool:
+    normalized = key.upper()
+    return any(token in normalized for token in SENSITIVE_ENV_TOKENS)
+
+
+def mask_sensitive_value(value: str) -> str:
+    if not value:
+        return ""
+    if len(value) <= 8:
+        return "*" * len(value)
+    return f"{value[:2]}{'*' * (len(value) - 6)}{value[-4:]}"
+
+
+def ensure_runtime_env_mutation_allowed() -> None:
+    mutation_allowed = os.getenv("ALLOW_RUNTIME_ENV_MUTATION", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if mutation_allowed:
+        return
+
+    raise HTTPException(
+        status_code=403,
+        detail="Runtime environment mutation is disabled. Set ALLOW_RUNTIME_ENV_MUTATION=true only for controlled maintenance workflows.",
+    )
+
+
+def build_env_variable(key: str, value: str, descriptions: Dict[str, str]) -> EnvVariable:
+    sensitive = is_sensitive_key(key)
+    return EnvVariable(
+        key=key,
+        value=mask_sensitive_value(value) if sensitive else value,
+        description=descriptions.get(key, ""),
+        is_sensitive=sensitive,
+    )
 
 
 @router.get("", response_model=EnvConfig)
@@ -70,7 +118,6 @@ async def get_settings(current_user: UserResponse = Depends(get_admin_user)):
         backend_vars = read_env_file("backend")
         frontend_vars = read_env_file("frontend")
 
-        # Define descriptions for configuration items
         backend_descriptions = {
             "DATABASE_URL": "Database connection string",
             "STRIPE_SECRET_KEY": "Stripe secret key",
@@ -89,18 +136,19 @@ async def get_settings(current_user: UserResponse = Depends(get_admin_user)):
             "JWT_EXPIRE_MINUTES": "JWT expiration time (minutes)",
             "ADMIN_USER_ID": "Admin user ID",
             "ADMIN_USER_EMAIL": "Admin user email",
+            "ALLOW_RUNTIME_ENV_MUTATION": "Allow runtime editing of env files",
+        }
+        frontend_descriptions = {
+            "VITE_API_BASE_URL": "Base API URL",
+            "VITE_FRONTEND_URL": "Frontend URL",
         }
 
-        frontend_descriptions = {"VITE_API_BASE_URL": "Base API URL", "VITE_FRONTEND_URL": "Frontend URL"}
-
-        # Build response data
-        backend_config = {}
-        for key, value in backend_vars.items():
-            backend_config[key] = EnvVariable(key=key, value=value, description=backend_descriptions.get(key, ""))
-
-        frontend_config = {}
-        for key, value in frontend_vars.items():
-            frontend_config[key] = EnvVariable(key=key, value=value, description=frontend_descriptions.get(key, ""))
+        backend_config = {
+            key: build_env_variable(key, value, backend_descriptions) for key, value in backend_vars.items()
+        }
+        frontend_config = {
+            key: build_env_variable(key, value, frontend_descriptions) for key, value in frontend_vars.items()
+        }
 
         return EnvConfig(backend_vars=backend_config, frontend_vars=frontend_config)
     except Exception as e:
@@ -113,10 +161,13 @@ async def update_backend_setting(
 ):
     """Update a backend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("backend")
         env_vars[key] = update.value
         write_env_file("backend", env_vars)
         return {"message": f"Backend configuration '{key}' updated successfully; restart required to take effect."}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update configuration: {str(e)}")
 
@@ -127,10 +178,13 @@ async def update_frontend_setting(
 ):
     """Update a frontend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("frontend")
         env_vars[key] = update.value
         write_env_file("frontend", env_vars)
         return {"message": f"Frontend configuration '{key}' updated successfully; restart required to take effect."}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update configuration: {str(e)}")
 
@@ -141,10 +195,13 @@ async def add_backend_setting(
 ):
     """Add a backend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("backend")
         env_vars[key] = update.value
         write_env_file("backend", env_vars)
         return {"message": f"Backend configuration '{key}' added successfully; restart required to take effect."}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add configuration: {str(e)}")
 
@@ -155,10 +212,13 @@ async def add_frontend_setting(
 ):
     """Add a frontend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("frontend")
         env_vars[key] = update.value
         write_env_file("frontend", env_vars)
         return {"message": f"Frontend configuration '{key}' added successfully; restart required to take effect."}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add configuration: {str(e)}")
 
@@ -167,13 +227,15 @@ async def add_frontend_setting(
 async def delete_backend_setting(key: str, current_user: UserResponse = Depends(get_admin_user)):
     """Delete a backend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("backend")
         if key in env_vars:
             del env_vars[key]
             write_env_file("backend", env_vars)
             return {"message": f"Backend configuration '{key}' deleted successfully; restart required to take effect."}
-        else:
-            raise HTTPException(status_code=404, detail=f"Configuration item '{key}' does not exist")
+        raise HTTPException(status_code=404, detail=f"Configuration item '{key}' does not exist")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete configuration: {str(e)}")
 
@@ -182,12 +244,14 @@ async def delete_backend_setting(key: str, current_user: UserResponse = Depends(
 async def delete_frontend_setting(key: str, current_user: UserResponse = Depends(get_admin_user)):
     """Delete a frontend environment variable."""
     try:
+        ensure_runtime_env_mutation_allowed()
         env_vars = read_env_file("frontend")
         if key in env_vars:
             del env_vars[key]
             write_env_file("frontend", env_vars)
             return {"message": f"Frontend configuration '{key}' deleted successfully; restart required to take effect."}
-        else:
-            raise HTTPException(status_code=404, detail=f"Configuration item '{key}' does not exist")
+        raise HTTPException(status_code=404, detail=f"Configuration item '{key}' does not exist")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete configuration: {str(e)}")

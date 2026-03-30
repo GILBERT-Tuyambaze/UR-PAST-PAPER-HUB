@@ -34,7 +34,7 @@ async def initialize_database():
     start_time = time.time()
     logger.debug("[DB_OP] Starting database initialization")
     try:
-        logger.info("🔧 Starting database initialization...")
+        logger.info("Starting database initialization...")
         await db_manager.init_db()
         auto_create_tables = os.getenv("URHUD_AUTO_CREATE_TABLES", "").strip().lower() in {
             "1",
@@ -43,9 +43,9 @@ async def initialize_database():
             "on",
         }
         if auto_create_tables:
-            logger.info("🔧 Auto table creation enabled; creating tables if they do not exist...")
+            logger.info("Auto table creation enabled; creating tables if they do not exist...")
             await db_manager.create_tables()
-            logger.info("🔧 Table creation completed")
+            logger.info("Table creation completed")
         else:
             logger.info("Skipping automatic table creation; set URHUD_AUTO_CREATE_TABLES=true to enable it")
         logger.info("Database initialized successfully")

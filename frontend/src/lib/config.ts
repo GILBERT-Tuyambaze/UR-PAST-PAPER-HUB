@@ -32,48 +32,65 @@ export function markRuntimeConfigResolved() {
 }
 
 export async function loadRuntimeConfig(timeoutMs = CONFIG_TIMEOUT_MS): Promise<RuntimeConfig> {
+  const fallback = getDefaultConfig();
+
   try {
     const envApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-    let configUrl: string | null = null;
+    const configUrls: string[] = [];
 
     if (envApiBaseUrl) {
-      configUrl = `${envApiBaseUrl}/api/config`;
-    } else if (typeof window !== 'undefined' && isLocalFrontendDevOrigin(window.location.origin)) {
-      configUrl = '/api/config';
+      configUrls.push(`${envApiBaseUrl.replace(/\/$/, '')}/api/config`);
     }
 
-    if (!configUrl) {
-      const fallback = getDefaultConfig();
+    if (typeof window !== 'undefined') {
+      configUrls.push('/api/config');
+    }
+
+    const uniqueConfigUrls = Array.from(new Set(configUrls));
+
+    if (uniqueConfigUrls.length === 0) {
       applyRuntimeConfig(fallback);
       return fallback;
     }
 
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(CONFIG_TIMEOUT_REASON), timeoutMs);
-    const response = await fetch(configUrl, {
-      signal: controller.signal,
-    });
-    window.clearTimeout(timeout);
-    const contentType = response.headers.get('content-type') || '';
+    for (const configUrl of uniqueConfigUrls) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(CONFIG_TIMEOUT_REASON), timeoutMs);
 
-    if (response.ok && contentType.includes('application/json')) {
-      const loadedConfig = (await response.json()) as RuntimeConfig;
-      applyRuntimeConfig(loadedConfig);
-      return loadedConfig;
+      try {
+        const response = await fetch(configUrl, {
+          signal: controller.signal,
+        });
+        const contentType = response.headers.get('content-type') || '';
+
+        if (response.ok && contentType.includes('application/json')) {
+          const loadedConfig = (await response.json()) as RuntimeConfig;
+          applyRuntimeConfig(loadedConfig);
+          return loadedConfig;
+        }
+
+        console.warn(`Runtime config endpoint ${configUrl} returned a non-JSON or non-OK response`);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          console.warn(`Runtime config request to ${configUrl} timed out after ${timeoutMs}ms`);
+        } else {
+          console.warn(`Runtime config request to ${configUrl} failed:`, error);
+        }
+      } finally {
+        window.clearTimeout(timeout);
+      }
     }
-    console.warn('Runtime config endpoint returned a non-JSON or non-OK response, using fallback config');
-    const fallback = getDefaultConfig();
+
+    if (!fallback.API_BASE_URL && typeof window !== 'undefined' && !isLocalFrontendDevOrigin(window.location.origin)) {
+      console.error(
+        'No production API base URL was resolved. Set VITE_API_BASE_URL for split frontend/backend deploys or expose /api/config on the deployed origin.'
+      );
+    }
+
     applyRuntimeConfig(fallback);
     return fallback;
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      console.warn(
-        `Runtime config request timed out after ${timeoutMs}ms, using fallback config`
-      );
-    } else {
-      console.warn('Runtime config request failed, using fallback config:', error);
-    }
-    const fallback = getDefaultConfig();
+    console.warn('Runtime config discovery failed, using fallback config:', error);
     applyRuntimeConfig(fallback);
     return fallback;
   } finally {

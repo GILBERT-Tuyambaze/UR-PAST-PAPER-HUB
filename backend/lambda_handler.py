@@ -1,4 +1,4 @@
-"""
+﻿"""
 AWS Lambda handler for unified frontend and backend with Nginx reverse proxy
 This handler simulates Nginx routing logic within Lambda
 """
@@ -220,7 +220,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         # Handle /api/config endpoint
         if path == "/api/config":
-            return handle_config_request(headers, query_params)
+            return handle_config_request(headers, query_params, request_domain)
 
         # Route API requests to backend
         elif path.startswith("/api/v1/"):
@@ -344,8 +344,8 @@ def serve_frontend() -> Dict[str, Any]:
         </head>
         <body>
             <h1>Unknown Application</h1>
-            <p>✅ Service has been successfully deployed and is running on AWS Lambda</p>
-            <p>⚠️ The homepage is missing. Please verify that <code>app/frontend/index.html</code> exists and
+            <p>Service has been successfully deployed and is running on AWS Lambda.</p>
+            <p>The homepage is missing. Please verify that <code>app/frontend/index.html</code> exists and
              that no other <code>index.html</code> files are interfering with the build output
               at <code>dist/index.html</code>.</p>
             <script>
@@ -404,7 +404,7 @@ def serve_static_file(path: str) -> Dict[str, Any]:
         }
 
 
-def handle_config_request(headers: dict, query_params: dict) -> Dict[str, Any]:
+def handle_config_request(headers: dict, query_params: dict, request_domain: str = "") -> Dict[str, Any]:
     """Handle configuration requests with security filtering"""
     # Security: Validate request method and origin
     validation_result = validate_config_request(headers)
@@ -418,7 +418,13 @@ def handle_config_request(headers: dict, query_params: dict) -> Dict[str, Any]:
     # Security: Only return frontend-required configuration
     # Define what frontend actually needs (based on code analysis)
     frontend_required_config = {
-        "API_BASE_URL": os.environ.get("VITE_API_BASE_URL", "http://127.0.0.1:8000")
+        "API_BASE_URL": (
+            os.environ.get("FRONTEND_API_BASE_URL")
+            or os.environ.get("PYTHON_BACKEND_URL")
+            or os.environ.get("VITE_API_BASE_URL")
+            or request_domain
+            or "http://127.0.0.1:8000"
+        )
         # Only add other configs if frontend actually uses them
         # DO NOT expose: VITE_FRONTEND_URL, secrets, internal URLs, etc.
     }
@@ -585,3 +591,4 @@ if __name__ == "__main__":
 
     result = lambda_handler(test_event, None)
     print(json.dumps(result, indent=2))
+

@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,25 +7,27 @@ import SeoMeta from '@/components/SeoMeta';
 import AuthShowcase from '../components/AuthShowcase';
 import { authApi } from '../lib/auth';
 
-export default function LoginPage() {
-  const [searchParams] = useSearchParams();
+export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const returnTo = searchParams.get('returnTo') || '/';
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [debugResetUrl, setDebugResetUrl] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
+    setDebugResetUrl(null);
 
     try {
-      await authApi.loginWithCredentials(email, password);
-      window.location.replace(returnTo);
+      const response = await authApi.requestPasswordReset(email);
+      setMessage(response.message);
+      setDebugResetUrl(response.debug_reset_url || null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed, please try again.');
+      setError(err instanceof Error ? err.message : 'Unable to start password reset right now.');
     } finally {
       setLoading(false);
     }
@@ -34,9 +36,9 @@ export default function LoginPage() {
   return (
     <div className="theme-auth-page min-h-screen overflow-hidden px-4 py-8 md:px-8 md:py-10">
       <SeoMeta
-        title="Sign in"
-        description="Private sign-in page for UR Academic Resource Hub users."
-        canonicalPath="/login"
+        title="Forgot password"
+        description="Request a password reset for UR Academic Resource Hub."
+        canonicalPath="/forgot-password"
         robots="noindex,nofollow"
       />
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
@@ -45,10 +47,10 @@ export default function LoginPage() {
         <div className="flex items-center justify-center">
           <div className="theme-auth-card w-full max-w-xl rounded-[2rem] p-8 md:p-10">
             <div className="mb-8">
-              <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.28em]">Welcome back</p>
-              <h1 className="theme-title text-3xl font-bold md:text-4xl">Sign in to continue</h1>
+              <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.28em]">Password help</p>
+              <h1 className="theme-title text-3xl font-bold md:text-4xl">Reset your password</h1>
               <p className="theme-muted mt-3 text-sm leading-6">
-                Enter your account details to access papers, uploads, dashboards, and your saved activity.
+                Enter the email address linked to your account and we will prepare a secure password reset link.
               </p>
             </div>
 
@@ -66,51 +68,37 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="theme-form-label">Password</Label>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/forgot-password')}
-                    className="theme-link-accent text-xs font-semibold underline underline-offset-4"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  className="theme-form-input mt-2 h-12 rounded-xl"
-                />
-              </div>
-
               {error && <p className="theme-error-note rounded-xl px-4 py-3 text-sm">{error}</p>}
+              {message && <p className="theme-warning-note rounded-xl px-4 py-3 text-sm">{message}</p>}
+              {debugResetUrl && (
+                <div className="theme-soft-panel rounded-2xl px-4 py-4 text-sm">
+                  <p className="theme-title font-semibold">Reset link</p>
+                  <a href={debugResetUrl} className="theme-link-accent mt-2 block break-all underline underline-offset-4">
+                    {debugResetUrl}
+                  </a>
+                </div>
+              )}
 
               <Button
                 type="submit"
                 className="theme-accent-bg h-12 w-full rounded-xl"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? 'Preparing reset link...' : 'Send reset link'}
               </Button>
             </form>
 
             <div className="theme-auth-subtle mt-6 rounded-2xl px-4 py-4 text-sm">
               <p>
-                New here?{' '}
+                Remembered your password?{' '}
                 <button
                   type="button"
-                  onClick={() => navigate(`/register?returnTo=${encodeURIComponent(returnTo)}`)}
+                  onClick={() => navigate('/login')}
                   className="theme-link-accent font-semibold underline underline-offset-4"
                 >
-                  Create an account
+                  Back to sign in
                 </button>
               </p>
-              <p className="theme-muted mt-2 text-xs">You will be returned to your previous page after signing in.</p>
             </div>
           </div>
         </div>

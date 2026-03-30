@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,25 +7,40 @@ import SeoMeta from '@/components/SeoMeta';
 import AuthShowcase from '../components/AuthShowcase';
 import { authApi } from '../lib/auth';
 
-export default function LoginPage() {
-  const [searchParams] = useSearchParams();
+export default function ResetPasswordPage() {
   const navigate = useNavigate();
-  const returnTo = searchParams.get('returnTo') || '/';
-  const [email, setEmail] = useState('');
+  const [searchParams] = useSearchParams();
+  const token = useMemo(() => searchParams.get('token') || '', [searchParams]);
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setMessage(null);
+
+    if (!token) {
+      setError('This password reset link is missing its token.');
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
 
     try {
-      await authApi.loginWithCredentials(email, password);
-      window.location.replace(returnTo);
+      const responseMessage = await authApi.resetPassword(token, password);
+      setMessage(responseMessage);
+      window.setTimeout(() => navigate('/login'), 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed, please try again.');
+      setError(err instanceof Error ? err.message : 'Unable to reset your password right now.');
     } finally {
       setLoading(false);
     }
@@ -34,9 +49,9 @@ export default function LoginPage() {
   return (
     <div className="theme-auth-page min-h-screen overflow-hidden px-4 py-8 md:px-8 md:py-10">
       <SeoMeta
-        title="Sign in"
-        description="Private sign-in page for UR Academic Resource Hub users."
-        canonicalPath="/login"
+        title="Choose new password"
+        description="Set a new password for UR Academic Resource Hub."
+        canonicalPath="/reset-password"
         robots="noindex,nofollow"
       />
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-6 lg:grid-cols-[1.15fr_0.85fr]">
@@ -45,72 +60,65 @@ export default function LoginPage() {
         <div className="flex items-center justify-center">
           <div className="theme-auth-card w-full max-w-xl rounded-[2rem] p-8 md:p-10">
             <div className="mb-8">
-              <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.28em]">Welcome back</p>
-              <h1 className="theme-title text-3xl font-bold md:text-4xl">Sign in to continue</h1>
+              <p className="theme-link-accent mb-3 text-xs font-semibold uppercase tracking-[0.28em]">New password</p>
+              <h1 className="theme-title text-3xl font-bold md:text-4xl">Choose a new password</h1>
               <p className="theme-muted mt-3 text-sm leading-6">
-                Enter your account details to access papers, uploads, dashboards, and your saved activity.
+                Set a new password for your account. Reset links expire automatically for safety.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <Label htmlFor="email" className="theme-form-label">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  className="theme-form-input mt-2 h-12 rounded-xl"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="theme-form-label">Password</Label>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/forgot-password')}
-                    className="theme-link-accent text-xs font-semibold underline underline-offset-4"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+                <Label htmlFor="password" className="theme-form-label">New password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="At least 8 characters"
                   required
+                  minLength={8}
+                  className="theme-form-input mt-2 h-12 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="confirm-password" className="theme-form-label">Confirm password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="Re-enter your password"
+                  required
+                  minLength={8}
                   className="theme-form-input mt-2 h-12 rounded-xl"
                 />
               </div>
 
               {error && <p className="theme-error-note rounded-xl px-4 py-3 text-sm">{error}</p>}
+              {message && <p className="theme-warning-note rounded-xl px-4 py-3 text-sm">{message}</p>}
 
               <Button
                 type="submit"
                 className="theme-accent-bg h-12 w-full rounded-xl"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign in'}
+                {loading ? 'Updating password...' : 'Update password'}
               </Button>
             </form>
 
             <div className="theme-auth-subtle mt-6 rounded-2xl px-4 py-4 text-sm">
               <p>
-                New here?{' '}
+                Need a fresh link?{' '}
                 <button
                   type="button"
-                  onClick={() => navigate(`/register?returnTo=${encodeURIComponent(returnTo)}`)}
+                  onClick={() => navigate('/forgot-password')}
                   className="theme-link-accent font-semibold underline underline-offset-4"
                 >
-                  Create an account
+                  Request another reset
                 </button>
               </p>
-              <p className="theme-muted mt-2 text-xs">You will be returned to your previous page after signing in.</p>
             </div>
           </div>
         </div>

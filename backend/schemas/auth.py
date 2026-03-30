@@ -51,3 +51,20 @@ class TokenExchangeResponse(BaseModel):
     """Response body for issued application token."""
 
     token: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirmRequest(BaseModel):
+    token: str = Field(min_length=16)
+    password: str = Field(min_length=8)
+
+
+class GenericMessageResponse(BaseModel):
+    message: str
+
+
+class PasswordResetRequestResponse(GenericMessageResponse):
+    debug_reset_url: Optional[str] = None

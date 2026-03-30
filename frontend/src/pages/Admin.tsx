@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   deleteAdminUser,
@@ -436,7 +436,7 @@ export default function AdminPage() {
                             </p>
                             <p className="mt-2 text-sm text-muted-foreground">
                               {profile.institution_type === 'ur_student'
-                                ? `University of Rwanda • ${profile.ur_student_code || 'UR code missing'}`
+                                ? `University of Rwanda - ${profile.ur_student_code || 'UR code missing'}`
                                 : profile.university_name || 'University not specified'}
                             </p>
                           </div>
@@ -477,7 +477,7 @@ export default function AdminPage() {
                         <p className="text-sm font-medium text-foreground">Paper #{report.paper_id}</p>
                         <p className="mt-1 text-sm text-muted-foreground">{report.reason}</p>
                         <p className="mt-2 text-xs text-muted-foreground">
-                          Status: {report.status || 'pending'} • {formatDate(report.created_at)}
+                          Status: {report.status || 'pending'} - {formatDate(report.created_at)}
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -766,3 +766,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

@@ -230,7 +230,9 @@ def health_check():
 def frontend_runtime_config(request: Request):
     origin = str(request.base_url).rstrip("/")
     return {
-        "API_BASE_URL": os.getenv("FRONTEND_API_BASE_URL", origin),
+        "API_BASE_URL": os.getenv("FRONTEND_API_BASE_URL")
+        or os.getenv("PYTHON_BACKEND_URL")
+        or origin,
     }
 
 

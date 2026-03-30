@@ -8,6 +8,12 @@
     "dev:frontend": "vite --host 0.0.0.0 --port 3000",
     "dev:backend": ".\\.venv\\Scripts\\python.exe -m uvicorn main:app --reload --app-dir backend --host 0.0.0.0 --port 8000",
     "dev:all": "cmd /c powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\dev-all.ps1",
+    "typecheck": "pnpm.cmd exec tsc -p tsconfig.app.json --noEmit",
+    "check:frontend": "vite build",
+    "check:backend": ".\\.venv\\Scripts\\python.exe -m compileall backend",
+    "check:deploy": "node scripts/preflight-deploy.mjs",
+    "check": "npm run check:deploy && npm run typecheck && npm run check:frontend && npm run check:backend",
+    "bootstrap:backend": ".\\.venv\\Scripts\\python.exe scripts\\bootstrap_backend.py",
     "build": "vite build",
     "preview": "vite preview"
   },

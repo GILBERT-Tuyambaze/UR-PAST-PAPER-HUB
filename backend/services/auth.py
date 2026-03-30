@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
@@ -8,7 +9,7 @@ from uuid import uuid4
 from core.auth import create_access_token, hash_password, verify_password
 from core.config import settings
 from core.database import db_manager
-from models.auth import OIDCState, User
+from models.auth import OIDCState, PasswordResetToken, User
 from models.user_profiles import User_profiles
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -202,6 +203,12 @@ def _normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def _hash_reset_token(token: str) -> str:
+    import hashlib
+
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -266,6 +273,68 @@ class AuthService:
         await self.db.commit()
         await self.db.refresh(user)
 
+        return user
+
+    async def create_password_reset_token(self, email: str) -> Optional[Tuple[User, str, datetime]]:
+        normalized_email = _normalize_email(email)
+        result = await self.db.execute(select(User).where(User.email == normalized_email))
+        user = result.scalar_one_or_none()
+        if not user:
+            return None
+
+        now = datetime.now(timezone.utc)
+        await self.db.execute(
+            delete(PasswordResetToken).where(
+                (PasswordResetToken.user_id == user.id)
+                | (PasswordResetToken.expires_at < now)
+                | (PasswordResetToken.used_at.is_not(None))
+            )
+        )
+
+        raw_token = secrets.token_urlsafe(32)
+        expires_minutes = int(getattr(settings, "password_reset_token_ttl_minutes", 30) or 30)
+        expires_at = now + timedelta(minutes=expires_minutes)
+        reset_token = PasswordResetToken(
+            user_id=user.id,
+            token_hash=_hash_reset_token(raw_token),
+            expires_at=expires_at,
+        )
+        self.db.add(reset_token)
+        await self.db.commit()
+        return user, raw_token, expires_at
+
+    async def reset_password_with_token(self, token: str, new_password: str) -> User:
+        if not new_password or len(new_password) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        now = datetime.now(timezone.utc)
+        result = await self.db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.token_hash == _hash_reset_token(token),
+                PasswordResetToken.used_at.is_(None),
+                PasswordResetToken.expires_at > now,
+            )
+        )
+        reset_token = result.scalar_one_or_none()
+        if not reset_token:
+            raise ValueError("Password reset link is invalid or has expired")
+
+        user = await self.db.get(User, reset_token.user_id)
+        if not user:
+            raise ValueError("Password reset link is invalid or has expired")
+
+        user.password_hash = hash_password(new_password)
+        user.last_login = now
+        reset_token.used_at = now
+
+        await self.db.execute(
+            delete(PasswordResetToken).where(
+                PasswordResetToken.user_id == user.id,
+                PasswordResetToken.id != reset_token.id,
+            )
+        )
+        await self.db.commit()
+        await self.db.refresh(user)
         return user
 
     async def get_or_create_user(self, platform_sub: str, email: str, name: Optional[str] = None) -> User:
