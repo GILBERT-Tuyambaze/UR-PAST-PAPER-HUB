@@ -5,7 +5,7 @@ fastapi
 httpx
 mangum
 passlib[bcrypt]
-pydantic
+pydantic[email]
 pydantic-settings
 python-dotenv
 python-jose[cryptography]
