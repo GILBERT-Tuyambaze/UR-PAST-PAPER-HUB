@@ -184,10 +184,10 @@ export default function RegisterPage() {
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Label className="theme-form-label">Account type</Label>
+                  <Label className="theme-form-label">Select role</Label>
                   <Select value={accountRole} onValueChange={(value) => setAccountRole(value as PublicAccountRole)}>
                     <SelectTrigger className="theme-form-input mt-2 h-12 rounded-xl">
-                      <SelectValue placeholder="Choose how you contribute" />
+                      <SelectValue placeholder="Choose User, CP, or Lecturer" />
                     </SelectTrigger>
                     <SelectContent>
                       {publicAccountRoleOptions.map((option) => (
@@ -200,13 +200,26 @@ export default function RegisterPage() {
                   <p className="theme-muted mt-2 text-xs">
                     {publicAccountRoleOptions.find((option) => option.value === accountRole)?.description}
                   </p>
-                  <p className="theme-muted mt-1 text-xs">
-                    Admin and content manager accounts are assigned later by the management team.
-                  </p>
-                  {accountRole !== 'normal' && (
-                    <p className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
-                      This choice is submitted as a request. You will start as a normal user until a manager approves your CP or lecturer access.
+                  {accountRole === 'normal' && (
+                    <p className="theme-muted mt-1 text-xs">
+                      Admin and content manager accounts are assigned later by the management team.
                     </p>
+                  )}
+                  {accountRole !== 'normal' && (
+                    <div className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 text-xs text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                      <p className="font-medium">
+                        {accountRole === 'cp' ? 'CP access request' : 'Lecturer access request'}
+                      </p>
+                      <p className="mt-1">
+                        After signup, your account will still be created as a normal user first.
+                      </p>
+                      <p className="mt-1">
+                        An admin or content manager must review and approve this request before the {accountRole === 'cp' ? 'CP' : 'Lecturer'} role is granted.
+                      </p>
+                      <p className="mt-1">
+                        Until approval, your uploads and activity will be treated as normal user activity.
+                      </p>
+                    </div>
                   )}
                 </div>
 

@@ -8,18 +8,18 @@ export const publicAccountRoleOptions: Array<{
 }> = [
   {
     value: 'normal',
-    label: 'Community Student',
-    description: 'Use the standard student account for browsing, discussions, and uploads.',
+    label: 'User',
+    description: 'Use the normal user account for browsing, discussions, downloads, and uploads.',
   },
   {
     value: 'cp',
-    label: 'Class Representative (CP)',
-    description: 'Choose this to request CP access. Your account stays normal until an admin or content manager approves it.',
+    label: 'CP',
+    description: 'Choose this if you want Class Representative access. This does not grant the role immediately.',
   },
   {
     value: 'lecturer',
     label: 'Lecturer',
-    description: 'Choose this to request lecturer access. Your account stays normal until an admin or content manager approves it.',
+    description: 'Choose this if you want Lecturer access. This does not grant the role immediately.',
   },
 ];
 
