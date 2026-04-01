@@ -203,6 +203,11 @@ export default function RegisterPage() {
                   <p className="theme-muted mt-1 text-xs">
                     Admin and content manager accounts are assigned later by the management team.
                   </p>
+                  {accountRole !== 'normal' && (
+                    <p className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
+                      This choice is submitted as a request. You will start as a normal user until a manager approves your CP or lecturer access.
+                    </p>
+                  )}
                 </div>
 
                 <div>

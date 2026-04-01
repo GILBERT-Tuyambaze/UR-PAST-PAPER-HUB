@@ -14,12 +14,12 @@ export const publicAccountRoleOptions: Array<{
   {
     value: 'cp',
     label: 'Class Representative (CP)',
-    description: 'Choose this if you help coordinate class materials and notices for your cohort.',
+    description: 'Choose this to request CP access. Your account stays normal until an admin or content manager approves it.',
   },
   {
     value: 'lecturer',
     label: 'Lecturer',
-    description: 'Choose this if you are contributing papers or guidance as a lecturer.',
+    description: 'Choose this to request lecturer access. Your account stays normal until an admin or content manager approves it.',
   },
 ];
 

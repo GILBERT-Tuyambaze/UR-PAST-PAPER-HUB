@@ -1,11 +1,13 @@
 ﻿import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  fetchAdminRoleRequests,
   deleteAdminUser,
   fetchAdminOverview,
   fetchAdminUsers,
   fetchAllPapers,
   moderatePaper,
+  reviewAdminRoleRequest,
   updateAdminReport,
   updateAdminUser,
   type AdminOverview,
@@ -136,6 +138,27 @@ function StatusBadge({ status }: { status?: string | null }) {
   return <Badge className={styles}>{value}</Badge>;
 }
 
+function RequestedRoleBadge({
+  requestedRole,
+  requestedRoleStatus,
+}: {
+  requestedRole?: string | null;
+  requestedRoleStatus?: string | null;
+}) {
+  if (!requestedRole || !requestedRoleStatus || requestedRoleStatus === 'none') {
+    return null;
+  }
+
+  const styles =
+    requestedRoleStatus === 'approved'
+      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200'
+      : requestedRoleStatus === 'rejected'
+      ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-200'
+      : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-200';
+
+  return <Badge className={styles}>{`${requestedRole} request: ${requestedRoleStatus}`}</Badge>;
+}
+
 function PaperVerificationBadge({ status }: { status: string }) {
   if (status === 'verified') {
     return <Badge className="bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-200">verified</Badge>;
@@ -153,6 +176,7 @@ export default function AdminPage() {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [roleRequests, setRoleRequests] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [paperSearch, setPaperSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
@@ -169,14 +193,16 @@ export default function AdminPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [paperData, overviewData, userData] = await Promise.all([
+      const [paperData, overviewData, userData, roleRequestData] = await Promise.all([
         fetchAllPapers({ sort: '-created_at', limit: 200 }),
         fetchAdminOverview(),
         fetchAdminUsers(),
+        fetchAdminRoleRequests(),
       ]);
       setPapers(paperData.items);
       setOverview(overviewData);
       setUsers(userData);
+      setRoleRequests(roleRequestData);
     } catch (error) {
       console.error('Failed to load management data:', error);
       toast.error('Failed to load management dashboard');
@@ -208,6 +234,18 @@ export default function AdminPage() {
       profile.display_name.toLowerCase().includes(q) ||
       (profile.email || '').toLowerCase().includes(q) ||
       profile.role.toLowerCase().includes(q) ||
+      (profile.university_name || '').toLowerCase().includes(q) ||
+      (profile.ur_student_code || '').toLowerCase().includes(q)
+    );
+  });
+
+  const filteredRoleRequests = roleRequests.filter((profile) => {
+    if (!userSearch) return true;
+    const q = userSearch.toLowerCase();
+    return (
+      profile.display_name.toLowerCase().includes(q) ||
+      (profile.email || '').toLowerCase().includes(q) ||
+      (profile.requested_role || '').toLowerCase().includes(q) ||
       (profile.university_name || '').toLowerCase().includes(q) ||
       (profile.ur_student_code || '').toLowerCase().includes(q)
     );
@@ -254,6 +292,13 @@ export default function AdminPage() {
         suspension_reason: draft.suspension_reason || '',
       });
       setUsers((current) => current.map((profile) => (profile.id === updated.id ? updated : profile)));
+      setRoleRequests((current) => {
+        const remaining = current.filter((profile) => profile.id !== updated.id);
+        if (updated.requested_role_status === 'pending') {
+          return [updated, ...remaining];
+        }
+        return remaining;
+      });
       setSelectedUser(updated);
       setDraft(createDraft(updated));
       toast.success('User updated successfully');
@@ -305,6 +350,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleRoleRequestReview = async (profileId: number, action: 'approve' | 'reject') => {
+    try {
+      const updated = await reviewAdminRoleRequest(profileId, { action });
+      setUsers((current) => current.map((profile) => (profile.id === updated.id ? updated : profile)));
+      setRoleRequests((current) => current.filter((profile) => profile.id !== profileId));
+      setOverview((current) =>
+        current
+          ? {
+              ...current,
+              stats: {
+                ...current.stats,
+                pending_role_requests: Math.max(0, (current.stats.pending_role_requests || 0) - 1),
+              },
+            }
+          : current
+      );
+      if (selectedUser?.id === updated.id) {
+        setSelectedUser(updated);
+        setDraft(createDraft(updated));
+      }
+      toast.success(action === 'approve' ? 'Role request approved' : 'Role request rejected');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'Failed to review role request');
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -351,7 +422,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
         <Card className="theme-panel">
           <CardContent className="p-4 text-center">
             <Users className="theme-section-icon mx-auto mb-2 h-6 w-6" />
@@ -380,11 +451,19 @@ export default function AdminPage() {
             <p className="theme-muted text-xs">Downloads</p>
           </CardContent>
         </Card>
+        <Card className="theme-panel">
+          <CardContent className="p-4 text-center">
+            <Clock className="mx-auto mb-2 h-6 w-6 text-violet-500" />
+            <p className="theme-title text-2xl font-bold">{overview?.stats.pending_role_requests || roleRequests.length}</p>
+            <p className="theme-muted text-xs">Role Requests</p>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="users" className="space-y-5">
         <TabsList className="bg-secondary">
           <TabsTrigger value="users">Users ({filteredUsers.length})</TabsTrigger>
+          <TabsTrigger value="role-requests">Role Requests ({overview?.stats.pending_role_requests || filteredRoleRequests.length})</TabsTrigger>
           <TabsTrigger value="reports">Reports ({overview?.recent_reports?.length || 0})</TabsTrigger>
           <TabsTrigger value="papers">Papers ({filteredPapers.length})</TabsTrigger>
         </TabsList>
@@ -429,6 +508,7 @@ export default function AdminPage() {
                               <h3 className="text-lg font-semibold text-foreground">{profile.display_name}</h3>
                               <RoleBadge role={profile.role} />
                               <StatusBadge status={profile.account_status} />
+                              <RequestedRoleBadge requestedRole={profile.requested_role} requestedRoleStatus={profile.requested_role_status} />
                             </div>
                             <p className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Mail className="h-4 w-4" />
@@ -450,6 +530,91 @@ export default function AdminPage() {
                           <p>Uploads: <span className="font-medium text-foreground">{profile.upload_count || 0}</span></p>
                           <p>Downloads: <span className="font-medium text-foreground">{profile.download_count || 0}</span></p>
                           <p>Last login: <span className="font-medium text-foreground">{formatDate(profile.last_login)}</span></p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="role-requests">
+          <Card className="theme-panel">
+            <CardHeader>
+              <CardTitle className="theme-title flex items-center gap-2">
+                <Clock className="theme-section-icon h-5 w-5" />
+                CP and Lecturer Approval Requests
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="theme-muted absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                <Input
+                  value={userSearch}
+                  onChange={(event) => setUserSearch(event.target.value)}
+                  placeholder="Search pending requests by name, email, requested role, or UR code..."
+                  className="pl-10"
+                />
+              </div>
+
+              {loading ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {[1, 2].map((item) => (
+                    <div key={item} className="h-36 animate-pulse rounded-2xl bg-muted" />
+                  ))}
+                </div>
+              ) : filteredRoleRequests.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground">
+                  No pending CP or lecturer requests right now.
+                </div>
+              ) : (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {filteredRoleRequests.map((profile) => (
+                    <Card key={profile.id} className="border-border/80 bg-card/85">
+                      <CardContent className="space-y-4 p-5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-semibold text-foreground">{profile.display_name}</h3>
+                              <RoleBadge role={profile.role} />
+                              <RequestedRoleBadge requestedRole={profile.requested_role} requestedRoleStatus={profile.requested_role_status} />
+                            </div>
+                            <p className="text-sm text-muted-foreground">{profile.email || 'No email saved'}</p>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                              {profile.institution_type === 'ur_student'
+                                ? `University of Rwanda - ${profile.ur_student_code || 'UR code missing'}`
+                                : profile.university_name || 'University not specified'}
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" onClick={() => openUserDialog(profile)}>
+                            View details
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                          <p>Requested role: <span className="font-medium text-foreground">{profile.requested_role || 'Not set'}</span></p>
+                          <p>Current role: <span className="font-medium text-foreground">{profile.role}</span></p>
+                          <p>Trust score: <span className="font-medium text-foreground">{profile.trust_score || 0}</span></p>
+                          <p>Joined: <span className="font-medium text-foreground">{formatDate(profile.created_at)}</span></p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => void handleRoleRequestReview(profile.id, 'approve')}
+                            className="bg-green-600 text-white hover:bg-green-700"
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void handleRoleRequestReview(profile.id, 'reject')}
+                          >
+                            Reject
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -636,6 +801,17 @@ export default function AdminPage() {
               {adminProtected && (
                 <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200">
                   Only administrators can edit or delete administrator accounts.
+                </div>
+              )}
+
+              {selectedUser.requested_role && selectedUser.requested_role_status && selectedUser.requested_role_status !== 'none' && (
+                <div className="rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                  Requested privileged role:
+                  <span className="ml-2 font-medium text-foreground">
+                    {selectedUser.requested_role}
+                  </span>
+                  <span className="ml-2">status:</span>
+                  <span className="ml-2 font-medium text-foreground">{selectedUser.requested_role_status}</span>
                 </div>
               )}
 

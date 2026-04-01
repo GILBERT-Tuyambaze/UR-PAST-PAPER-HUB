@@ -244,6 +244,18 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="theme-muted space-y-2 text-sm">
             <p>Role: <span className="font-semibold">{profile?.role || 'normal'}</span></p>
+            {profile?.requested_role_status === 'pending' && (
+              <p>
+                Pending role request:
+                <span className="font-semibold"> {profile.requested_role || 'special access'}</span>
+              </p>
+            )}
+            {profile?.requested_role_status === 'approved' && profile?.requested_role && (
+              <p>
+                Recent role approval:
+                <span className="font-semibold"> {profile.requested_role}</span>
+              </p>
+            )}
             <p>Institution: <span className="font-semibold">{profile?.institution_type === 'ur_student' ? 'University of Rwanda' : profile?.university_name || 'Not set'}</span></p>
             <p>UR verification: <span className="font-semibold">{profile?.ur_verification_status || 'not_requested'}</span></p>
             <p>Trust score: <span className="font-semibold">{profile?.trust_score || 0}</span></p>

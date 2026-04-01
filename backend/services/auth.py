@@ -20,6 +20,8 @@ INSTITUTION_TYPES = {"ur_student", "other_university"}
 UR_VERIFICATION_STATUSES = {"not_requested", "pending", "verified", "rejected"}
 PROFILE_ROLES = {"normal", "verified_contributor", "cp", "lecturer", "content_manager", "admin"}
 PUBLIC_REGISTRATION_ROLES = {"normal", "cp", "lecturer"}
+REQUESTABLE_REGISTRATION_ROLES = {"cp", "lecturer"}
+REQUESTABLE_ROLE_STATUSES = {"none", "pending", "approved", "rejected"}
 
 
 def _admin_matches(platform_sub: str, email: str) -> bool:
@@ -87,7 +89,9 @@ async def ensure_user_profile_record(
     department_name = pick_text("department_name", profile.department_name if profile else None)
     year_of_study = pick_text("year_of_study", profile.year_of_study if profile else None)
     bio = pick_text("bio", profile.bio if profile else None)
-    requested_role = pick_text("role", profile.role if profile else None)
+    requested_role = pick_text("requested_role", profile.requested_role if profile else None)
+    requested_role_status = pick_text("requested_role_status", profile.requested_role_status if profile else None)
+    requested_profile_role = pick_text("role", profile.role if profile else None)
 
     if verified_ur_locked:
         if "ur_student_code" in payload:
@@ -135,11 +139,23 @@ async def ensure_user_profile_record(
     if ur_verification_status and ur_verification_status not in UR_VERIFICATION_STATUSES:
         raise ValueError("Invalid UR verification status")
 
-    role = requested_role or (profile.role if profile and profile.role else "normal")
+    role = requested_profile_role or (profile.role if profile and profile.role else "normal")
     if role not in PROFILE_ROLES:
         raise ValueError("Invalid account role")
     if user.role == "admin":
         role = "admin"
+
+    if requested_role and requested_role not in REQUESTABLE_REGISTRATION_ROLES:
+        raise ValueError("Invalid requested role")
+    if requested_role_status and requested_role_status not in REQUESTABLE_ROLE_STATUSES:
+        raise ValueError("Invalid requested role status")
+    if requested_role is None:
+        requested_role_status = "none"
+    elif requested_role_status is None:
+        requested_role_status = "pending"
+    if role in REQUESTABLE_REGISTRATION_ROLES:
+        requested_role = role
+        requested_role_status = "approved"
 
     trust_score = profile.trust_score if profile and profile.trust_score is not None else 0
     if role == "admin":
@@ -167,6 +183,8 @@ async def ensure_user_profile_record(
         profile.department_name = department_name
         profile.year_of_study = year_of_study
         profile.bio = bio
+        profile.requested_role = requested_role
+        profile.requested_role_status = requested_role_status
         profile.account_status = account_status
         profile.suspension_reason = suspension_reason
         profile.suspended_until = suspended_until
@@ -188,6 +206,8 @@ async def ensure_user_profile_record(
             department_name=department_name,
             year_of_study=year_of_study,
             bio=bio,
+            requested_role=requested_role,
+            requested_role_status=requested_role_status,
             account_status=account_status,
             suspension_reason=suspension_reason,
             suspended_until=suspended_until,
@@ -249,7 +269,16 @@ class AuthService:
         if _admin_matches(user.id, normalized_email):
             user.role = "admin"
 
-        await ensure_user_profile_record(self.db, user, profile_data)
+        profile_payload = dict(profile_data or {})
+        if requested_role in REQUESTABLE_REGISTRATION_ROLES and user.role != "admin":
+            profile_payload["role"] = "normal"
+            profile_payload["requested_role"] = requested_role
+            profile_payload["requested_role_status"] = "pending"
+        else:
+            profile_payload["requested_role"] = None
+            profile_payload["requested_role_status"] = "none"
+
+        await ensure_user_profile_record(self.db, user, profile_payload)
         await self.db.commit()
         await self.db.refresh(user)
 

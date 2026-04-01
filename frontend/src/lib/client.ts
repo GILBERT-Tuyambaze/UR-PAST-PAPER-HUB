@@ -94,6 +94,8 @@ export interface UserProfile {
   department_name?: string | null;
   year_of_study?: string | null;
   bio?: string | null;
+  requested_role?: 'cp' | 'lecturer' | null;
+  requested_role_status?: 'none' | 'pending' | 'approved' | 'rejected' | null;
   account_status?: string | null;
   suspension_reason?: string | null;
   suspended_until?: string | null;
@@ -132,6 +134,7 @@ export interface AdminOverview {
     total_reports: number;
     pending_reports: number;
     total_users: number;
+    pending_role_requests: number;
   };
   top_contributors: UserProfile[];
   recent_reports: Array<{
@@ -478,6 +481,19 @@ export async function fetchAdminUsers(search?: string): Promise<UserProfile[]> {
   return response.data.items as UserProfile[];
 }
 
+export async function fetchAdminRoleRequests(): Promise<UserProfile[]> {
+  try {
+    const response = await apiClient.get(apiUrl('/api/v1/admin/hub/role-requests'));
+    return response.data.items as UserProfile[];
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      console.warn('Role request endpoint is not available on the current backend deployment yet.');
+      return [];
+    }
+    throw error;
+  }
+}
+
 export async function moderatePaper(
   paperId: number,
   data: { verification_status?: string; is_hidden?: boolean }
@@ -509,6 +525,14 @@ export async function updateAdminUser(
   }
 ): Promise<UserProfile> {
   const response = await apiClient.patch(apiUrl(`/api/v1/admin/hub/users/${profileId}`), data);
+  return response.data as UserProfile;
+}
+
+export async function reviewAdminRoleRequest(
+  profileId: number,
+  data: { action: 'approve' | 'reject' }
+): Promise<UserProfile> {
+  const response = await apiClient.post(apiUrl(`/api/v1/admin/hub/role-requests/${profileId}/review`), data);
   return response.data as UserProfile;
 }
 

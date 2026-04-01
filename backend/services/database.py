@@ -42,12 +42,14 @@ async def initialize_database():
             "yes",
             "on",
         }
+        logger.info("Checking existing schema for required auth/profile columns...")
+        await db_manager.ensure_model_columns_for_existing_tables("users", "user_profiles")
         if auto_create_tables:
             logger.info("Auto table creation enabled; creating tables if they do not exist...")
             await db_manager.create_tables()
             logger.info("Table creation completed")
         else:
-            logger.info("Skipping automatic table creation; set URHUD_AUTO_CREATE_TABLES=true to enable it")
+            logger.info("Skipping automatic table creation; existing tables were still checked for missing columns")
         logger.info("Database initialized successfully")
         logger.debug(f"[DB_OP] Database initialization completed in {time.time() - start_time:.4f}s")
     except Exception as e:

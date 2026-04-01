@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/admin/hub", tags=["admin-hub"])
 MANAGEMENT_ROLES = {"normal", "verified_contributor", "cp", "lecturer", "content_manager", "admin"}
+REQUESTABLE_ROLES = {"cp", "lecturer"}
 ACCOUNT_STATUSES = {"active", "suspended", "banned"}
 UR_VERIFICATION_STATUSES = {"not_requested", "pending", "verified", "rejected"}
 INSTITUTION_TYPES = {"ur_student", "other_university"}
@@ -57,6 +58,10 @@ class AdminReportUpdateRequest(BaseModel):
     status: str
     hide_paper: Optional[bool] = None
     verification_status: Optional[str] = None
+
+
+class AdminRoleRequestReviewRequest(BaseModel):
+    action: str
 
 
 def _utcnow() -> datetime:
@@ -96,6 +101,8 @@ def _serialize_user(profile: User_profiles, user: Optional[User]) -> dict:
         "department_name": profile.department_name,
         "year_of_study": profile.year_of_study,
         "bio": profile.bio,
+        "requested_role": profile.requested_role,
+        "requested_role_status": profile.requested_role_status,
         "account_status": profile.account_status,
         "suspension_reason": profile.suspension_reason,
         "suspended_until": profile.suspended_until,
@@ -125,6 +132,12 @@ async def get_overview(
     total_reports = await db.scalar(select(func.count(Reports.id)))
     pending_reports = await db.scalar(select(func.count(Reports.id)).where(Reports.status == "pending"))
     total_users = await db.scalar(select(func.count(User_profiles.id)))
+    pending_role_requests = await db.scalar(
+        select(func.count(User_profiles.id)).where(
+            User_profiles.requested_role.in_(REQUESTABLE_ROLES),
+            User_profiles.requested_role_status == "pending",
+        )
+    )
 
     top_contributors = await db.execute(
         select(User_profiles).order_by(
@@ -145,6 +158,7 @@ async def get_overview(
             "total_reports": total_reports or 0,
             "pending_reports": pending_reports or 0,
             "total_users": total_users or 0,
+            "pending_role_requests": pending_role_requests or 0,
         },
         "top_contributors": top_contributors.scalars().all(),
         "recent_reports": recent_reports.scalars().all(),
@@ -171,12 +185,31 @@ async def list_users(
             func.lower(User_profiles.display_name).like(like_value)
             | func.lower(User_profiles.user_id).like(like_value)
             | func.lower(User_profiles.role).like(like_value)
+            | func.lower(func.coalesce(User_profiles.requested_role, "")).like(like_value)
+            | func.lower(func.coalesce(User_profiles.requested_role_status, "")).like(like_value)
             | func.lower(func.coalesce(User_profiles.university_name, "")).like(like_value)
             | func.lower(func.coalesce(User_profiles.ur_student_code, "")).like(like_value)
             | func.lower(func.coalesce(User.email, "")).like(like_value)
         )
 
     result = await db.execute(query.limit(100))
+    return {"items": [_serialize_user(profile, user) for profile, user in result.all()]}
+
+
+@router.get("/role-requests")
+async def list_role_requests(
+    _current_user: UserResponse = Depends(get_management_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(User_profiles, User)
+        .join(User, User.id == User_profiles.user_id, isouter=True)
+        .where(
+            User_profiles.requested_role.in_(REQUESTABLE_ROLES),
+            User_profiles.requested_role_status == "pending",
+        )
+        .order_by(desc(User_profiles.created_at), desc(User_profiles.id))
+    )
     return {"items": [_serialize_user(profile, user) for profile, user in result.all()]}
 
 
@@ -217,6 +250,12 @@ async def update_user(
     if payload.role is not None:
         _ensure_role_assignment_allowed(current_user, profile, payload.role)
         profile.role = payload.role
+        if payload.role in REQUESTABLE_ROLES:
+            profile.requested_role = payload.role
+            profile.requested_role_status = "approved"
+        else:
+            profile.requested_role = None
+            profile.requested_role_status = "none"
         if user:
             user.role = "admin" if payload.role == "admin" else "user"
     if payload.trust_score is not None:
@@ -263,6 +302,62 @@ async def update_user(
         "user_profile",
         profile.id,
     )
+
+    await db.commit()
+    await db.refresh(profile)
+    if user:
+        await db.refresh(user)
+    return _serialize_user(profile, user)
+
+
+@router.post("/role-requests/{profile_id}/review")
+async def review_role_request(
+    profile_id: int,
+    payload: AdminRoleRequestReviewRequest,
+    current_user: UserResponse = Depends(get_management_user),
+    db: AsyncSession = Depends(get_db),
+):
+    action = payload.action.strip().lower()
+    if action not in {"approve", "reject"}:
+        raise HTTPException(status_code=400, detail="Action must be approve or reject")
+
+    profile = await db.get(User_profiles, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    requested_role = (profile.requested_role or "").strip().lower() or None
+    requested_role_status = (profile.requested_role_status or "none").strip().lower()
+    if requested_role not in REQUESTABLE_ROLES or requested_role_status != "pending":
+        raise HTTPException(status_code=400, detail="This account has no pending CP or lecturer request")
+
+    user = await db.get(User, profile.user_id)
+
+    if action == "approve":
+        _ensure_role_assignment_allowed(current_user, profile, requested_role)
+        profile.role = requested_role
+        profile.requested_role_status = "approved"
+        if user:
+            user.role = "user"
+        await create_notification(
+            db,
+            profile.user_id,
+            "Role request approved",
+            f"Your request to become {requested_role.replace('_', ' ')} has been approved.",
+            "role_request",
+            "user_profile",
+            profile.id,
+        )
+    else:
+        profile.requested_role_status = "rejected"
+        await create_notification(
+            db,
+            profile.user_id,
+            "Role request declined",
+            f"Your request to become {requested_role.replace('_', ' ')} was not approved yet. You can continue using your normal account.",
+            "role_request",
+            "user_profile",
+            profile.id,
+        )
 
     await db.commit()
     await db.refresh(profile)
@@ -393,6 +488,8 @@ async def sync_missing_profiles(
             trust_score=0,
             upload_count=0,
             download_count=0,
+            requested_role=None,
+            requested_role_status="none",
             account_status="active",
             created_at=_utcnow(),
         )

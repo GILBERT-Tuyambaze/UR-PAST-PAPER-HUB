@@ -84,6 +84,8 @@ class UserProfileResponse(BaseModel):
     department_name: Optional[str] = None
     year_of_study: Optional[str] = None
     bio: Optional[str] = None
+    requested_role: Optional[str] = None
+    requested_role_status: Optional[str] = None
     account_status: Optional[str] = None
     created_at: Optional[datetime] = None
 
@@ -141,6 +143,8 @@ async def _ensure_profile(db: AsyncSession, current_user: UserResponse) -> User_
         department_name=None,
         year_of_study=None,
         bio=None,
+        requested_role=None,
+        requested_role_status="none",
         account_status="active",
         created_at=_utcnow(),
     )
@@ -227,10 +231,10 @@ async def create_paper(
         description=payload.description,
         file_key=payload.file_key,
         solution_key=payload.solution_key,
-        verification_status=payload.verification_status,
-        download_count=payload.download_count,
-        report_count=payload.report_count,
-        is_hidden=payload.is_hidden,
+        verification_status=_verification_for_profile(profile),
+        download_count=0,
+        report_count=0,
+        is_hidden=False,
         created_at=_utcnow(),
     )
     db.add(paper)

@@ -258,6 +258,19 @@ class DatabaseManager:
             await conn.execute(DDL(self._generate_add_column_sql(table_name, column)))
             logger.info("Added missing %s.%s column", table_name, column["name"])
 
+    async def ensure_model_columns_for_existing_tables(self, *table_names: str) -> None:
+        if not self.engine:
+            raise RuntimeError("Database engine not initialized")
+
+        existing_tables = set(await self._get_existing_tables())
+        tables_to_update = [table_name for table_name in table_names if table_name in existing_tables]
+        if not tables_to_update:
+            return
+
+        async with self.engine.begin() as conn:
+            for table_name in tables_to_update:
+                await self._ensure_model_columns(conn, table_name)
+
     async def check_and_repair_existing_tables(self):
         """Check and fix the structure of existing tables, adding only the missing fields."""
         repair_start = time.time()

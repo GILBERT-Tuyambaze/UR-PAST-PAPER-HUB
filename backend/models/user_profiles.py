@@ -23,6 +23,8 @@ class User_profiles(Base):
     department_name = Column(String, nullable=True)
     year_of_study = Column(String, nullable=True)
     bio = Column(String, nullable=True)
+    requested_role = Column(String, nullable=True)
+    requested_role_status = Column(String, nullable=True)
     account_status = Column(String, nullable=True)
     suspension_reason = Column(String, nullable=True)
     suspended_until = Column(DateTime(timezone=True), nullable=True)

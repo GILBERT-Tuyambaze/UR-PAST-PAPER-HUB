@@ -207,7 +207,7 @@ export default function SearchResults() {
       {showOfflineBanner && (
         <OfflineDataBanner message="These search results are coming from cached paper data while the live service is unavailable." />
       )}
-      <div className="theme-overlay-card sticky top-20 z-20 mb-8 rounded-2xl border p-4 backdrop-blur">
+      <div className="theme-overlay-card mb-8 rounded-2xl border p-4 backdrop-blur">
         <h1 className="theme-title mb-4 text-3xl font-bold">Browse Papers</h1>
         <p className="theme-muted mb-4 max-w-4xl text-sm leading-7">
           Search <strong>University of Rwanda past papers</strong>, browse <strong>UR exam papers</strong> by course and year, and compare the most relevant <strong>study materials Rwanda</strong> students use when revising for tests, CATs, assignments, and final exams.
