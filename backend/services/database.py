@@ -43,6 +43,7 @@ async def initialize_database():
             "on",
         }
         logger.info("Checking existing schema for required auth/profile columns...")
+        await db_manager.ensure_tables_exist_for_models("paper_interactions")
         await db_manager.ensure_model_columns_for_existing_tables("users", "user_profiles")
         if auto_create_tables:
             logger.info("Auto table creation enabled; creating tables if they do not exist...")

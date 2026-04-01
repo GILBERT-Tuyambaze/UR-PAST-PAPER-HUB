@@ -157,8 +157,22 @@ export interface AIStudyResponse {
   };
 }
 
+export interface PersonalizedRecommendationsResponse {
+  recently_viewed: Paper[];
+  recommended: Paper[];
+  top_departments: string[];
+  top_paper_types: string[];
+  top_course_codes: string[];
+  data_source?: 'live' | 'cache';
+}
+
 const PAPERS_CACHE_KEY = 'ur-hud-paper-cache-v1';
 const MY_PAPERS_CACHE_KEY = 'ur-hud-my-paper-cache-v1';
+const PERSONALIZED_CACHE_KEY = 'ur-hud-personalized-cache-v1';
+const PENDING_INTERACTION_EVENTS_KEY = 'ur-hud-pending-paper-events-v1';
+const VIEW_THROTTLE_PREFIX = 'ur-hud-paper-view-throttle';
+const RECOMMENDATIONS_UNAVAILABLE_SESSION_KEY = 'ur-hud-recommendations-unavailable';
+const VIEW_TRACKING_UNAVAILABLE_SESSION_KEY = 'ur-hud-view-tracking-unavailable';
 
 function offlineCacheKey(kind: 'paper' | 'solution', id: number) {
   return `/offline-docs/${kind}-${id}.pdf`;
@@ -173,6 +187,10 @@ function readCachedPaperList(): PaperListResponse | null {
   } catch {
     return null;
   }
+}
+
+export function getCachedPaperListSnapshot(): PaperListResponse | null {
+  return readCachedPaperList();
 }
 
 function writeCachedPaperList(data: PaperListResponse) {
@@ -194,6 +212,58 @@ function readCachedMyPaperList(): PaperListResponse | null {
 function writeCachedMyPaperList(data: PaperListResponse) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(MY_PAPERS_CACHE_KEY, JSON.stringify(data));
+}
+
+function readCachedPersonalizedRecommendations(): PersonalizedRecommendationsResponse | null {
+  if (typeof window === 'undefined') return null;
+  const raw = window.localStorage.getItem(PERSONALIZED_CACHE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as PersonalizedRecommendationsResponse;
+  } catch {
+    return null;
+  }
+}
+
+export function getCachedPersonalizedRecommendationsSnapshot(): PersonalizedRecommendationsResponse | null {
+  return readCachedPersonalizedRecommendations();
+}
+
+function writeCachedPersonalizedRecommendations(data: PersonalizedRecommendationsResponse) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(PERSONALIZED_CACHE_KEY, JSON.stringify(data));
+}
+
+type PendingInteractionEvent = {
+  paperId: number;
+  type: 'view';
+  createdAt: number;
+};
+
+function readPendingInteractionEvents(): PendingInteractionEvent[] {
+  if (typeof window === 'undefined') return [];
+  const raw = window.localStorage.getItem(PENDING_INTERACTION_EVENTS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as PendingInteractionEvent[];
+  } catch {
+    return [];
+  }
+}
+
+function writePendingInteractionEvents(events: PendingInteractionEvent[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(PENDING_INTERACTION_EVENTS_KEY, JSON.stringify(events.slice(-20)));
+}
+
+function isSessionFeatureUnavailable(key: string) {
+  if (typeof window === 'undefined') return false;
+  return window.sessionStorage.getItem(key) === '1';
+}
+
+function markSessionFeatureUnavailable(key: string) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(key, '1');
 }
 
 function paperField(item: Paper, key: string): unknown {
@@ -459,9 +529,107 @@ export async function upvoteComment(commentId: number): Promise<Comment> {
   return response.data as Comment;
 }
 
+async function flushPendingPaperInteractionEvents(): Promise<void> {
+  const token = getStoredAuthToken();
+  if (!token) {
+    writePendingInteractionEvents([]);
+    return;
+  }
+
+  if (isSessionFeatureUnavailable(VIEW_TRACKING_UNAVAILABLE_SESSION_KEY)) {
+    writePendingInteractionEvents([]);
+    return;
+  }
+
+  const pendingEvents = readPendingInteractionEvents();
+  if (pendingEvents.length === 0) {
+    return;
+  }
+
+  const remaining: PendingInteractionEvent[] = [];
+  for (const event of pendingEvents) {
+    try {
+      if (event.type === 'view') {
+        await apiClient.post(apiUrl(`/api/v1/community/papers/${event.paperId}/record-view`));
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        markSessionFeatureUnavailable(VIEW_TRACKING_UNAVAILABLE_SESSION_KEY);
+        writePendingInteractionEvents([]);
+        return;
+      }
+      remaining.push(event);
+    }
+  }
+
+  writePendingInteractionEvents(remaining);
+}
+
+export async function trackPaperView(paperId: number): Promise<void> {
+  const token = getStoredAuthToken();
+  if (!token || typeof window === 'undefined' || isSessionFeatureUnavailable(VIEW_TRACKING_UNAVAILABLE_SESSION_KEY)) {
+    return;
+  }
+
+  const throttleKey = `${VIEW_THROTTLE_PREFIX}:${paperId}`;
+  const lastTrackedAt = Number(window.sessionStorage.getItem(throttleKey) || '0');
+  const now = Date.now();
+  if (lastTrackedAt && now - lastTrackedAt < 10 * 60 * 1000) {
+    return;
+  }
+
+  window.sessionStorage.setItem(throttleKey, String(now));
+  const pendingEvents = readPendingInteractionEvents();
+  pendingEvents.push({ paperId, type: 'view', createdAt: now });
+  writePendingInteractionEvents(pendingEvents);
+
+  try {
+    await flushPendingPaperInteractionEvents();
+  } catch {
+    // Keep the event queued for a later retry. View tracking must never block the page.
+  }
+}
+
 export async function recordPaperDownload(paperId: number): Promise<{ download_count: number }> {
   const response = await apiClient.post(apiUrl(`/api/v1/community/papers/${paperId}/record-download`));
   return response.data as { download_count: number };
+}
+
+export async function fetchPersonalizedRecommendations(): Promise<PersonalizedRecommendationsResponse | null> {
+  if (isSessionFeatureUnavailable(RECOMMENDATIONS_UNAVAILABLE_SESSION_KEY)) {
+    const cached = readCachedPersonalizedRecommendations();
+    return cached ? { ...cached, data_source: 'cache' } : null;
+  }
+
+  try {
+    await flushPendingPaperInteractionEvents();
+    const response = await apiClient.get(apiUrl('/api/v1/community/papers/recommendations'));
+    const data = {
+      ...(response.data as PersonalizedRecommendationsResponse),
+      data_source: 'live' as const,
+    };
+    writeCachedPersonalizedRecommendations(data);
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      markSessionFeatureUnavailable(RECOMMENDATIONS_UNAVAILABLE_SESSION_KEY);
+      return readCachedPersonalizedRecommendations()
+        ? { ...(readCachedPersonalizedRecommendations() as PersonalizedRecommendationsResponse), data_source: 'cache' }
+        : null;
+    }
+
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      return readCachedPersonalizedRecommendations()
+        ? { ...(readCachedPersonalizedRecommendations() as PersonalizedRecommendationsResponse), data_source: 'cache' }
+        : null;
+    }
+
+    const cached = readCachedPersonalizedRecommendations();
+    if (cached) {
+      return { ...cached, data_source: 'cache' };
+    }
+    return null;
+  }
 }
 
 export async function fetchLeaderboard(): Promise<UserProfile[]> {

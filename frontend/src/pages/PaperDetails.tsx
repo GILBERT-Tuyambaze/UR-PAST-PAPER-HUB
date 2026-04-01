@@ -4,12 +4,14 @@ import {
   fetchPaperById,
   fetchComments,
   fetchSolutions,
+  getCachedPaperListSnapshot,
   createComment,
   createSolution,
   createReport,
   upvoteComment,
   upvoteSolution,
   recordPaperDownload,
+  trackPaperView,
   runStudyAI,
   saveDocumentOffline,
   getOfflineDocumentUrl,
@@ -109,11 +111,22 @@ export default function PaperDetails() {
     if (id) loadPaper(parseInt(id));
   }, [id]);
 
+  useEffect(() => {
+    if (!paper?.id || !user) return;
+    void trackPaperView(paper.id);
+  }, [paper?.id, user]);
+
   const loadPaper = async (paperId: number) => {
     try {
       setLoading(true);
       setPaperUrl(null);
       setSolutionUrl(null);
+      const cached = getCachedPaperListSnapshot();
+      const cachedPaper = cached?.items.find((item) => item.id === paperId) || null;
+      if (cachedPaper) {
+        setPaper(cachedPaper);
+        setLoading(false);
+      }
       const [paperResult, commentsResult, solutionsResult] = await Promise.allSettled([
         fetchPaperById(paperId),
         fetchComments(paperId),
@@ -131,20 +144,7 @@ export default function PaperDetails() {
       setPaper(paperData);
       setComments(commentsData.items);
       setSolutions(solutionsData.items);
-      if (paperData?.file_key) {
-        await loadDownloadUrl(paperData.file_key, setPaperUrl);
-        const localUrl = await getOfflineDocumentUrl('paper', paperData.id);
-        setOfflinePaperUrl(localUrl);
-      } else {
-        setOfflinePaperUrl(await getOfflineDocumentUrl('paper', paperData.id));
-      }
-      if (paperData?.solution_key) {
-        await loadDownloadUrl(paperData.solution_key, setSolutionUrl);
-        const localSolutionUrl = await getOfflineDocumentUrl('solution', paperData.id);
-        setOfflineSolutionUrl(localSolutionUrl);
-      } else {
-        setOfflineSolutionUrl(await getOfflineDocumentUrl('solution', paperData.id));
-      }
+      void hydratePaperAssets(paperData);
     } catch (err) {
       console.error('Failed to load paper:', err);
       toast.error('Failed to load paper details');
@@ -163,6 +163,26 @@ export default function PaperDetails() {
     } catch (err) {
       setter(null);
     }
+  };
+
+  const hydratePaperAssets = async (paperData: Paper) => {
+    const tasks: Promise<void>[] = [];
+
+    tasks.push(
+      getOfflineDocumentUrl('paper', paperData.id).then((localUrl) => setOfflinePaperUrl(localUrl))
+    );
+    tasks.push(
+      getOfflineDocumentUrl('solution', paperData.id).then((localUrl) => setOfflineSolutionUrl(localUrl))
+    );
+
+    if (paperData.file_key) {
+      tasks.push(loadDownloadUrl(paperData.file_key, setPaperUrl));
+    }
+    if (paperData.solution_key) {
+      tasks.push(loadDownloadUrl(paperData.solution_key, setSolutionUrl));
+    }
+
+    await Promise.allSettled(tasks);
   };
 
   const handleDownload = async () => {

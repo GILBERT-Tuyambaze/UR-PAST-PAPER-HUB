@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchAllPapers, Paper } from '../lib/client';
+import {
+  fetchAllPapers,
+  fetchPersonalizedRecommendations,
+  getCachedPaperListSnapshot,
+  getCachedPersonalizedRecommendationsSnapshot,
+  Paper,
+  PersonalizedRecommendationsResponse,
+} from '../lib/client';
 import OfflineDataBanner from '../components/OfflineDataBanner';
 import ExpandableContentSection from '../components/ExpandableContentSection';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -102,17 +110,44 @@ function PaperCard({ paper }: { paper: Paper }) {
 }
 
 export default function HomePage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [papers, setPapers] = useState<Paper[]>([]);
+  const [personalized, setPersonalized] = useState<PersonalizedRecommendationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [personalizedLoading, setPersonalizedLoading] = useState(false);
   const [stats, setStats] = useState({ total: 0, downloads: 0, verified: 0 });
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
+  const [showPersonalizedOfflineBanner, setShowPersonalizedOfflineBanner] = useState(false);
   const [featuredIndex, setFeaturedIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const cached = getCachedPaperListSnapshot();
+    if (cached) {
+      setShowOfflineBanner(cached.data_source === 'cache');
+      setPapers(cached.items.filter((p) => !p.is_hidden));
+      const totalDownloads = cached.items.reduce((sum, p) => sum + (p.download_count || 0), 0);
+      const verifiedCount = cached.items.filter((p) => p.verification_status === 'verified').length;
+      setStats({ total: cached.total, downloads: totalDownloads, verified: verifiedCount });
+      setLoading(false);
+    }
     loadPapers();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setPersonalized(null);
+      setShowPersonalizedOfflineBanner(false);
+      return;
+    }
+    const cached = getCachedPersonalizedRecommendationsSnapshot();
+    if (cached) {
+      setPersonalized({ ...cached, data_source: 'cache' });
+      setShowPersonalizedOfflineBanner(true);
+    }
+    void loadPersonalizedRecommendations();
+  }, [user]);
 
   const loadPapers = async () => {
     try {
@@ -127,6 +162,19 @@ export default function HomePage() {
       console.error('Failed to load papers:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPersonalizedRecommendations = async () => {
+    try {
+      setPersonalizedLoading(true);
+      const response = await fetchPersonalizedRecommendations();
+      setPersonalized(response);
+      setShowPersonalizedOfflineBanner(response?.data_source === 'cache');
+    } catch (error) {
+      console.error('Failed to load personalized recommendations:', error);
+    } finally {
+      setPersonalizedLoading(false);
     }
   };
 
@@ -147,6 +195,9 @@ export default function HomePage() {
   }).slice(0, 6);
   const featuredPapers = papers.slice(0, 4);
   const activeFeaturedPaper = featuredPapers[featuredIndex] || null;
+  const hasPersonalizedContent = Boolean(
+    personalized && (personalized.recommended.length > 0 || personalized.recently_viewed.length > 0)
+  );
 
   useEffect(() => {
     if (featuredPapers.length < 2) return;
@@ -298,6 +349,88 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {user && (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          {showPersonalizedOfflineBanner && (
+            <div className="mb-5">
+              <OfflineDataBanner message="Personalized recommendations are using cached data because the network is slow or unavailable." />
+            </div>
+          )}
+
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="theme-link-accent text-xs font-semibold uppercase tracking-[0.28em]">For you</p>
+              <h2 className="theme-title mt-2 text-2xl font-bold">Personalized paper picks</h2>
+              <p className="theme-muted mt-2 max-w-2xl text-sm">
+                We use your recent opens and downloads to suggest papers with similar course, department, lecturer, and paper-type patterns.
+              </p>
+            </div>
+            <Button variant="outline" onClick={() => void loadPersonalizedRecommendations()} disabled={personalizedLoading}>
+              {personalizedLoading ? 'Refreshing...' : 'Refresh suggestions'}
+            </Button>
+          </div>
+
+          {personalizedLoading && !hasPersonalizedContent ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="h-40 animate-pulse rounded-2xl bg-muted" />
+              ))}
+            </div>
+          ) : hasPersonalizedContent ? (
+            <div className="space-y-8">
+              {(personalized?.top_departments?.length || personalized?.top_paper_types?.length || personalized?.top_course_codes?.length) ? (
+                <div className="theme-soft-panel rounded-3xl p-5">
+                  <p className="theme-title text-sm font-semibold">You mostly read</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(personalized?.top_departments || []).map((item) => (
+                      <Badge key={`dept-${item}`} variant="secondary">{item}</Badge>
+                    ))}
+                    {(personalized?.top_paper_types || []).map((item) => (
+                      <Badge key={`type-${item}`} variant="secondary">{item}</Badge>
+                    ))}
+                    {(personalized?.top_course_codes || []).map((item) => (
+                      <Badge key={`course-${item}`} className="theme-status-badge--solution hover:bg-inherit">{item}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {personalized?.recommended?.length ? (
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="theme-title text-xl font-semibold">Recommended for you</h3>
+                    <Button variant="ghost" onClick={() => navigate('/past-papers')}>Browse all</Button>
+                  </div>
+                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {personalized.recommended.slice(0, 6).map((paper) => (
+                      <PaperCard key={`recommended-${paper.id}`} paper={paper} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {personalized?.recently_viewed?.length ? (
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="theme-title text-xl font-semibold">Recently opened</h3>
+                    <Button variant="ghost" onClick={() => navigate('/dashboard')}>Open dashboard</Button>
+                  </div>
+                  <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    {personalized.recently_viewed.slice(0, 6).map((paper) => (
+                      <PaperCard key={`recent-${paper.id}`} paper={paper} />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="theme-soft-panel rounded-3xl p-6 text-sm text-muted-foreground">
+              Open a few papers and we will start suggesting similar ones.
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Stats Bar */}
       <section className="theme-section-band shadow-sm">

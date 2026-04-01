@@ -271,6 +271,18 @@ class DatabaseManager:
             for table_name in tables_to_update:
                 await self._ensure_model_columns(conn, table_name)
 
+    async def ensure_tables_exist_for_models(self, *table_names: str) -> None:
+        if not self.engine:
+            raise RuntimeError("Database engine not initialized")
+
+        model_tables = [Base.metadata.tables[table_name] for table_name in table_names if table_name in Base.metadata.tables]
+        if not model_tables:
+            return
+
+        async with self.engine.begin() as conn:
+            for table in model_tables:
+                await conn.run_sync(lambda sync_conn, table=table: table.create(sync_conn, checkfirst=True))
+
     async def check_and_repair_existing_tables(self):
         """Check and fix the structure of existing tables, adding only the missing fields."""
         repair_start = time.time()

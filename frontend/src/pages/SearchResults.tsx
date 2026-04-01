@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchAllPapers, Paper } from '../lib/client';
+import { fetchAllPapers, getCachedPaperListSnapshot, Paper } from '../lib/client';
 import OfflineDataBanner from '../components/OfflineDataBanner';
 import ExpandableContentSection from '../components/ExpandableContentSection';
 import { Button } from '@/components/ui/button';
@@ -79,6 +79,12 @@ export default function SearchResults() {
   const [showOfflineBanner, setShowOfflineBanner] = useState(false);
 
   useEffect(() => {
+    const cached = getCachedPaperListSnapshot();
+    if (cached) {
+      setShowOfflineBanner(cached.data_source === 'cache');
+      setPapers(cached.items.filter((paper) => !paper.is_hidden));
+      setLoading(false);
+    }
     void loadPapers();
   }, []);
 
