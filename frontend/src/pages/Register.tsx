@@ -27,12 +27,21 @@ export default function RegisterPage() {
   const returnTo = searchParams.get('returnTo') || '/';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [accountRole, setAccountRole] = useState<PublicAccountRole>('normal');
   const [profileForm, setProfileForm] = useState<ProfileFormValues>(createEmptyProfileForm());
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const passwordStrength = getPasswordStrength(password);
+  const hasStartedConfirmingPassword = confirmPassword.length > 0;
+  const passwordsMatch = password === confirmPassword;
+  const passwordMatchMessage = hasStartedConfirmingPassword
+    ? passwordsMatch
+      ? 'Passwords match.'
+      : 'Passwords do not match yet.'
+    : 'Re-enter your password to confirm it.';
 
   const updateField = <K extends keyof ProfileFormValues>(field: K, value: ProfileFormValues[K]) => {
     setProfileForm((prev) => {
@@ -76,6 +85,18 @@ export default function RegisterPage() {
 
     if (!displayName) {
       setError('Full name is required.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password is too weak. Use at least 6 characters.');
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
       setLoading(false);
       return;
     }
@@ -258,8 +279,33 @@ export default function RegisterPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Create a password"
                     required
+                    minLength={6}
                     className="theme-form-input mt-2 h-12 rounded-xl"
                   />
+                  <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                    <p className="theme-muted">Minimum 6 characters</p>
+                    <p className={passwordStrength.toneClass}>{passwordStrength.label}</p>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                    <div className={`${passwordStrength.barClass} h-full rounded-full transition-all`} style={{ width: passwordStrength.width }} />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="confirm-password" className="theme-form-label">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    placeholder="Re-enter your password"
+                    required
+                    minLength={6}
+                    className="theme-form-input mt-2 h-12 rounded-xl"
+                  />
+                  <p className={`mt-2 text-xs ${hasStartedConfirmingPassword ? (passwordsMatch ? 'text-emerald-600 dark:text-emerald-300' : 'text-red-600 dark:text-red-300') : 'theme-muted'}`}>
+                    {passwordMatchMessage}
+                  </p>
                 </div>
 
                 <div>
@@ -380,7 +426,7 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 className="theme-accent-bg h-12 w-full rounded-xl"
-                disabled={loading}
+                disabled={loading || password.length < 6 || !passwordsMatch}
               >
                 {loading ? 'Creating account...' : 'Create account'}
               </Button>
@@ -420,4 +466,48 @@ function displayNameInitials(name: string) {
   }
 
   return parts.map((part) => part[0]?.toUpperCase() || '').join('');
+}
+
+function getPasswordStrength(password: string) {
+  if (!password) {
+    return {
+      label: 'Start typing a password',
+      toneClass: 'theme-muted',
+      barClass: 'bg-muted-foreground/30',
+      width: '0%',
+    };
+  }
+
+  let score = 0;
+
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+  if (password.length < 6 || score <= 2) {
+    return {
+      label: 'Weak password',
+      toneClass: 'text-red-600 dark:text-red-300',
+      barClass: 'bg-red-500',
+      width: '33%',
+    };
+  }
+
+  if (score === 3 || score === 4) {
+    return {
+      label: 'Medium password',
+      toneClass: 'text-amber-600 dark:text-amber-300',
+      barClass: 'bg-amber-500',
+      width: '66%',
+    };
+  }
+
+  return {
+    label: 'Strong password',
+    toneClass: 'text-emerald-600 dark:text-emerald-300',
+    barClass: 'bg-emerald-500',
+    width: '100%',
+  };
 }

@@ -13,6 +13,7 @@ const PaperDetails = lazy(() => import('./pages/PaperDetails'));
 const Upload = lazy(() => import('./pages/Upload'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Profile = lazy(() => import('./pages/Profile'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
 const Admin = lazy(() => import('./pages/Admin'));
 const Story = lazy(() => import('./pages/Story'));
 const Terms = lazy(() => import('./pages/Terms'));
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/upload" element={<Layout><Upload /></Layout>} />
             <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
             <Route path="/profile" element={<Layout><Profile /></Layout>} />
+            <Route path="/profile/:userId" element={<Layout><PublicProfile /></Layout>} />
             <Route
               path="/admin"
               element={

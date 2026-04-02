@@ -29,13 +29,13 @@ class FirebaseTokenExchangeRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=6)
 
 
 class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=6)
     role: str = "normal"
     institution_type: str
     university_name: Optional[str] = None
@@ -59,7 +59,7 @@ class PasswordResetRequest(BaseModel):
 
 class PasswordResetConfirmRequest(BaseModel):
     token: str = Field(min_length=16)
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=6)
 
 
 class GenericMessageResponse(BaseModel):

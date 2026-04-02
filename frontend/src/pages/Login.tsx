@@ -50,6 +50,13 @@ export default function LoginPage() {
               <p className="theme-muted mt-3 text-sm leading-6">
                 Enter your account details to access papers, uploads, dashboards, and your saved activity.
               </p>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="theme-link-accent mt-4 text-sm font-semibold underline underline-offset-4"
+              >
+                Back to home page
+              </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

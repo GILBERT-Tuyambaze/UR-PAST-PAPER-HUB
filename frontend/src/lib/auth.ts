@@ -76,6 +76,85 @@ function isTokenExpiredOrInvalid(token: string): boolean {
   return exp <= now;
 }
 
+function normalizeAuthError(error: unknown, fallbackMessage: string): Error {
+  if (!axios.isAxiosError(error)) {
+    return new Error(fallbackMessage);
+  }
+
+  const detail = error.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    const combinedMessage = detail
+      .map((item) => String(item?.msg || ''))
+      .join(' ')
+      .toLowerCase();
+
+    if (combinedMessage.includes('valid email')) {
+      return new Error('Please enter a valid email address.');
+    }
+
+    if (combinedMessage.includes('at least 6 characters') || combinedMessage.includes('at least 8 characters')) {
+      return new Error('Password is too weak. Use at least 6 characters.');
+    }
+
+    return new Error(fallbackMessage);
+  }
+
+  const rawMessage =
+    typeof detail === 'string'
+      ? detail
+      : typeof error.response?.data?.message === 'string'
+        ? error.response.data.message
+        : '';
+  const message = rawMessage.toLowerCase();
+
+  if (message.includes('already in use') || message.includes('already exists')) {
+    return new Error('This email is already in use. Try signing in instead.');
+  }
+
+  if (message.includes('no account was found')) {
+    return new Error('No account was found with that email address.');
+  }
+
+  if (message.includes('valid email')) {
+    return new Error('Please enter a valid email address.');
+  }
+
+  if (message.includes('password you entered is incorrect') || message.includes('password is incorrect')) {
+    return new Error('The password you entered is incorrect.');
+  }
+
+  if (message.includes('at least 6 characters') || message.includes('at least 8 characters') || message.includes('too weak')) {
+    return new Error('Password is too weak. Use at least 6 characters.');
+  }
+
+  if (message.includes('check your email and password') || message.includes('invalid email or password')) {
+    return new Error('We could not sign you in. Check your email and password and try again.');
+  }
+
+  if (message.includes('ur student code is required')) {
+    return new Error('Enter your UR student code to continue with UR verification.');
+  }
+
+  if (message.includes('university name is required')) {
+    return new Error('Enter your university name to continue.');
+  }
+
+  if (rawMessage) {
+    return new Error(rawMessage);
+  }
+
+  if (error.response?.status === 401) {
+    return new Error('Login credentials were not found or are incorrect.');
+  }
+
+  if (error.response?.status === 409) {
+    return new Error('This email is already in use. Try signing in instead.');
+  }
+
+  return new Error(fallbackMessage);
+}
+
 class RPApi {
   private client: AxiosInstance;
 
@@ -144,18 +223,22 @@ class RPApi {
   }
 
   async loginWithCredentials(email: string, password: string): Promise<string> {
-    const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/login`, {
-      email,
-      password,
-    });
+    try {
+      const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/login`, {
+        email: email.trim(),
+        password,
+      });
 
-    const token = response.data?.token;
-    if (!token) {
-      throw new Error('Invalid login response');
+      const token = response.data?.token;
+      if (!token) {
+        throw new Error('Invalid login response');
+      }
+
+      setStoredAuthToken(token);
+      return token;
+    } catch (error) {
+      throw normalizeAuthError(error, 'Sign in failed. Please try again.');
     }
-
-    setStoredAuthToken(token);
-    return token;
   }
 
   async registerWithCredentials(data: {
@@ -172,17 +255,22 @@ class RPApi {
     year_of_study?: string;
     bio?: string;
   }): Promise<string> {
-    const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/register`, {
-      ...data,
-    });
+    try {
+      const response = await this.client.post(`${this.getBaseURL()}/api/v1/auth/register`, {
+        ...data,
+        email: data.email.trim(),
+      });
 
-    const token = response.data?.token;
-    if (!token) {
-      throw new Error('Invalid registration response');
+      const token = response.data?.token;
+      if (!token) {
+        throw new Error('Invalid registration response');
+      }
+
+      setStoredAuthToken(token);
+      return token;
+    } catch (error) {
+      throw normalizeAuthError(error, 'Account creation failed. Please try again.');
     }
-
-    setStoredAuthToken(token);
-    return token;
   }
 
   async requestPasswordReset(email: string): Promise<{ message: string; debug_reset_url?: string | null }> {

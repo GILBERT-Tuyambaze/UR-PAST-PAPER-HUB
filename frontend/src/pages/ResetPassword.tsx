@@ -35,6 +35,12 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password is too weak. Use at least 6 characters.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const responseMessage = await authApi.resetPassword(token, password);
       setMessage(responseMessage);
@@ -75,9 +81,9 @@ export default function ResetPasswordPage() {
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="At least 8 characters"
+                  placeholder="At least 6 characters"
                   required
-                  minLength={8}
+                  minLength={6}
                   className="theme-form-input mt-2 h-12 rounded-xl"
                 />
               </div>
@@ -91,7 +97,7 @@ export default function ResetPasswordPage() {
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   placeholder="Re-enter your password"
                   required
-                  minLength={8}
+                  minLength={6}
                   className="theme-form-input mt-2 h-12 rounded-xl"
                 />
               </div>

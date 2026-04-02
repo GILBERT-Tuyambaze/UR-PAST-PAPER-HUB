@@ -455,7 +455,7 @@ export default function DashboardPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => navigate(`/paper/${paper.id}`)}
-                      className="theme-muted h-8 w-8 hover:text-[hsl(var(--brand))]"
+                      className="theme-ghost-brand-button h-8 w-8"
                     >
                       <Eye className="h-4 w-4" />
                     </Button>

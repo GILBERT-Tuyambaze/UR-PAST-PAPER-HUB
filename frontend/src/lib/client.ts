@@ -106,6 +106,24 @@ export interface UserProfile {
   created_at: string | null;
 }
 
+export interface PublicUserProfile {
+  user_id: string;
+  display_name: string;
+  role: string;
+  trust_score: number | null;
+  upload_count: number | null;
+  download_count: number | null;
+  institution_type?: 'ur_student' | 'other_university' | null;
+  university_name?: string | null;
+  ur_verification_status?: 'not_requested' | 'pending' | 'verified' | 'rejected' | null;
+  profile_picture_key?: string | null;
+  college_name?: string | null;
+  department_name?: string | null;
+  year_of_study?: string | null;
+  bio?: string | null;
+  created_at: string | null;
+}
+
 export interface NotificationItem {
   id: number;
   user_id: string;
@@ -487,6 +505,11 @@ export async function fetchUserProfile(): Promise<UserProfile | null> {
   } catch {
     return null;
   }
+}
+
+export async function fetchPublicUserProfile(userId: string): Promise<PublicUserProfile> {
+  const response = await apiClient.get(apiUrl(`/api/v1/community/profiles/${encodeURIComponent(userId)}`));
+  return response.data as PublicUserProfile;
 }
 
 export async function createUserProfile(data: {

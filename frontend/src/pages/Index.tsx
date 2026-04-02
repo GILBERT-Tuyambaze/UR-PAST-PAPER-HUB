@@ -27,6 +27,8 @@ import {
   Clock,
   Star,
   Upload,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const HERO_IMAGE = '/hero-study.svg';
@@ -199,6 +201,14 @@ export default function HomePage() {
     personalized && (personalized.recommended.length > 0 || personalized.recently_viewed.length > 0)
   );
 
+  const showPreviousFeaturedPaper = () => {
+    setFeaturedIndex((current) => (current - 1 + featuredPapers.length) % featuredPapers.length);
+  };
+
+  const showNextFeaturedPaper = () => {
+    setFeaturedIndex((current) => (current + 1) % featuredPapers.length);
+  };
+
   useEffect(() => {
     if (featuredPapers.length < 2) return;
     const timer = window.setInterval(() => {
@@ -286,9 +296,31 @@ export default function HomePage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#F08A5D]">Highlighted Papers</p>
                     <h2 className="mt-2 text-2xl font-bold">See what students are opening most</h2>
                   </div>
-                  <Badge className="theme-highlight-stat hover:bg-transparent">
-                    Live picks
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {featuredPapers.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={showPreviousFeaturedPaper}
+                          className="theme-highlight-arrow"
+                          aria-label="Show previous highlighted paper"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={showNextFeaturedPaper}
+                          className="theme-highlight-arrow"
+                          aria-label="Show next highlighted paper"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                    <Badge className="theme-highlight-stat hover:bg-transparent">
+                      Live picks
+                    </Badge>
+                  </div>
                 </div>
 
                 {activeFeaturedPaper ? (

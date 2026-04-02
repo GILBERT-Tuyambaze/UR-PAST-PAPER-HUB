@@ -3,7 +3,7 @@ import os
 import secrets
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Literal, Optional, Tuple
 from uuid import uuid4
 
 from core.auth import create_access_token, hash_password, verify_password
@@ -247,14 +247,14 @@ class AuthService:
     ) -> User:
         normalized_email = _normalize_email(email)
         requested_role = _clean_text((profile_data or {}).get("role"))
-        if not password or len(password) < 8:
-            raise ValueError("Password must be at least 8 characters long")
+        if not password or len(password) < 6:
+            raise ValueError("Password is too weak. Use at least 6 characters.")
         if requested_role and requested_role not in PUBLIC_REGISTRATION_ROLES:
             raise ValueError("Only normal, class representative, or lecturer roles can be chosen during registration")
 
         existing_user = await self.find_user_by_email(normalized_email)
         if existing_user:
-            raise ValueError("An account with this email already exists")
+            raise ValueError("This email is already in use. Try signing in instead.")
 
         password_hash = hash_password(password)
         user = User(
@@ -285,13 +285,21 @@ class AuthService:
         return user
 
     async def verify_user_credentials(self, email: str, password: str) -> Optional[User]:
+        user, error_code = await self.verify_user_credentials_with_reason(email, password)
+        if error_code:
+            return None
+        return user
+
+    async def verify_user_credentials_with_reason(
+        self, email: str, password: str
+    ) -> Tuple[Optional[User], Optional[Literal["email_not_found", "password_incorrect"]]]:
         normalized_email = _normalize_email(email)
         result = await self.db.execute(select(User).where(User.email == normalized_email))
         user = result.scalar_one_or_none()
         if not user or not user.password_hash:
-            return None
+            return None, "email_not_found"
         if not verify_password(password, user.password_hash):
-            return None
+            return None, "password_incorrect"
 
         user.last_login = datetime.now(timezone.utc)
 
@@ -302,7 +310,7 @@ class AuthService:
         await self.db.commit()
         await self.db.refresh(user)
 
-        return user
+        return user, None
 
     async def create_password_reset_token(self, email: str) -> Optional[Tuple[User, str, datetime]]:
         normalized_email = _normalize_email(email)
@@ -333,8 +341,8 @@ class AuthService:
         return user, raw_token, expires_at
 
     async def reset_password_with_token(self, token: str, new_password: str) -> User:
-        if not new_password or len(new_password) < 8:
-            raise ValueError("Password must be at least 8 characters long")
+        if not new_password or len(new_password) < 6:
+            raise ValueError("Password is too weak. Use at least 6 characters.")
 
         now = datetime.now(timezone.utc)
         result = await self.db.execute(

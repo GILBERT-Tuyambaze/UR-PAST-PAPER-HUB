@@ -253,7 +253,7 @@ export default function SearchResults() {
           <CardContent className="p-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="theme-title font-semibold">Filters</h3>
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="theme-muted hover:text-[hsl(var(--brand))]">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="theme-ghost-brand-button">
                 <X className="mr-1 h-4 w-4" />
                 Clear All
               </Button>

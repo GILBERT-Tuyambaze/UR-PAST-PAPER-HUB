@@ -83,6 +83,20 @@ function VerificationBadge({ status }: { status: string }) {
   );
 }
 
+function displayNameInitials(name: string) {
+  const parts = name
+    .split(' ')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (parts.length === 0) {
+    return 'UR';
+  }
+
+  return parts.map((part) => part[0]?.toUpperCase() || '').join('');
+}
+
 export default function PaperDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -106,6 +120,7 @@ export default function PaperDetails() {
   const [aiMode, setAiMode] = useState<'explain' | 'summarize' | null>(null);
   const [offlinePaperUrl, setOfflinePaperUrl] = useState<string | null>(null);
   const [offlineSolutionUrl, setOfflineSolutionUrl] = useState<string | null>(null);
+  const [uploaderImageUrl, setUploaderImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) loadPaper(parseInt(id));
@@ -115,6 +130,33 @@ export default function PaperDetails() {
     if (!paper?.id || !user) return;
     void trackPaperView(paper.id);
   }, [paper?.id, user]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!paper?.uploader_profile_picture_key) {
+      setUploaderImageUrl(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void getStorageDownloadUrl('profiles', paper.uploader_profile_picture_key)
+      .then((url) => {
+        if (!cancelled) {
+          setUploaderImageUrl(url);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUploaderImageUrl(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [paper?.uploader_profile_picture_key]);
 
   const loadPaper = async (paperId: number) => {
     try {
@@ -430,10 +472,30 @@ export default function PaperDetails() {
                   {paper.lecturer}
                 </p>
               )}
-              <p className="flex items-center gap-2">
-                <Users className="theme-section-icon h-4 w-4" />
-                Uploaded by {paper.uploader_display_name || `Student ${paper.user_id}`}
-              </p>
+              <button
+                type="button"
+                onClick={() => navigate(`/profile/${paper.user_id}`)}
+                className="theme-soft-panel flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-[hsla(var(--brand),0.12)]"
+              >
+                <div className="theme-accent-soft flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-sm font-semibold">
+                  {uploaderImageUrl ? (
+                    <img
+                      src={uploaderImageUrl}
+                      alt={paper.uploader_display_name || `Student ${paper.user_id}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    displayNameInitials(paper.uploader_display_name || `Student ${paper.user_id}`)
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="theme-muted text-xs uppercase tracking-[0.2em]">Uploaded by</p>
+                  <p className="theme-title truncate text-sm font-medium">
+                    {paper.uploader_display_name || `Student ${paper.user_id}`}
+                  </p>
+                  <p className="theme-link-accent text-xs">View uploader profile</p>
+                </div>
+              </button>
               <p className="flex items-center gap-2">
                 <Clock className="theme-section-icon h-4 w-4" />
                 {paper.created_at ? new Date(paper.created_at).toLocaleDateString() : 'N/A'}

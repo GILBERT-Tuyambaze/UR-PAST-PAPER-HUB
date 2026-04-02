@@ -76,9 +76,18 @@ async def redirect_to_login(request: Request):
 async def login_user(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     """Authenticate user with email and password."""
     auth_service = AuthService(db)
-    user = await auth_service.verify_user_credentials(payload.email, payload.password)
+    user, error_code = await auth_service.verify_user_credentials_with_reason(payload.email, payload.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        if error_code == "email_not_found":
+            message = "No account was found with that email address."
+        elif error_code == "password_incorrect":
+            message = "The password you entered is incorrect."
+        else:
+            message = "We could not sign you in. Please try again."
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=message,
+        )
 
     app_token, _, _ = await auth_service.issue_app_token(user=user)
     return TokenExchangeResponse(token=app_token)

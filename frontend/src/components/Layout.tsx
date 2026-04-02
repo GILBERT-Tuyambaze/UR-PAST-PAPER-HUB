@@ -26,7 +26,6 @@ import {
   Search,
   Moon,
   Sun,
-  Monitor,
   Bell,
 } from 'lucide-react';
 
@@ -36,7 +35,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const { user, login, logout } = useAuth();
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const location = useLocation();
@@ -44,30 +43,22 @@ export default function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('ur-theme');
-    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system') {
+    if (storedTheme === 'light' || storedTheme === 'dark') {
       setTheme(storedTheme);
       return;
     }
 
-    setTheme('system');
+    setTheme('light');
   }, []);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const applyTheme = (nextTheme: 'light' | 'dark' | 'system') => {
-      const isDark = nextTheme === 'dark' || (nextTheme === 'system' && mediaQuery.matches);
+    const applyTheme = (nextTheme: 'light' | 'dark') => {
+      const isDark = nextTheme === 'dark';
       document.documentElement.classList.toggle('dark', isDark);
     };
 
     applyTheme(theme);
     localStorage.setItem('ur-theme', theme);
-
-    if (theme !== 'system') return;
-
-    const handleChange = () => applyTheme('system');
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
   useEffect(() => {
@@ -248,17 +239,6 @@ export default function Layout({ children }: LayoutProps) {
                   title="Switch to dark mode"
                 >
                   <Moon className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant={theme === 'system' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setTheme('system')}
-                  className="h-8 w-8 rounded-full p-0"
-                  aria-label="Use system theme"
-                  title="Use system theme"
-                >
-                  <Monitor className="h-4 w-4" />
                 </Button>
               </div>
 

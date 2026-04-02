@@ -98,6 +98,24 @@ class UserProfileResponse(BaseModel):
         from_attributes = True
 
 
+class PublicUserProfileResponse(BaseModel):
+    user_id: str
+    display_name: str
+    role: str
+    trust_score: int
+    upload_count: int
+    download_count: int
+    institution_type: Optional[str] = None
+    university_name: Optional[str] = None
+    ur_verification_status: Optional[str] = None
+    profile_picture_key: Optional[str] = None
+    college_name: Optional[str] = None
+    department_name: Optional[str] = None
+    year_of_study: Optional[str] = None
+    bio: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+
 class LeaderboardResponse(BaseModel):
     items: list[UserProfileResponse]
 
@@ -412,6 +430,31 @@ async def get_my_profile(
     db: AsyncSession = Depends(get_db),
 ):
     return await _ensure_profile(db, current_user)
+
+
+@router.get("/profiles/{user_id}", response_model=PublicUserProfileResponse)
+async def get_public_profile(user_id: str, db: AsyncSession = Depends(get_db)):
+    profile = await _get_profile(db, user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+
+    return PublicUserProfileResponse(
+        user_id=profile.user_id,
+        display_name=profile.display_name,
+        role=profile.role,
+        trust_score=profile.trust_score or 0,
+        upload_count=profile.upload_count or 0,
+        download_count=profile.download_count or 0,
+        institution_type=profile.institution_type,
+        university_name=profile.university_name,
+        ur_verification_status=profile.ur_verification_status,
+        profile_picture_key=profile.profile_picture_key,
+        college_name=profile.college_name,
+        department_name=profile.department_name,
+        year_of_study=profile.year_of_study,
+        bio=profile.bio,
+        created_at=profile.created_at,
+    )
 
 
 @router.patch("/profile", response_model=UserProfileResponse)

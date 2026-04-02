@@ -1,4 +1,4 @@
-import { useState, useEffect, type DragEvent } from 'react';
+import { useState, useEffect, useRef, type DragEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPaper, fetchAllPapers, fetchUserProfile, uploadFileObject, type Paper, type UserProfile } from '../lib/client';
 import { authApi } from '../lib/auth';
@@ -40,6 +40,8 @@ const DEPARTMENTS: Record<string, string[]> = {
 
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
 const CUSTOM_COURSE_OPTION = '__custom__';
+const MAX_SUGGESTION_AUTO_RETRIES = 3;
+const SUGGESTION_RETRY_DELAYS_MS = [300, 900, 1800];
 
 function isPdfFile(file: File | null) {
   if (!file) return false;
@@ -76,9 +78,31 @@ function humanizeFileStem(filename: string) {
 }
 
 async function extractPdfPreviewText(file: File) {
-  const buffer = await file.slice(0, 2_000_000).arrayBuffer();
-  const decoded = new TextDecoder('latin1').decode(new Uint8Array(buffer));
-  return decoded.replace(/[^\x20-\x7E]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const chunkSize = 2_000_000;
+  const fileSize = file.size;
+  const ranges = [
+    [0, Math.min(chunkSize, fileSize)],
+    [Math.max(0, Math.floor(fileSize / 2) - Math.floor(chunkSize / 2)), Math.min(fileSize, Math.floor(fileSize / 2) + Math.floor(chunkSize / 2))],
+    [Math.max(0, fileSize - chunkSize), fileSize],
+  ] as const;
+
+  const uniqueRanges = ranges.filter(
+    ([start, end], index, allRanges) =>
+      end > start && allRanges.findIndex(([otherStart, otherEnd]) => otherStart === start && otherEnd === end) === index
+  );
+
+  const buffers = await Promise.all(
+    uniqueRanges.map(async ([start, end]) => {
+      const buffer = await file.slice(start, end).arrayBuffer();
+      return new TextDecoder('latin1').decode(new Uint8Array(buffer));
+    })
+  );
+
+  return buffers
+    .join(' ')
+    .replace(/[^\x20-\x7E]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function detectPaperType(corpus: string) {
@@ -181,6 +205,13 @@ export default function UploadPage() {
   const [selectedCourseOption, setSelectedCourseOption] = useState(CUSTOM_COURSE_OPTION);
   const [analyzingPaperFile, setAnalyzingPaperFile] = useState(false);
   const [detectedHints, setDetectedHints] = useState<DetectedUploadHints | null>(null);
+  const [suggestionFeedback, setSuggestionFeedback] = useState<{
+    tone: 'info' | 'success' | 'warning';
+    message: string;
+    canRetry?: boolean;
+    retryLabel?: string;
+  } | null>(null);
+  const lastAnalyzedPaperKeyRef = useRef<string | null>(null);
 
   const [title, setTitle] = useState('');
   const [courseCode, setCourseCode] = useState('');
@@ -273,9 +304,12 @@ export default function UploadPage() {
   ).sort((left, right) => left.course_code.localeCompare(right.course_code));
 
   useEffect(() => {
-    if (!paperFile || analyzingPaperFile || knownCourseOptions.length === 0 || detectedHints?.courseCode) return;
+    if (!paperFile || analyzingPaperFile || knownCourseOptions.length === 0) return;
+    const analysisKey = `${paperFile.name}:${paperFile.size}:${paperFile.lastModified}`;
+    if (lastAnalyzedPaperKeyRef.current === analysisKey) return;
+    lastAnalyzedPaperKeyRef.current = analysisKey;
     void analyzePaperFile(paperFile);
-  }, [paperFile, analyzingPaperFile, detectedHints?.courseCode, knownCourseOptions.length]);
+  }, [paperFile, analyzingPaperFile, knownCourseOptions.length]);
 
   const matchingSuggestions = paperCatalog.filter(
     (paper) =>
@@ -352,6 +386,11 @@ export default function UploadPage() {
   ) => {
     if (!file) {
       setFile(null);
+      if (label === 'Paper file') {
+        setDetectedHints(null);
+        setSuggestionFeedback(null);
+        lastAnalyzedPaperKeyRef.current = null;
+      }
       return;
     }
     if (!isPdfFile(file)) {
@@ -359,30 +398,89 @@ export default function UploadPage() {
       return;
     }
     setFile(file);
+    if (label === 'Paper file') {
+      setDetectedHints(null);
+      setSuggestionFeedback({ tone: 'info', message: 'Paper uploaded. We are checking it for suggested details.' });
+      lastAnalyzedPaperKeyRef.current = null;
+    }
     onAccepted?.(file);
   };
 
-  const analyzePaperFile = async (file: File) => {
+  const sleep = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+  const analyzePaperFile = async (file: File, manualRetry = false) => {
     setAnalyzingPaperFile(true);
-    try {
-      const previewText = await extractPdfPreviewText(file);
-      const hints = buildDetectedHints(file, previewText, knownCourseOptions);
-      setDetectedHints(hints);
+    setSuggestionFeedback({
+      tone: 'info',
+      message: manualRetry
+        ? 'Retrying paper analysis with a deeper suggestion pass...'
+        : 'Reading your PDF and preparing suggestions...',
+    });
 
-      if (!hints) {
-        toast.info('PDF uploaded. We could not confidently detect course details, so please review the fields manually.');
+    for (let attempt = 0; attempt < MAX_SUGGESTION_AUTO_RETRIES; attempt += 1) {
+      try {
+        const previewText = await extractPdfPreviewText(file);
+        const hints = buildDetectedHints(file, previewText, knownCourseOptions);
+        setDetectedHints(hints);
+
+        if (!hints) {
+          if (attempt < MAX_SUGGESTION_AUTO_RETRIES - 1) {
+            setSuggestionFeedback({
+              tone: 'info',
+              message: `We are making another suggestion attempt (${attempt + 2}/${MAX_SUGGESTION_AUTO_RETRIES}) to improve the result...`,
+            });
+            await sleep(SUGGESTION_RETRY_DELAYS_MS[attempt]);
+            continue;
+          }
+
+          setSuggestionFeedback({
+            tone: 'warning',
+            message: 'We tried several times, but we still could not confidently suggest details. Please review the fields manually or retry analysis.',
+            canRetry: true,
+            retryLabel: 'Retry suggestion',
+          });
+          setAnalyzingPaperFile(false);
+          return;
+        }
+
+        applyDetectedHints(hints);
+        setSuggestionFeedback({
+          tone: 'success',
+          message: manualRetry
+            ? 'Retry worked. We found suggested details from your PDF.'
+            : 'We suggested details from your PDF. Review the fields before submitting.',
+        });
+        setAnalyzingPaperFile(false);
         return;
-      }
+      } catch (error) {
+        console.error(`Failed to analyze paper PDF on attempt ${attempt + 1}:`, error);
 
-      applyDetectedHints(hints);
-      toast.success('We suggested details from your PDF. Review the fields before submitting.');
-    } catch (error) {
-      console.error('Failed to analyze paper PDF:', error);
-      setDetectedHints(null);
-      toast.error('PDF uploaded, but automatic suggestions could not be generated.');
-    } finally {
-      setAnalyzingPaperFile(false);
+        if (attempt < MAX_SUGGESTION_AUTO_RETRIES - 1) {
+          setSuggestionFeedback({
+            tone: 'info',
+            message: `Suggestion analysis hit a problem. Trying again (${attempt + 2}/${MAX_SUGGESTION_AUTO_RETRIES})...`,
+          });
+          await sleep(SUGGESTION_RETRY_DELAYS_MS[attempt]);
+          continue;
+        }
+
+        setDetectedHints(null);
+        setSuggestionFeedback({
+          tone: 'warning',
+          message: 'Automatic suggestions could not be generated after several attempts. You can retry, or continue by filling the fields manually.',
+          canRetry: true,
+          retryLabel: 'Retry suggestion',
+        });
+        setAnalyzingPaperFile(false);
+        return;
+      } finally {
+        if (attempt === MAX_SUGGESTION_AUTO_RETRIES - 1) {
+          setAnalyzingPaperFile(false);
+        }
+      }
     }
+
+    setAnalyzingPaperFile(false);
   };
 
   const resetForm = () => {
@@ -390,7 +488,9 @@ export default function UploadPage() {
     setUploadedPaper(null);
     setSelectedCourseOption(CUSTOM_COURSE_OPTION);
     setDetectedHints(null);
+    setSuggestionFeedback(null);
     setAnalyzingPaperFile(false);
+    lastAnalyzedPaperKeyRef.current = null;
     setTitle('');
     setCourseCode('');
     setCourseName('');
@@ -562,6 +662,35 @@ export default function UploadPage() {
                 Upload the paper PDF first and we will try to suggest the title, course, year, paper type, and lecturer from the filename and readable PDF text.
               </p>
             </div>
+
+            {suggestionFeedback && !analyzingPaperFile && (
+              <div
+                className={`rounded-lg p-4 text-sm ${
+                  suggestionFeedback.tone === 'success'
+                    ? 'border border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800/50 dark:bg-emerald-950/20 dark:text-emerald-200'
+                    : suggestionFeedback.tone === 'warning'
+                      ? 'border border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800/50 dark:bg-amber-950/20 dark:text-amber-200'
+                      : 'theme-soft-panel'
+                }`}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p>{suggestionFeedback.message}</p>
+                  {suggestionFeedback.canRetry && paperFile && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        lastAnalyzedPaperKeyRef.current = null;
+                        void analyzePaperFile(paperFile, true);
+                      }}
+                    >
+                      {suggestionFeedback.retryLabel || 'Retry'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Title */}
             <div>
@@ -809,12 +938,12 @@ export default function UploadPage() {
                   onDragOver={(e) => handleDragOver(e, setPaperDragActive)}
                   onDragEnter={(e) => handleDragOver(e, setPaperDragActive)}
                   onDragLeave={(e) => handleDragLeave(e, setPaperDragActive)}
-                  onDrop={(e) => handleDropFile(e, setPaperFile, setPaperDragActive, 'Paper file', (file) => void analyzePaperFile(file))}
+                  onDrop={(e) => handleDropFile(e, setPaperFile, setPaperDragActive, 'Paper file')}
                 >
                   <input
                     type="file"
                     accept=".pdf"
-                    onChange={(e) => handleFileSelection(e.target.files?.[0] || null, setPaperFile, 'Paper file', (file) => void analyzePaperFile(file))}
+                    onChange={(e) => handleFileSelection(e.target.files?.[0] || null, setPaperFile, 'Paper file')}
                     className="hidden"
                     id="paperFile"
                   />
