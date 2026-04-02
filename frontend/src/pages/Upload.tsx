@@ -639,7 +639,7 @@ export default function UploadPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Button variant="ghost" onClick={() => navigate(-1)} className="theme-muted mb-6 hover:text-[hsl(var(--brand))]">
+      <Button variant="ghost" onClick={() => navigate(-1)} className="theme-muted mb-6 hover:bg-transparent hover:text-[hsl(var(--brand))]">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>

@@ -416,7 +416,7 @@ export default function PaperDetails() {
       <Button
         variant="ghost"
         onClick={() => navigate(-1)}
-        className="theme-muted mb-6 hover:text-[hsl(var(--brand))]"
+        className="theme-muted mb-6 hover:bg-[hsl(42,100%,88%)] hover:text-black"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
@@ -625,7 +625,10 @@ export default function PaperDetails() {
             {user && (
               <Dialog open={reportOpen} onOpenChange={setReportOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-900/20">
+                  <Button
+                    variant="outline"
+                    className="text-red-500 border-red-200 hover:bg-[hsl(42,100%,88%)] hover:text-red-800 dark:border-red-900 dark:hover:bg-red-900/20 dark:hover:text-red-200"
+                  >
                     <Flag className="h-4 w-4 mr-2" />
                     Report
                   </Button>
