@@ -511,7 +511,8 @@ select:disabled {
 
 .theme-hero-input {
   border: 1px solid hsla(var(--brand), 0.22);
-  background: hsla(var(--card), 0.84);
+  background: hsla(var(--card), 1);
+  box-shadow: 0 0 0 2px hsla(var(--brand), 0.35);
   color: hsl(var(--foreground));
   backdrop-filter: blur(10px);
 }
@@ -522,7 +523,7 @@ select:disabled {
 
 .theme-hero-input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px hsla(var(--brand), 0.35);
+  box-shadow: 0 0 0 2px hsla(var(--brand), 0.7);
 }
 
 .dark .theme-hero-input {
